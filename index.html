@@ -1,0 +1,3409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RandomFlight — SimBrief Dispatch Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  /* Dark CartoDB tiles — no filter needed */
+  #leaflet-map .leaflet-tile-pane { filter: none; }
+  #leaflet-map .leaflet-control-attribution {
+    background: rgba(5,13,14,0.8) !important;
+    color: var(--dim) !important;
+    font-size: 9px;
+  }
+  #leaflet-map .leaflet-control-attribution a { color: var(--dim4) !important; }
+  #leaflet-map .leaflet-control-zoom a {
+    background: var(--bg2) !important;
+    color: var(--accent3) !important;
+    border-color: var(--border) !important;
+  }
+  #leaflet-map .leaflet-control-zoom a:hover { background: var(--bg3) !important; }
+  #leaflet-map .leaflet-popup-content-wrapper {
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--accent3);
+    border-radius: 0;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 12px;
+  }
+  #leaflet-map .leaflet-popup-tip { background: #1a5040; }
+  #leaflet-map .leaflet-control-zoom a {
+    background: #0d1a14 !important;
+    color: var(--accent2) !important;
+    border-color: #1a5040 !important;
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  /* ── Theme: FMS Green (default) ─────────────────────────────────────── */
+  :root {
+    --bg:         #050d0e;
+    --bg2:        #071012;
+    --bg3:        #0d1a14;
+    --border:     #1a4a3a;
+    --border2:    #1a5040;
+    --accent:     #00e87a;
+    --accent2:    #3df0a0;
+    --accent3:    #7fffc4;
+    --accent4:    #b0e8c8;
+    --dim:        #2a5a3a;
+    --dim2:       #2a6a4a;
+    --dim3:       #4a6a5a;
+    --dim4:       #4a8a6a;
+    --grid-color: rgba(0,180,100,0.04);
+    --scan-color: rgba(0,255,140,0.12);
+    --glow:       rgba(61,240,160,0.35);
+    --glow2:      rgba(0,232,122,0.4);
+    --tag-bg:     rgba(0,232,122,0.07);
+    --result-bg:  rgba(0,15,10,0.85);
+    --input-bg:   rgba(0,20,14,0.85);
+    --card-bg:    rgba(0,20,14,0.6);
+    --wx-bg:      rgba(0,15,10,0.8);
+    --send-color: #00b8d4;
+  }
+  /* ── Theme: EFIS Amber ───────────────────────────────────────────────── */
+  body.theme-amber {
+    --bg:         #0e0a00;
+    --bg2:        #120d00;
+    --bg3:        #1a1200;
+    --border:     #4a3200;
+    --border2:    #5a3e00;
+    --accent:     #ffaa00;
+    --accent2:    #ffcc44;
+    --accent3:    #ffd966;
+    --accent4:    #ffe8a0;
+    --dim:        #5a3e00;
+    --dim2:       #7a5200;
+    --dim3:       #8a6a20;
+    --dim4:       #aa8840;
+    --grid-color: rgba(200,120,0,0.04);
+    --scan-color: rgba(255,160,0,0.10);
+    --glow:       rgba(255,180,0,0.35);
+    --glow2:      rgba(255,160,0,0.4);
+    --tag-bg:     rgba(255,160,0,0.08);
+    --result-bg:  rgba(14,10,0,0.9);
+    --input-bg:   rgba(20,14,0,0.9);
+    --card-bg:    rgba(20,14,0,0.6);
+    --wx-bg:      rgba(14,10,0,0.8);
+    --send-color: #ff8c00;
+  }
+  /* ── Theme: ECAM Blue ────────────────────────────────────────────────── */
+  body.theme-blue {
+    --bg:         #00060f;
+    --bg2:        #000a18;
+    --bg3:        #001020;
+    --border:     #0a2a50;
+    --border2:    #0e3a6a;
+    --accent:     #00aaff;
+    --accent2:    #40c4ff;
+    --accent3:    #80d8ff;
+    --accent4:    #b3e8ff;
+    --dim:        #0a2a50;
+    --dim2:       #0a3a6a;
+    --dim3:       #1a4a7a;
+    --dim4:       #2a6a9a;
+    --grid-color: rgba(0,100,200,0.04);
+    --scan-color: rgba(0,150,255,0.10);
+    --glow:       rgba(0,180,255,0.35);
+    --glow2:      rgba(0,160,255,0.4);
+    --tag-bg:     rgba(0,160,255,0.08);
+    --result-bg:  rgba(0,6,15,0.9);
+    --input-bg:   rgba(0,10,20,0.9);
+    --card-bg:    rgba(0,10,20,0.6);
+    --wx-bg:      rgba(0,6,15,0.8);
+    --send-color: #00e5ff;
+  }
+  /* ── Theme: Radar Red ────────────────────────────────────────────────── */
+  body.theme-red {
+    --bg:         #0f0000;
+    --bg2:        #180000;
+    --bg3:        #200505;
+    --border:     #4a0a0a;
+    --border2:    #5a1010;
+    --accent:     #ff3030;
+    --accent2:    #ff6060;
+    --accent3:    #ff9090;
+    --accent4:    #ffb8b8;
+    --dim:        #4a0a0a;
+    --dim2:       #6a1010;
+    --dim3:       #7a2020;
+    --dim4:       #9a4040;
+    --grid-color: rgba(200,0,0,0.04);
+    --scan-color: rgba(255,0,0,0.10);
+    --glow:       rgba(255,50,50,0.35);
+    --glow2:      rgba(255,30,30,0.4);
+    --tag-bg:     rgba(255,30,30,0.08);
+    --result-bg:  rgba(15,0,0,0.9);
+    --input-bg:   rgba(20,0,0,0.9);
+    --card-bg:    rgba(20,5,5,0.6);
+    --wx-bg:      rgba(15,0,0,0.8);
+    --send-color: #ff6600;
+  }
+  /* ── Theme: Night Vision ─────────────────────────────────────────────── */
+  body.theme-nvg {
+    --bg:         #000800;
+    --bg2:        #001000;
+    --bg3:        #001500;
+    --border:     #003a00;
+    --border2:    #004a00;
+    --accent:     #00ff00;
+    --accent2:    #44ff44;
+    --accent3:    #88ff88;
+    --accent4:    #aaffaa;
+    --dim:        #003a00;
+    --dim2:       #005000;
+    --dim3:       #206020;
+    --dim4:       #408040;
+    --grid-color: rgba(0,200,0,0.05);
+    --scan-color: rgba(0,255,0,0.12);
+    --glow:       rgba(0,255,0,0.35);
+    --glow2:      rgba(0,255,0,0.4);
+    --tag-bg:     rgba(0,255,0,0.07);
+    --result-bg:  rgba(0,8,0,0.9);
+    --input-bg:   rgba(0,12,0,0.9);
+    --card-bg:    rgba(0,12,0,0.6);
+    --wx-bg:      rgba(0,8,0,0.8);
+    --send-color: #00cc88;
+  }
+
+  /* ── Theme swatches in settings ─────────────────────────────────────── */
+  .theme-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+    margin-top: 8px;
+  }
+  .theme-swatch {
+    border: 2px solid transparent; padding: 8px 4px; cursor: pointer;
+    text-align: center; font-size: 9px; letter-spacing: 1px;
+    text-transform: uppercase; transition: all 0.2s;
+    font-family: "Share Tech Mono", monospace;
+  }
+  .theme-swatch.active { border-color: #ffffff !important; }
+  .theme-swatch:hover { opacity: 0.85; }
+
+  body {
+    font-family: 'Share Tech Mono', monospace;
+    background: var(--bg);
+    color: var(--accent4);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background 0.3s, color 0.3s;
+  }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Grid background */
+  .grid-bg {
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  .scan-line {
+    position: fixed; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--scan-color), transparent);
+    animation: scan 5s linear infinite;
+    pointer-events: none; z-index: 1;
+  }
+  @keyframes scan { 0% { top: -2px; } 100% { top: 100vh; } }
+
+  /* Layout */
+  .app {
+    position: relative; z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+  }
+  /* Map tab gets full width */
+  body.map-active .app {
+    max-width: 100%;
+    padding: 16px 24px 24px;
+  }
+  body.map-active .tabs  { max-width: 900px; margin: 0 auto 0; }
+  body.map-active .header { max-width: 900px; margin: 0 auto 28px; }
+
+  /* Two-column layout for planner + settings on wide screens */
+  @media (min-width: 800px) {
+    .app { padding: 28px 40px 80px; }
+
+    /* Two-column field grid INSIDE the planner — safe, doesn't affect tab visibility */
+    .planner-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 32px;
+      align-items: start;
+    }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 32px;
+      align-items: start;
+    }
+
+    /* Result card wider stats */
+    .stats-grid { grid-template-columns: repeat(4, 1fr); }
+    .wx-panel   { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 32px; }
+  .header-eyebrow { font-size: 12px; letter-spacing: 4px; color: var(--dim2); margin-bottom: 8px; }
+  .header-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px; font-weight: 900;
+    color: var(--accent2); letter-spacing: 8px;
+    text-shadow: 0 0 30px var(--glow);
+  }
+  .header-sub { font-size: 12px; color: var(--dim); letter-spacing: 3px; margin-top: 6px; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 1px solid #1a4a3a; margin-bottom: 28px; }
+  .tab-btn {
+    background: transparent; border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--dim3); font-family: 'Share Tech Mono', monospace;
+    font-size: 14px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 10px 20px; cursor: pointer; transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--accent3); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Form elements */
+  label.field-label {
+    display: block; font-size: 13px; color: var(--dim3);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .field { margin-bottom: 22px; }
+  input[type="text"], select {
+    width: 100%;
+    background: rgba(0,20,14,0.85);
+    border: 1px solid var(--border);
+    color: var(--accent3);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+  input[type="text"]:focus, select:focus { border-color: var(--accent); }
+  select { cursor: pointer; }
+  select option, select optgroup { background: var(--bg); color: var(--accent3); }
+
+  /* Range slider */
+  .slider-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .slider-val { font-family: 'Orbitron', sans-serif; font-size: 18px; color: var(--accent2); letter-spacing: 2px; }
+  input[type="range"] {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 2px; outline: none;
+    border-radius: 0; background: #1a4a3a; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 14px;
+    background: #00e87a; border: 2px solid #050d0e;
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px; height: 14px;
+    background: #00e87a; border: 2px solid #050d0e;
+    cursor: pointer; border-radius: 0;
+  }
+  .slider-minmax { display: flex; justify-content: space-between; margin-top: 5px; }
+  .slider-minmax span { font-size: 12px; color: var(--dim); }
+  .slider-hint { font-size: 12px; color: var(--dim); margin-top: 6px; }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    border: 1px solid var(--border2);
+    color: #4aaa7a; font-size: 13px; letter-spacing: 1px; padding: 4px 10px;
+  }
+
+  /* Buttons */
+  .btn {
+    background: transparent;
+    border: 1px solid #1a6040;
+    color: var(--accent3);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    padding: 11px 20px; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: rgba(0,255,140,0.07); border-color: var(--accent2); color: var(--accent2); box-shadow: 0 0 20px var(--glow); }
+  .btn.primary { border-color: var(--accent); color: var(--accent); }
+  .btn.primary:hover { background: rgba(0,232,122,0.12); box-shadow: 0 0 30px var(--glow); }
+  .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+  .btn.full { width: 100%; padding: 15px; font-size: 14px; letter-spacing: 3px; }
+  .btn.send { border-color: #00b8d4; color: #00b8d4; }
+  .btn.send:hover { background: rgba(0,184,212,0.1); box-shadow: 0 0 20px rgba(0,184,212,0.2); }
+  .btn.sent { border-color: #5dffb0; color: #5dffb0; animation: sentpulse 0.8s ease; }
+  @keyframes sentpulse { 0%{box-shadow:0 0 0 rgba(93,255,176,0)} 50%{box-shadow:0 0 40px rgba(93,255,176,0.3)} 100%{box-shadow:0 0 0 rgba(93,255,176,0)} }
+  .btn-row { display: flex; gap: 10px; margin-top: 0; }
+
+  /* Generating blink */
+  .blink { animation: blink 0.5s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Result card */
+  .result-card {
+    background: rgba(0,15,10,0.85);
+    border: 1px solid var(--border2);
+    margin-top: 22px;
+    padding: 22px;
+    position: relative;
+    animation: fadeIn 0.4s ease;
+  }
+  .result-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .corner { position: absolute; width: 10px; height: 10px; }
+  .corner.tl { top: 0; left: 0; border-top: 1px solid #3df0a0; border-left: 1px solid #3df0a0; }
+  .corner.tr { top: 0; right: 0; border-top: 1px solid #3df0a0; border-right: 1px solid #3df0a0; }
+  .corner.bl { bottom: 0; left: 0; border-bottom: 1px solid #3df0a0; border-left: 1px solid #3df0a0; }
+  .corner.br { bottom: 0; right: 0; border-bottom: 1px solid #3df0a0; border-right: 1px solid #3df0a0; }
+
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  /* Route display */
+  .route-row { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .airport-block { flex: 1; }
+  .airport-block.right { text-align: right; }
+  .airport-code { font-family: 'Orbitron', sans-serif; font-size: 30px; font-weight: 900; color: var(--accent2); letter-spacing: 4px; }
+  .airport-name { font-size: 14px; color: var(--dim4); letter-spacing: 1px; margin-top: 3px; }
+  .airport-city { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .arrow-block { flex: 0 0 auto; text-align: center; }
+  .hdg-label { color: var(--border2); font-size: 11px; letter-spacing: 1px; margin-bottom: 3px; }
+  .arrow-sym { color: var(--border2); font-size: 22px; line-height: 1; }
+  .dist-label { color: var(--border2); font-size: 11px; letter-spacing: 1px; margin-top: 3px; }
+
+  /* Stats grid */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .stat-label { font-size: 13px; color: var(--dim3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-size: 19px; color: var(--accent3); letter-spacing: 1px; }
+
+  /* No result placeholder */
+  .no-result { text-align: center; margin-top: 34px; color: #1a4030; font-size: 14px; letter-spacing: 2px; }
+  .history-section { margin-top: 20px; }
+  .history-label { font-size: 12px; color: #2a4a3a; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--bg3); }
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 10px; margin-bottom: 4px;
+    background: rgba(0,15,10,0.5); border: 1px solid #0d2018;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .history-item:hover { border-color: var(--border); background: rgba(0,30,20,0.6); }
+  .history-icao { font-family: Orbitron, sans-serif; font-size: 15px; color: var(--accent2); letter-spacing: 2px; }
+  .history-arrow { color: #1a5040; font-size: 11px; margin: 0 8px; }
+  .history-meta { font-size: 13px; color: var(--dim); letter-spacing: 1px; }
+
+  /* Warning */
+  .warning { font-size: 13px; color: #3a6a4a; margin-top: 12px; text-align: center; }
+
+  /* Tabs content */
+  .tab-content { animation: fadeIn 0.3s ease; }
+  .hidden { display: none; }
+
+  /* Settings hint */
+  .hint { font-size: 13px; color: var(--dim); margin-top: 6px; }
+
+  /* Weather panel */
+  .wx-panel {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .wx-card {
+    background: rgba(0,20,14,0.6); border: 1px solid var(--border);
+    padding: 10px 12px;
+  }
+  .wx-airport-label { font-size: 12px; color: var(--dim3); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .wx-loading { font-size: 13px; color: var(--dim); letter-spacing: 1px; animation: blink 0.8s step-end infinite; }
+  .wx-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .wx-icon { font-size: 13px; flex: 0 0 18px; }
+  .wx-text { font-size: 14px; color: var(--accent3); letter-spacing: 0.5px; }
+  .wx-sub  { font-size: 12px; color: var(--dim4); }
+  .wx-rwy  { margin-top: 8px; padding-top: 7px; border-top: 1px solid #1a3a2a; font-size: 12px; color: var(--dim3); letter-spacing: 1px; }
+  .wx-rwy span { font-family: Orbitron, sans-serif; font-size: 16px; color: var(--accent2); letter-spacing: 2px; margin-left: 6px; }
+  .wx-na { font-size: 12px; color: #2a4a3a; letter-spacing: 1px; padding: 12px 0; text-align: center; }
+  .mode-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--dim3);
+    font-family: "Share Tech Mono", monospace; font-size: 14px; letter-spacing: 1px;
+    padding: 9px 8px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .mode-btn:hover { border-color: #2a7a5a; color: var(--accent3); }
+  .mode-btn.active { border-color: var(--accent); color: var(--accent); background: var(--tag-bg); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="scan-line"></div>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-eyebrow">◈ DISPATCH SYSTEM v<span id="app-version">1.0.1</span> ◈</div>
+    <div class="header-title">RANDOMFLIGHT</div>
+    <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('planner')">Planner</button>
+    <button class="tab-btn" onclick="switchTab('map')" id="map-tab-btn">Map</button>
+    <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+    </div><!-- end settings-grid -->
+  </div>
+
+  <!-- Planner Tab -->
+  <div id="tab-planner" class="tab-content">
+
+    <div class="mode-section">
+    <!-- Mode selector -->
+    <div class="field">
+      <label class="field-label">Route Mode</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="mode-btns">
+        <button class="mode-btn active" data-mode="full-random"    onclick="setMode('full-random')">&#x1F3B2; Full Random</button>
+        <button class="mode-btn"        data-mode="fixed-dep"      onclick="setMode('fixed-dep')">&#x1F6EB; Fix Departure</button>
+        <button class="mode-btn"        data-mode="fixed-dest"     onclick="setMode('fixed-dest')">&#x1F6EC; Fix Arrival</button>
+        <button class="mode-btn"        data-mode="manual"         onclick="setMode('manual')">&#x1F4CD; Manual Both</button>
+      </div>
+    </div>
+
+    <!-- Departure airport picker (shown when dep is fixed) -->
+    </div><!-- end mode-section -->
+    <div class="field tabs-span" id="dep-field" style="display:none;overflow:visible">
+      <label class="field-label">Departure Airport</label>
+      <div style="position:relative;overflow:visible">
+        <input type="text" id="dep-search" placeholder="Search ICAO or city..." autocomplete="off"
+          oninput="onAirportSearch('dep')" onfocus="openAirportDropdown('dep')" onblur="closeAirportDropdown('dep')"
+          style="width:100%;padding-right:36px">
+        <span id="dep-clear-x" onclick="clearAirport('dep')"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--dim3);font-size:14px;display:none">&#x2715;</span>
+        <div id="dep-dropdown"
+          style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
+                 background:var(--bg);border:1px solid var(--border);border-top:none;
+                 max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <!-- Arrival airport picker (shown when dest is fixed) -->
+    <div class="field" id="dest-field" style="display:none;overflow:visible">
+      <label class="field-label">Arrival Airport</label>
+      <div style="position:relative;overflow:visible">
+        <input type="text" id="dest-search" placeholder="Search ICAO or city..." autocomplete="off"
+          oninput="onAirportSearch('dest')" onfocus="openAirportDropdown('dest')" onblur="closeAirportDropdown('dest')"
+          style="width:100%;padding-right:36px">
+        <span id="dest-clear-x" onclick="clearAirport('dest')"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--dim3);font-size:14px;display:none">&#x2715;</span>
+        <div id="dest-dropdown"
+          style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;
+                 background:var(--bg);border:1px solid var(--border);border-top:none;
+                 max-height:200px;overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div class="planner-grid">
+    <div class="planner-col-left">
+    <div class="field">
+      <label class="field-label">Aircraft Type</label>
+      <select id="aircraft-select" onchange="onAircraftChange()"></select>
+      <div class="tags" id="aircraft-tags"></div>
+    </div>
+
+    <div class="field" id="duration-field">
+      <div class="slider-row">
+        <label class="field-label" style="margin:0">Target Flight Duration</label>
+        <span class="slider-val" id="duration-display">02:00</span>
+      </div>
+      <input type="range" id="duration-slider" min="30" max="840" step="5" value="120" oninput="onDurationChange()">
+      <div class="slider-minmax"><span>30 MIN</span><span>14 HRS</span></div>
+      <div class="slider-hint" id="nm-hint">≈ 906 NM at cruise</div>
+    </div>
+
+    <!-- Region filter (also in Settings) -->
+    <div class="field" id="duration-field-region">
+      <label class="field-label">Region Filter</label>
+      <select id="region-select-main" onchange="saveRegionMain()" style="width:100%">
+        <option value="ANY">🌍 Any Region</option>
+        <option value="Europe">Europe</option>
+        <option value="North America">North America</option>
+        <option value="Asia">Asia</option>
+        <option value="Oceania">Oceania</option>
+        <option value="Africa">Africa</option>
+        <option value="South America">South America</option>
+      </select>
+    </div>
+
+    </div><!-- end planner-col-left -->
+    <div class="planner-col-right">
+    <!-- Airline / Flight Number (optional) -->
+    <div class="field">
+      <label class="field-label">Airline &amp; Flight Number <span style="color:var(--dim);font-size:10px;letter-spacing:1px">(OPTIONAL)</span></label>
+
+      <!-- Searchable airline dropdown -->
+      <div style="position:relative;margin-bottom:10px" id="airline-wrapper">
+        <input type="text" id="airline-search" placeholder="Search airline..." autocomplete="off"
+          oninput="onAirlineSearch()" onfocus="openAirlineDropdown()" onblur="closeAirlineDropdown()"
+          style="width:100%;padding-right:36px">
+        <span id="airline-clear-x" onclick="clearAirlineSelection()"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--dim3);font-size:14px;display:none">&#x2715;</span>
+        <div id="airline-dropdown"
+          style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;
+                 background:var(--bg);border:1px solid var(--border);border-top:none;
+                 max-height:220px;overflow-y:auto">
+        </div>
+      </div>
+
+      <!-- Flight number -->
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="flex:1">
+          <input type="text" id="flight-number" placeholder="Flight number  e.g. 1234" maxlength="6"
+            oninput="onFlightNumChange()" style="letter-spacing:2px;width:100%">
+        </div>
+        <div style="flex:0 0 auto;padding-top:1px">
+          <button class="btn" onclick="clearCallsign()" title="Clear all" style="padding:9px 13px;font-size:13px;color:var(--dim3);border-color:var(--border)">&#x2715;</button>
+        </div>
+      </div>
+
+      <!-- ATC Callsign (optional, for non-commercial) -->
+      <div style="margin-top:10px">
+        <label class="field-label" style="margin-bottom:6px">ATC Callsign <span style="color:var(--dim);font-size:10px;letter-spacing:1px">(OPTIONAL — non-commercial)</span></label>
+        <input type="text" id="atc-callsign" placeholder="e.g. NOVEMBER123 or GOLF-ABCD" maxlength="12"
+          oninput="onAtcCallsignChange()" style="text-transform:uppercase;letter-spacing:2px;width:100%">
+        <div class="hint" style="margin-top:4px">Populates the ATC callsign field in SimBrief</div>
+      </div>
+
+      <div id="callsign-preview" style="margin-top:10px;font-size:14px;color:var(--accent2);letter-spacing:3px;min-height:18px"></div>
+    </div>
+
+    </div><!-- end planner-col-right -->
+    </div><!-- end planner-grid -->
+
+    <button class="btn primary full" id="gen-btn" onclick="generate()">&#x25C8; RANDOMISE FLIGHT &#x25C8;</button>
+
+    <div id="result-area"></div>
+    <div class="no-result" id="no-result">NO ROUTE GENERATED — HIT RANDOMISE</div>
+    <div id="history-area"></div>
+  </div>
+
+  <!-- Settings Tab -->
+  <!-- Map Tab -->
+  <div id="tab-map" class="tab-content hidden">
+    <div id="map-no-route" style="text-align:center;padding:60px 0;color:var(--border);font-size:11px;letter-spacing:2px">
+      NO ROUTE GENERATED YET — USE THE PLANNER
+    </div>
+    <div id="map-container" style="display:none">
+      <!-- Route summary bar -->
+      <div id="map-route-bar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:12px 14px;background:var(--wx-bg);border:1px solid var(--border2);position:relative;">
+        <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)"></div>
+        <div>
+          <span id="map-dep-code" style="font-family:Orbitron,sans-serif;font-size:18px;font-weight:900;color:var(--accent2);letter-spacing:3px"></span>
+          <span style="color:var(--border2);margin:0 10px;font-size:18px">──►</span>
+          <span id="map-dest-code" style="font-family:Orbitron,sans-serif;font-size:18px;font-weight:900;color:var(--accent2);letter-spacing:3px"></span>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:var(--dim3);letter-spacing:2px;text-transform:uppercase">Block / Distance</div>
+          <div id="map-stats" style="font-size:13px;color:var(--accent3);letter-spacing:1px;margin-top:2px"></div>
+        </div>
+      </div>
+      <!-- The actual map -->
+      <div id="leaflet-map" style="height:420px;border:1px solid var(--border2);background:var(--bg2);transition:height 0.2s"></div>
+      <!-- SimBrief button -->
+      <div style="margin-top:12px;display:flex;gap:10px">
+        <button class="btn" style="flex:1;font-size:11px" onclick="switchTab('planner')">← BACK TO PLANNER</button>
+        <button class="btn send" id="map-simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">→ OPEN IN SIMBRIEF</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="tab-content hidden">
+    <div class="settings-grid">
+    <div class="field" style="grid-column:1/-1">
+      <label class="field-label">Display Theme</label>
+      <div class="theme-grid" id="theme-grid">
+        <div class="theme-swatch active" data-theme="" onclick="setTheme('')"
+          style="background:#050d0e;border-color:#1a4a3a;color:#3df0a0">
+          <div style="font-size:16px;margin-bottom:4px">🟢</div>FMS Green
+        </div>
+        <div class="theme-swatch" data-theme="amber" onclick="setTheme('amber')"
+          style="background:#0e0a00;border-color:#4a3200;color:#ffcc44">
+          <div style="font-size:16px;margin-bottom:4px">🟡</div>EFIS Amber
+        </div>
+        <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')"
+          style="background:#00060f;border-color:#0a2a50;color:#40c4ff">
+          <div style="font-size:16px;margin-bottom:4px">🔵</div>ECAM Blue
+        </div>
+        <div class="theme-swatch" data-theme="red" onclick="setTheme('red')"
+          style="background:#0f0000;border-color:#4a0a0a;color:#ff6060">
+          <div style="font-size:16px;margin-bottom:4px">🔴</div>Radar Red
+        </div>
+        <div class="theme-swatch" data-theme="nvg" onclick="setTheme('nvg')"
+          style="background:#000800;border-color:#003a00;color:#44ff44">
+          <div style="font-size:16px;margin-bottom:4px">🌿</div>Night Vision
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">SimBrief Pilot ID</label>
+      <input type="text" id="pilot-id" placeholder="e.g. 123456" oninput="savePilotId()">
+      <div class="hint">Find yours at simbrief.com → Account → Pilot ID</div>
+    </div>
+    <div class="field">
+      <label class="field-label">Region Filter</label>
+      <select id="region-select" onchange="saveRegion()">
+        <option value="ANY">Any Region</option>
+        <option value="Europe">Europe</option>
+        <option value="North America">North America</option>
+        <option value="Asia">Asia</option>
+        <option value="Oceania">Oceania</option>
+        <option value="Africa">Africa</option>
+        <option value="South America">South America</option>
+      </select>
+    </div>
+    <div class="field">
+      <div class="slider-row">
+        <label class="field-label" style="margin:0">Duration Tolerance</label>
+        <span class="slider-val" id="tol-display" style="font-size:16px">± 20%</span>
+      </div>
+      <input type="range" id="tol-slider" min="5" max="40" step="5" value="20" oninput="onTolChange()">
+      <div class="hint">Higher tolerance = more airport variety</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── Airport Database ─────────────────────────────────────────────────────────
+const AIRPORTS = [
+  // Europe
+  { icao:"EGLL", name:"London Heathrow", city:"London", lat:51.4775, lon:-0.4614, rwy:3902, sfc:"paved" },
+  { icao:"LFPG", name:"Charles de Gaulle", city:"Paris", lat:49.0097, lon:2.5478, rwy:4215, sfc:"paved" },
+  { icao:"EDDF", name:"Frankfurt Airport", city:"Frankfurt", lat:50.0379, lon:8.5622, rwy:4000, sfc:"paved" },
+  { icao:"EHAM", name:"Amsterdam Schiphol", city:"Amsterdam", lat:52.3086, lon:4.7639, rwy:3800, sfc:"paved" },
+  { icao:"LEMD", name:"Adolfo Suárez Madrid", city:"Madrid", lat:40.4936, lon:-3.5668, rwy:4349, sfc:"paved" },
+  { icao:"LIRF", name:"Leonardo da Vinci", city:"Rome", lat:41.8003, lon:12.2389, rwy:3902, sfc:"paved" },
+  { icao:"LSZH", name:"Zürich Airport", city:"Zürich", lat:47.4647, lon:8.5492, rwy:3700, sfc:"paved" },
+  { icao:"EDDM", name:"Munich Airport", city:"Munich", lat:48.3538, lon:11.7861, rwy:4000, sfc:"paved" },
+  { icao:"LOWW", name:"Vienna International", city:"Vienna", lat:48.1103, lon:16.5697, rwy:3600, sfc:"paved" },
+  { icao:"EBCI", name:"Brussels South Charleroi", city:"Brussels", lat:50.4592, lon:4.4528, rwy:3200, sfc:"paved" },
+  { icao:"EIDW", name:"Dublin Airport", city:"Dublin", lat:53.4213, lon:-6.2701, rwy:2637, sfc:"paved" },
+  { icao:"EGPH", name:"Edinburgh Airport", city:"Edinburgh", lat:55.9500, lon:-3.3725, rwy:2556, sfc:"paved" },
+  { icao:"EGCC", name:"Manchester Airport", city:"Manchester", lat:53.3537, lon:-2.2750, rwy:3048, sfc:"paved" },
+  { icao:"ESSA", name:"Stockholm Arlanda", city:"Stockholm", lat:59.6519, lon:17.9186, rwy:3301, sfc:"paved" },
+  { icao:"EKCH", name:"Copenhagen Airport", city:"Copenhagen", lat:55.6180, lon:12.6561, rwy:3600, sfc:"paved" },
+  { icao:"ENGM", name:"Oslo Gardermoen", city:"Oslo", lat:60.1939, lon:11.1004, rwy:3600, sfc:"paved" },
+  { icao:"EFHK", name:"Helsinki-Vantaa", city:"Helsinki", lat:60.3172, lon:24.9633, rwy:3440, sfc:"paved" },
+  { icao:"LPPT", name:"Lisbon Airport", city:"Lisbon", lat:38.7756, lon:-9.1354, rwy:3805, sfc:"paved" },
+  { icao:"LGAV", name:"Athens Eleftherios Venizelos", city:"Athens", lat:37.9364, lon:23.9445, rwy:4000, sfc:"paved" },
+  { icao:"LKPR", name:"Václav Havel Airport", city:"Prague", lat:50.1008, lon:14.2600, rwy:3715, sfc:"paved" },
+  { icao:"EPWA", name:"Warsaw Chopin", city:"Warsaw", lat:52.1657, lon:20.9671, rwy:3690, sfc:"paved" },
+  { icao:"LHBP", name:"Budapest Ferenc Liszt", city:"Budapest", lat:47.4369, lon:19.2556, rwy:3707, sfc:"paved" },
+  { icao:"UUEE", name:"Sheremetyevo International", city:"Moscow", lat:55.9726, lon:37.4146, rwy:3700, sfc:"paved" },
+  { icao:"LEBL", name:"Barcelona El Prat", city:"Barcelona", lat:41.2971, lon:2.0785, rwy:3352, sfc:"paved" },
+  { icao:"LIMC", name:"Milan Malpensa", city:"Milan", lat:45.6306, lon:8.7281, rwy:3920, sfc:"paved" },
+  // North America
+  { icao:"KJFK", name:"John F. Kennedy Intl", city:"New York", lat:40.6413, lon:-73.7781, rwy:4423, sfc:"paved" },
+  { icao:"KLAX", name:"Los Angeles International", city:"Los Angeles", lat:33.9425, lon:-118.4081, rwy:3685, sfc:"paved" },
+  { icao:"KORD", name:"O'Hare International", city:"Chicago", lat:41.9742, lon:-87.9073, rwy:4112, sfc:"paved" },
+  { icao:"KATL", name:"Hartsfield-Jackson Atlanta", city:"Atlanta", lat:33.6407, lon:-84.4277, rwy:3624, sfc:"paved" },
+  { icao:"KDFW", name:"Dallas/Fort Worth Intl", city:"Dallas", lat:32.8998, lon:-97.0403, rwy:4085, sfc:"paved" },
+  { icao:"KDEN", name:"Denver International", city:"Denver", lat:39.8561, lon:-104.6737, rwy:4877, sfc:"paved" },
+  { icao:"KSFO", name:"San Francisco International", city:"San Francisco", lat:37.6213, lon:-122.3790, rwy:3618, sfc:"paved" },
+  { icao:"KMIA", name:"Miami International", city:"Miami", lat:25.7959, lon:-80.2870, rwy:3962, sfc:"paved" },
+  { icao:"KLAS", name:"Harry Reid International", city:"Las Vegas", lat:36.0840, lon:-115.1537, rwy:4423, sfc:"paved" },
+  { icao:"KBOS", name:"Logan International", city:"Boston", lat:42.3656, lon:-71.0096, rwy:3048, sfc:"paved" },
+  { icao:"KSEA", name:"Seattle-Tacoma Intl", city:"Seattle", lat:47.4502, lon:-122.3088, rwy:3627, sfc:"paved" },
+  { icao:"CYYZ", name:"Toronto Pearson Intl", city:"Toronto", lat:43.6772, lon:-79.6306, rwy:3368, sfc:"paved" },
+  { icao:"CYVR", name:"Vancouver International", city:"Vancouver", lat:49.1967, lon:-123.1815, rwy:3505, sfc:"paved" },
+  { icao:"CYUL", name:"Montréal-Trudeau Intl", city:"Montreal", lat:45.4706, lon:-73.7408, rwy:3353, sfc:"paved" },
+  { icao:"MMMX", name:"Mexico City International", city:"Mexico City", lat:19.4363, lon:-99.0721, rwy:4000, sfc:"paved" },
+  { icao:"KIAH", name:"George Bush Intercontinental", city:"Houston", lat:29.9902, lon:-95.3368, rwy:4084, sfc:"paved" },
+  { icao:"KEWR", name:"Newark Liberty Intl", city:"Newark", lat:40.6895, lon:-74.1745, rwy:3353, sfc:"paved" },
+  { icao:"KPHL", name:"Philadelphia International", city:"Philadelphia", lat:39.8729, lon:-75.2437, rwy:2896, sfc:"paved" },
+  { icao:"KPHX", name:"Phoenix Sky Harbor", city:"Phoenix", lat:33.4373, lon:-112.0078, rwy:3853, sfc:"paved" },
+  { icao:"KCLT", name:"Charlotte Douglas Intl", city:"Charlotte", lat:35.2140, lon:-80.9431, rwy:3048, sfc:"paved" },
+  { icao:"KBWI", name:"Baltimore/Washington Intl", city:"Baltimore", lat:39.1754, lon:-76.6683, rwy:3048, sfc:"paved" },
+  { icao:"KMSP", name:"Minneapolis-St. Paul Intl", city:"Minneapolis", lat:44.8848, lon:-93.2223, rwy:3353, sfc:"paved" },
+  { icao:"KSLC", name:"Salt Lake City International", city:"Salt Lake City", lat:40.7884, lon:-111.9778, rwy:3658, sfc:"paved" },
+  { icao:"KPDX", name:"Portland International", city:"Portland", lat:45.5887, lon:-122.5975, rwy:2896, sfc:"paved" },
+  // Asia
+  { icao:"RJTT", name:"Tokyo Haneda", city:"Tokyo", lat:35.5494, lon:139.7798, rwy:3360, sfc:"paved" },
+  { icao:"RJAA", name:"Narita International", city:"Tokyo", lat:35.7647, lon:140.3864, rwy:4000, sfc:"paved" },
+  { icao:"ZBAA", name:"Beijing Capital Intl", city:"Beijing", lat:40.0799, lon:116.6031, rwy:3800, sfc:"paved" },
+  { icao:"ZSPD", name:"Shanghai Pudong Intl", city:"Shanghai", lat:31.1443, lon:121.8083, rwy:4000, sfc:"paved" },
+  { icao:"VHHH", name:"Hong Kong International", city:"Hong Kong", lat:22.3080, lon:113.9185, rwy:3800, sfc:"paved" },
+  { icao:"WSSS", name:"Singapore Changi", city:"Singapore", lat:1.3644, lon:103.9915, rwy:4000, sfc:"paved" },
+  { icao:"OMDB", name:"Dubai International", city:"Dubai", lat:25.2532, lon:55.3657, rwy:4350, sfc:"paved" },
+  { icao:"OIIE", name:"Imam Khomeini International", city:"Tehran", lat:35.4161, lon:51.1522, rwy:4267, sfc:"paved" },
+  { icao:"VIDP", name:"Indira Gandhi International", city:"Delhi", lat:28.5562, lon:77.1000, rwy:4430, sfc:"paved" },
+  { icao:"VABB", name:"Chhatrapati Shivaji Intl", city:"Mumbai", lat:19.0896, lon:72.8656, rwy:3660, sfc:"paved" },
+  { icao:"RKSI", name:"Incheon International", city:"Seoul", lat:37.4602, lon:126.4407, rwy:4000, sfc:"paved" },
+  { icao:"VTBS", name:"Suvarnabhumi Airport", city:"Bangkok", lat:13.6900, lon:100.7501, rwy:4000, sfc:"paved" },
+  { icao:"WIII", name:"Soekarno-Hatta Intl", city:"Jakarta", lat:-6.1256, lon:106.6559, rwy:3660, sfc:"paved" },
+  { icao:"RPLL", name:"Ninoy Aquino International", city:"Manila", lat:14.5086, lon:121.0197, rwy:3737, sfc:"paved" },
+  { icao:"RCTP", name:"Taoyuan International", city:"Taipei", lat:25.0777, lon:121.2330, rwy:3660, sfc:"paved" },
+  { icao:"OERK", name:"King Khalid International", city:"Riyadh", lat:24.9578, lon:46.6989, rwy:4205, sfc:"paved" },
+  { icao:"OKBK", name:"Kuwait International", city:"Kuwait City", lat:29.2267, lon:47.9689, rwy:3400, sfc:"paved" },
+  { icao:"OTHH", name:"Hamad International", city:"Doha", lat:25.2731, lon:51.6080, rwy:4572, sfc:"paved" },
+  // Oceania
+  { icao:"YSSY", name:"Sydney Kingsford Smith", city:"Sydney", lat:-33.9461, lon:151.1772, rwy:3962, sfc:"paved" },
+  { icao:"YMML", name:"Melbourne Airport", city:"Melbourne", lat:-37.6733, lon:144.8430, rwy:3657, sfc:"paved" },
+  { icao:"YBBN", name:"Brisbane Airport", city:"Brisbane", lat:-27.3842, lon:153.1175, rwy:3560, sfc:"paved" },
+  { icao:"NZAA", name:"Auckland Airport", city:"Auckland", lat:-37.0082, lon:174.7917, rwy:3635, sfc:"paved" },
+  { icao:"NZWN", name:"Wellington Airport", city:"Wellington", lat:-41.3272, lon:174.8050, rwy:1936, sfc:"paved" },
+  { icao:"YPPH", name:"Perth Airport", city:"Perth", lat:-31.9403, lon:115.9670, rwy:3444, sfc:"paved" },
+  // Africa
+  { icao:"FAOR", name:"O.R. Tambo International", city:"Johannesburg", lat:-26.1392, lon:28.2460, rwy:4418, sfc:"paved" },
+  { icao:"HAAB", name:"Addis Ababa Bole International", city:"Addis Ababa", lat:8.9779, lon:38.7993, rwy:3800, sfc:"paved" },
+  { icao:"HECA", name:"Cairo International", city:"Cairo", lat:30.1219, lon:31.4056, rwy:4000, sfc:"paved" },
+  { icao:"GMMN", name:"Mohammed V International", city:"Casablanca", lat:33.3675, lon:-7.5900, rwy:3720, sfc:"paved" },
+  { icao:"DNMM", name:"Murtala Muhammed Intl", city:"Lagos", lat:6.5774, lon:3.3216, rwy:3900, sfc:"paved" },
+  { icao:"FMMI", name:"Ivato International", city:"Antananarivo", lat:-18.7969, lon:47.4789, rwy:3100, sfc:"paved" },
+  // South America
+  { icao:"SBGR", name:"São Paulo Guarulhos Intl", city:"São Paulo", lat:-23.4356, lon:-46.4731, rwy:3700, sfc:"paved" },
+  { icao:"SAEZ", name:"Ministro Pistarini Intl", city:"Buenos Aires", lat:-34.8222, lon:-58.5358, rwy:3300, sfc:"paved" },
+  { icao:"SKBO", name:"El Dorado International", city:"Bogotá", lat:4.7016, lon:-74.1469, rwy:3800, sfc:"paved" },
+  { icao:"SPJC", name:"Jorge Chávez International", city:"Lima", lat:-12.0219, lon:-77.1143, rwy:3507, sfc:"paved" },
+  { icao:"SCEL", name:"Arturo Merino Benítez Intl", city:"Santiago", lat:-33.3930, lon:-70.7858, rwy:4083, sfc:"paved" },
+  { icao:"SBGL", name:"Galeão International", city:"Rio de Janeiro", lat:-22.8099, lon:-43.2505, rwy:4240, sfc:"paved" },
+  // Ireland
+  { icao:"EINN", name:"Shannon Airport",               city:"Shannon",          lat:52.7020, lon:-8.9248, rwy:3199, sfc:"paved" },
+  { icao:"EICK", name:"Cork Airport",                  city:"Cork",             lat:51.8413, lon:-8.4910, rwy:2133, sfc:"paved" },
+  { icao:"EIKN", name:"Ireland West Airport Knock",    city:"Knock",            lat:53.9103, lon:-8.8185, rwy:2073, sfc:"paved" },
+  { icao:"EIKY", name:"Kerry Airport",                 city:"Kerry",            lat:52.1809, lon:-9.5238, rwy:2000, sfc:"paved" },
+  { icao:"EIDL", name:"Donegal Airport",               city:"Donegal",          lat:55.0442, lon:-8.3410, rwy:1600, sfc:"paved" },
+  { icao:"EIWF", name:"Waterford Airport",             city:"Waterford",        lat:52.1872, lon:-7.0870, rwy:1433, sfc:"paved" },
+  { icao:"EISG", name:"Sligo Airport",                 city:"Sligo",            lat:54.2802, lon:-8.5992, rwy:1493, sfc:"paved" },
+  // UK
+  { icao:"EGLL", name:"London Heathrow",               city:"London",           lat:51.4775, lon:-0.4614, rwy:3902, sfc:"paved" },
+  { icao:"EGKK", name:"London Gatwick",                city:"London",           lat:51.1537, lon:-0.1821, rwy:3316, sfc:"paved" },
+  { icao:"EGSS", name:"London Stansted",               city:"London",           lat:51.8850, lon:0.2350, rwy:3049, sfc:"paved" },
+  { icao:"EGGW", name:"London Luton",                  city:"London",           lat:51.8747, lon:-0.3683, rwy:2162, sfc:"paved" },
+  { icao:"EGCC", name:"Manchester Airport",            city:"Manchester",       lat:53.3537, lon:-2.2750, rwy:3048, sfc:"paved" },
+  { icao:"EGBB", name:"Birmingham Airport",            city:"Birmingham",       lat:52.4539, lon:-1.7480, rwy:3052, sfc:"paved" },
+  { icao:"EGPH", name:"Edinburgh Airport",             city:"Edinburgh",        lat:55.9500, lon:-3.3725, rwy:2556, sfc:"paved" },
+  { icao:"EGPF", name:"Glasgow Airport",               city:"Glasgow",          lat:55.8719, lon:-4.4330, rwy:2658, sfc:"paved" },
+  { icao:"EGPD", name:"Aberdeen Airport",              city:"Aberdeen",         lat:57.2019, lon:-2.1978, rwy:1829, sfc:"paved" },
+  { icao:"EGAC", name:"Belfast City Airport",          city:"Belfast",          lat:54.6181, lon:-5.8725, rwy:1829, sfc:"paved" },
+  { icao:"EGAA", name:"Belfast International",         city:"Belfast",          lat:54.6575, lon:-6.2158, rwy:2780, sfc:"paved" },
+  { icao:"EGTE", name:"Exeter Airport",                city:"Exeter",           lat:50.7344, lon:-3.4139, rwy:1883, sfc:"paved" },
+  { icao:"EGHH", name:"Bournemouth Airport",           city:"Bournemouth",      lat:50.7800, lon:-1.8425, rwy:2271, sfc:"paved" },
+  { icao:"EGHI", name:"Southampton Airport",           city:"Southampton",      lat:50.9503, lon:-1.3568, rwy:1723, sfc:"paved" },
+  { icao:"EGHC", name:"Land's End Airport",            city:"Land's End",       lat:50.1028, lon:-5.6706, rwy:790, sfc:"paved" },
+  { icao:"EGHE", name:"Scilly St Mary's Airport",      city:"Isles of Scilly",  lat:49.9133, lon:-6.2917, rwy:537, sfc:"paved" },
+  { icao:"EGPI", name:"Islay Airport",                 city:"Islay",            lat:55.6819, lon:-6.2567, rwy:2200, sfc:"paved" },
+  { icao:"EGPK", name:"Glasgow Prestwick",             city:"Prestwick",        lat:55.5094, lon:-4.5867, rwy:2987, sfc:"paved" },
+  { icao:"EGPB", name:"Sumburgh Airport",              city:"Shetland",         lat:59.8789, lon:-1.2956, rwy:1676, sfc:"paved" },
+  { icao:"EGPA", name:"Kirkwall Airport",              city:"Orkney",           lat:58.9578, lon:-2.9050, rwy:2200, sfc:"paved" },
+  { icao:"EGPO", name:"Stornoway Airport",             city:"Stornoway",        lat:58.2156, lon:-6.3311, rwy:2200, sfc:"paved" },
+  { icao:"EGNS", name:"Isle of Man Airport",           city:"Isle of Man",      lat:54.0833, lon:-4.6239, rwy:2200, sfc:"paved" },
+  { icao:"EGJJ", name:"Jersey Airport",                city:"Jersey",           lat:49.2079, lon:-2.1955, rwy:1706, sfc:"paved" },
+  { icao:"EGJB", name:"Guernsey Airport",              city:"Guernsey",         lat:49.4350, lon:-2.6022, rwy:1463, sfc:"paved" },
+  { icao:"EGNT", name:"Newcastle Airport",             city:"Newcastle",        lat:55.0375, lon:-1.6917, rwy:2329, sfc:"paved" },
+  { icao:"EGNX", name:"East Midlands Airport",         city:"East Midlands",    lat:52.8311, lon:-1.3281, rwy:2893, sfc:"paved" },
+  { icao:"EGSH", name:"Norwich Airport",               city:"Norwich",          lat:52.6758, lon:1.2828, rwy:2200, sfc:"paved" },
+  { icao:"EGFF", name:"Cardiff Airport",               city:"Cardiff",          lat:51.3967, lon:-3.3433, rwy:2390, sfc:"paved" },
+  { icao:"EGBJ", name:"Gloucestershire Airport",       city:"Gloucester",       lat:51.8942, lon:-2.1672, rwy:2200, sfc:"paved" },
+  // Continental Europe — regional
+  { icao:"LFPG", name:"Charles de Gaulle",             city:"Paris",            lat:49.0097, lon:2.5478, rwy:4215, sfc:"paved" },
+  { icao:"LFPO", name:"Paris Orly",                    city:"Paris",            lat:48.7233, lon:2.3794, rwy:2200, sfc:"paved" },
+  { icao:"LFSB", name:"EuroAirport Basel-Mulhouse",    city:"Basel",            lat:47.5896, lon:7.5290, rwy:2200, sfc:"paved" },
+  { icao:"LFML", name:"Marseille Provence",            city:"Marseille",        lat:43.4393, lon:5.2214, rwy:2200, sfc:"paved" },
+  { icao:"LFMN", name:"Nice Côte d'Azur",              city:"Nice",             lat:43.6584, lon:7.2159, rwy:2960, sfc:"paved" },
+  { icao:"LFBO", name:"Toulouse Blagnac",              city:"Toulouse",         lat:43.6293, lon:1.3678, rwy:3500, sfc:"paved" },
+  { icao:"LFLY", name:"Lyon Saint-Exupéry",            city:"Lyon",             lat:45.7256, lon:5.0811, rwy:1660, sfc:"paved" },
+  { icao:"LFRB", name:"Brest Bretagne",                city:"Brest",            lat:48.4479, lon:-4.4186, rwy:3100, sfc:"paved" },
+  { icao:"EDDF", name:"Frankfurt Airport",             city:"Frankfurt",        lat:50.0379, lon:8.5622, rwy:4000, sfc:"paved" },
+  { icao:"EDDM", name:"Munich Airport",                city:"Munich",           lat:48.3538, lon:11.7861, rwy:4000, sfc:"paved" },
+  { icao:"EDDL", name:"Düsseldorf Airport",            city:"Düsseldorf",       lat:51.2895, lon:6.7668, rwy:2200, sfc:"paved" },
+  { icao:"EDDB", name:"Berlin Brandenburg",            city:"Berlin",           lat:52.3667, lon:13.5033, rwy:2200, sfc:"paved" },
+  { icao:"EDDH", name:"Hamburg Airport",               city:"Hamburg",          lat:53.6303, lon:10.0062, rwy:2200, sfc:"paved" },
+  { icao:"EDDS", name:"Stuttgart Airport",             city:"Stuttgart",        lat:48.6899, lon:9.2220, rwy:2200, sfc:"paved" },
+  { icao:"EDDK", name:"Cologne Bonn Airport",          city:"Cologne",          lat:50.8659, lon:7.1427, rwy:2200, sfc:"paved" },
+  { icao:"EHAM", name:"Amsterdam Schiphol",            city:"Amsterdam",        lat:52.3086, lon:4.7639, rwy:3800, sfc:"paved" },
+  { icao:"EHEH", name:"Eindhoven Airport",             city:"Eindhoven",        lat:51.4501, lon:5.3745, rwy:2200, sfc:"paved" },
+  { icao:"LEMD", name:"Adolfo Suárez Madrid",          city:"Madrid",           lat:40.4936, lon:-3.5668, rwy:4349, sfc:"paved" },
+  { icao:"LEBL", name:"Barcelona El Prat",             city:"Barcelona",        lat:41.2971, lon:2.0785, rwy:3352, sfc:"paved" },
+  { icao:"LEMG", name:"Málaga Costa del Sol",          city:"Malaga",           lat:36.6749, lon:-4.4991, rwy:3200, sfc:"paved" },
+  { icao:"LEPA", name:"Palma de Mallorca",             city:"Palma",            lat:39.5517, lon:2.7388, rwy:3270, sfc:"paved" },
+  { icao:"LEAL", name:"Alicante-Elche Airport",        city:"Alicante",         lat:38.2822, lon:-0.5582, rwy:3000, sfc:"paved" },
+  { icao:"LEIB", name:"Ibiza Airport",                 city:"Ibiza",            lat:38.8729, lon:1.3731, rwy:2200, sfc:"paved" },
+  { icao:"GCRR", name:"Lanzarote Airport",             city:"Lanzarote",        lat:28.9455, lon:-13.6052, rwy:2200, sfc:"paved" },
+  { icao:"GCFV", name:"Fuerteventura Airport",         city:"Fuerteventura",    lat:28.4527, lon:-13.8638, rwy:2200, sfc:"paved" },
+  { icao:"GCTS", name:"Tenerife South Airport",        city:"Tenerife",         lat:28.0445, lon:-16.5725, rwy:2200, sfc:"paved" },
+  { icao:"GCLA", name:"La Palma Airport",              city:"La Palma",         lat:28.6265, lon:-17.7556, rwy:2200, sfc:"paved" },
+  { icao:"LPPT", name:"Lisbon Airport",                city:"Lisbon",           lat:38.7756, lon:-9.1354, rwy:3805, sfc:"paved" },
+  { icao:"LPPR", name:"Porto Airport",                 city:"Porto",            lat:41.2481, lon:-8.6814, rwy:3480, sfc:"paved" },
+  { icao:"LPFR", name:"Faro Airport",                  city:"Faro",             lat:37.0144, lon:-7.9659, rwy:2381, sfc:"paved" },
+  { icao:"LPMA", name:"Madeira Airport",               city:"Madeira",          lat:32.6979, lon:-16.7745, rwy:2781, sfc:"paved" },
+  { icao:"LPAZ", name:"Santa Maria Airport",           city:"Azores",           lat:36.9714, lon:-25.1706, rwy:2978, sfc:"paved" },
+  { icao:"LPLA", name:"Lajes Field",                   city:"Terceira",         lat:38.7618, lon:-27.0908, rwy:2865, sfc:"paved" },
+  { icao:"LIRF", name:"Rome Fiumicino",                city:"Rome",             lat:41.8003, lon:12.2389, rwy:3902, sfc:"paved" },
+  { icao:"LIME", name:"Milan Bergamo",                 city:"Bergamo",          lat:45.6739, lon:9.7042, rwy:2200, sfc:"paved" },
+  { icao:"LIMC", name:"Milan Malpensa",                city:"Milan",            lat:45.6306, lon:8.7281, rwy:3920, sfc:"paved" },
+  { icao:"LIPZ", name:"Venice Marco Polo",             city:"Venice",           lat:45.5053, lon:12.3519, rwy:2200, sfc:"paved" },
+  { icao:"LIRN", name:"Naples International",          city:"Naples",           lat:40.8860, lon:14.2908, rwy:2200, sfc:"paved" },
+  { icao:"LICJ", name:"Palermo Airport",               city:"Palermo",          lat:38.1759, lon:13.0910, rwy:3325, sfc:"paved" },
+  { icao:"LICT", name:"Catania Airport",               city:"Catania",          lat:37.4668, lon:15.0664, rwy:2200, sfc:"paved" },
+  { icao:"LSZH", name:"Zürich Airport",                city:"Zürich",           lat:47.4647, lon:8.5492, rwy:3700, sfc:"paved" },
+  { icao:"LSGG", name:"Geneva Airport",                city:"Geneva",           lat:46.2381, lon:6.1089, rwy:2200, sfc:"paved" },
+  { icao:"LOWW", name:"Vienna International",          city:"Vienna",           lat:48.1103, lon:16.5697, rwy:3600, sfc:"paved" },
+  { icao:"LOWI", name:"Innsbruck Airport",             city:"Innsbruck",        lat:47.2602, lon:11.3439, rwy:2200, sfc:"paved" },
+  { icao:"LOWS", name:"Salzburg Airport",              city:"Salzburg",         lat:47.7933, lon:13.0043, rwy:2200, sfc:"paved" },
+  { icao:"EBCI", name:"Brussels South Charleroi",      city:"Brussels",         lat:50.4592, lon:4.4528, rwy:3200, sfc:"paved" },
+  { icao:"EBBR", name:"Brussels Airport",              city:"Brussels",         lat:50.9014, lon:4.4844, rwy:2200, sfc:"paved" },
+  { icao:"ESSA", name:"Stockholm Arlanda",             city:"Stockholm",        lat:59.6519, lon:17.9186, rwy:3301, sfc:"paved" },
+  { icao:"ESGG", name:"Gothenburg Landvetter",         city:"Gothenburg",       lat:57.6628, lon:12.2798, rwy:3300, sfc:"paved" },
+  { icao:"EKCH", name:"Copenhagen Airport",            city:"Copenhagen",       lat:55.6180, lon:12.6561, rwy:3600, sfc:"paved" },
+  { icao:"EKBI", name:"Billund Airport",               city:"Billund",          lat:55.7403, lon:9.1519, rwy:2200, sfc:"paved" },
+  { icao:"ENGM", name:"Oslo Gardermoen",               city:"Oslo",             lat:60.1939, lon:11.1004, rwy:3600, sfc:"paved" },
+  { icao:"ENBR", name:"Bergen Airport",                city:"Bergen",           lat:60.2934, lon:5.2181, rwy:2200, sfc:"paved" },
+  { icao:"ENVA", name:"Trondheim Airport",             city:"Trondheim",        lat:63.4578, lon:10.9239, rwy:2999, sfc:"paved" },
+  { icao:"ENTC", name:"Tromsø Airport",                city:"Tromsø",           lat:69.6833, lon:18.9189, rwy:2728, sfc:"paved" },
+  { icao:"EFHK", name:"Helsinki-Vantaa",               city:"Helsinki",         lat:60.3172, lon:24.9633, rwy:3440, sfc:"paved" },
+  { icao:"EFTU", name:"Turku Airport",                 city:"Turku",            lat:60.5141, lon:22.2628, rwy:2200, sfc:"paved" },
+  { icao:"EFRO", name:"Rovaniemi Airport",             city:"Rovaniemi",        lat:66.5648, lon:25.8304, rwy:2200, sfc:"paved" },
+  { icao:"BIKF", name:"Reykjavik Keflavik",            city:"Reykjavik",        lat:63.9850, lon:-22.6056, rwy:2200, sfc:"paved" },
+  { icao:"BIIS", name:"Ísafjörður Airport",            city:"Isafjordur",       lat:66.0581, lon:-23.1353, rwy:2200, sfc:"paved" },
+  { icao:"BGBW", name:"Narsarsuaq Airport",            city:"Narsarsuaq",       lat:61.1605, lon:-45.4260, rwy:2200, sfc:"paved" },
+  { icao:"LKPR", name:"Václav Havel Airport",          city:"Prague",           lat:50.1008, lon:14.2600, rwy:3715, sfc:"paved" },
+  { icao:"EPWA", name:"Warsaw Chopin",                 city:"Warsaw",           lat:52.1657, lon:20.9671, rwy:3690, sfc:"paved" },
+  { icao:"LHBP", name:"Budapest Ferenc Liszt",         city:"Budapest",         lat:47.4369, lon:19.2556, rwy:3707, sfc:"paved" },
+  { icao:"LROP", name:"Bucharest Henri Coanda",        city:"Bucharest",        lat:44.5711, lon:26.0850, rwy:3500, sfc:"paved" },
+  { icao:"LDZA", name:"Zagreb Airport",                city:"Zagreb",           lat:45.7429, lon:16.0688, rwy:3252, sfc:"paved" },
+  { icao:"LYBT", name:"Belgrade Nikola Tesla",         city:"Belgrade",         lat:44.8184, lon:20.3091, rwy:2200, sfc:"paved" },
+  { icao:"LWSK", name:"Skopje Airport",                city:"Skopje",           lat:41.9616, lon:21.6214, rwy:2200, sfc:"paved" },
+  { icao:"LATI", name:"Tirana Rinas Airport",          city:"Tirana",           lat:41.4147, lon:19.7206, rwy:2200, sfc:"paved" },
+  { icao:"LGAV", name:"Athens Eleftherios Venizelos",  city:"Athens",           lat:37.9364, lon:23.9445, rwy:4000, sfc:"paved" },
+  { icao:"LGRP", name:"Rhodes International",          city:"Rhodes",           lat:36.4053, lon:28.0862, rwy:2200, sfc:"paved" },
+  { icao:"LGIR", name:"Heraklion Airport",             city:"Crete",            lat:35.3397, lon:25.1803, rwy:2685, sfc:"paved" },
+  { icao:"LGSK", name:"Skiathos Airport",              city:"Skiathos",         lat:39.1772, lon:23.5036, rwy:2200, sfc:"paved" },
+  { icao:"LCPH", name:"Paphos International",          city:"Paphos",           lat:34.7180, lon:32.4857, rwy:2200, sfc:"paved" },
+  { icao:"LCLK", name:"Larnaca International",         city:"Larnaca",          lat:34.8751, lon:33.6249, rwy:2200, sfc:"paved" },
+  { icao:"UMMS", name:"Minsk National Airport",        city:"Minsk",            lat:53.8825, lon:28.0322, rwy:3660, sfc:"paved" },
+  { icao:"UKBB", name:"Kyiv Boryspil",                 city:"Kyiv",             lat:50.3450, lon:30.8947, rwy:4000, sfc:"paved" },
+  { icao:"UUEE", name:"Sheremetyevo International",    city:"Moscow",           lat:55.9726, lon:37.4146, rwy:3700, sfc:"paved" },
+  { icao:"ULLI", name:"St Petersburg Pulkovo",         city:"St Petersburg",    lat:59.8003, lon:30.2625, rwy:2200, sfc:"paved" },
+  // North America — regional
+  { icao:"KJFK", name:"John F. Kennedy Intl",          city:"New York",         lat:40.6413, lon:-73.7781, rwy:4423, sfc:"paved" },
+  { icao:"KLGA", name:"LaGuardia Airport",             city:"New York",         lat:40.7772, lon:-73.8726, rwy:2400, sfc:"paved" },
+  { icao:"KEWR", name:"Newark Liberty Intl",           city:"Newark",           lat:40.6895, lon:-74.1745, rwy:3353, sfc:"paved" },
+  { icao:"KLAX", name:"Los Angeles International",     city:"Los Angeles",      lat:33.9425, lon:-118.4081, rwy:3685, sfc:"paved" },
+  { icao:"KBUR", name:"Hollywood Burbank Airport",     city:"Burbank",          lat:34.2007, lon:-118.3585, rwy:2400, sfc:"paved" },
+  { icao:"KSNA", name:"John Wayne Airport",            city:"Orange County",    lat:33.6757, lon:-117.8682, rwy:1752, sfc:"paved" },
+  { icao:"KORD", name:"O'Hare International",          city:"Chicago",          lat:41.9742, lon:-87.9073, rwy:4112, sfc:"paved" },
+  { icao:"KMDW", name:"Chicago Midway",                city:"Chicago",          lat:41.7868, lon:-87.7522, rwy:2400, sfc:"paved" },
+  { icao:"KATL", name:"Hartsfield-Jackson Atlanta",    city:"Atlanta",          lat:33.6407, lon:-84.4277, rwy:3624, sfc:"paved" },
+  { icao:"KDFW", name:"Dallas/Fort Worth Intl",        city:"Dallas",           lat:32.8998, lon:-97.0403, rwy:4085, sfc:"paved" },
+  { icao:"KDAL", name:"Dallas Love Field",             city:"Dallas",           lat:32.8471, lon:-96.8517, rwy:2400, sfc:"paved" },
+  { icao:"KDEN", name:"Denver International",          city:"Denver",           lat:39.8561, lon:-104.6737, rwy:4877, sfc:"paved" },
+  { icao:"KSFO", name:"San Francisco International",   city:"San Francisco",    lat:37.6213, lon:-122.3790, rwy:3618, sfc:"paved" },
+  { icao:"KOAK", name:"Oakland International",         city:"Oakland",          lat:37.7213, lon:-122.2208, rwy:3218, sfc:"paved" },
+  { icao:"KSJC", name:"San Jose International",        city:"San Jose",         lat:37.3626, lon:-121.9290, rwy:2400, sfc:"paved" },
+  { icao:"KMIA", name:"Miami International",           city:"Miami",            lat:25.7959, lon:-80.2870, rwy:3962, sfc:"paved" },
+  { icao:"KFLL", name:"Fort Lauderdale-Hollywood",     city:"Fort Lauderdale",  lat:26.0726, lon:-80.1527, rwy:2400, sfc:"paved" },
+  { icao:"KMCO", name:"Orlando International",         city:"Orlando",          lat:28.4312, lon:-81.3081, rwy:3658, sfc:"paved" },
+  { icao:"KTPA", name:"Tampa International",           city:"Tampa",            lat:27.9755, lon:-82.5332, rwy:3048, sfc:"paved" },
+  { icao:"KLAS", name:"Harry Reid International",      city:"Las Vegas",        lat:36.0840, lon:-115.1537, rwy:4423, sfc:"paved" },
+  { icao:"KPHX", name:"Phoenix Sky Harbor",            city:"Phoenix",          lat:33.4373, lon:-112.0078, rwy:3853, sfc:"paved" },
+  { icao:"KBOS", name:"Logan International",           city:"Boston",           lat:42.3656, lon:-71.0096, rwy:3048, sfc:"paved" },
+  { icao:"KSEA", name:"Seattle-Tacoma Intl",           city:"Seattle",          lat:47.4502, lon:-122.3088, rwy:3627, sfc:"paved" },
+  { icao:"KPDX", name:"Portland International",        city:"Portland",         lat:45.5887, lon:-122.5975, rwy:2896, sfc:"paved" },
+  { icao:"KIAH", name:"George Bush Intercontinental",  city:"Houston",          lat:29.9902, lon:-95.3368, rwy:4084, sfc:"paved" },
+  { icao:"KHOU", name:"Houston Hobby",                 city:"Houston",          lat:29.6454, lon:-95.2789, rwy:2400, sfc:"paved" },
+  { icao:"KPHL", name:"Philadelphia International",    city:"Philadelphia",     lat:39.8729, lon:-75.2437, rwy:2896, sfc:"paved" },
+  { icao:"KBWI", name:"Baltimore/Washington Intl",     city:"Baltimore",        lat:39.1754, lon:-76.6683, rwy:3048, sfc:"paved" },
+  { icao:"KDCA", name:"Reagan National Airport",       city:"Washington DC",    lat:38.8521, lon:-77.0377, rwy:2400, sfc:"paved" },
+  { icao:"KIAD", name:"Dulles International",          city:"Washington DC",    lat:38.9445, lon:-77.4558, rwy:2400, sfc:"paved" },
+  { icao:"KCLT", name:"Charlotte Douglas Intl",        city:"Charlotte",        lat:35.2140, lon:-80.9431, rwy:3048, sfc:"paved" },
+  { icao:"KMSP", name:"Minneapolis-St. Paul Intl",     city:"Minneapolis",      lat:44.8848, lon:-93.2223, rwy:3353, sfc:"paved" },
+  { icao:"KSLC", name:"Salt Lake City International",  city:"Salt Lake City",   lat:40.7884, lon:-111.9778, rwy:3658, sfc:"paved" },
+  { icao:"PANC", name:"Ted Stevens Anchorage Intl",    city:"Anchorage",        lat:61.1744, lon:-149.9961, rwy:3353, sfc:"paved" },
+  { icao:"PHNL", name:"Honolulu International",        city:"Honolulu",         lat:21.3245, lon:-157.9251, rwy:3749, sfc:"paved" },
+  { icao:"PHOG", name:"Maui Kahului Airport",          city:"Maui",             lat:20.8986, lon:-156.4305, rwy:2721, sfc:"paved" },
+  { icao:"CYYZ", name:"Toronto Pearson Intl",          city:"Toronto",          lat:43.6772, lon:-79.6306, rwy:3368, sfc:"paved" },
+  { icao:"CYVR", name:"Vancouver International",       city:"Vancouver",        lat:49.1967, lon:-123.1815, rwy:3505, sfc:"paved" },
+  { icao:"CYUL", name:"Montréal-Trudeau Intl",         city:"Montreal",         lat:45.4706, lon:-73.7408, rwy:3353, sfc:"paved" },
+  { icao:"CYYC", name:"Calgary International",         city:"Calgary",          lat:51.1139, lon:-114.0200, rwy:3962, sfc:"paved" },
+  { icao:"CYEG", name:"Edmonton International",        city:"Edmonton",         lat:53.3097, lon:-113.5797, rwy:3353, sfc:"paved" },
+  { icao:"CYOW", name:"Ottawa Macdonald-Cartier",      city:"Ottawa",           lat:45.3225, lon:-75.6692, rwy:3048, sfc:"paved" },
+  { icao:"CYHZ", name:"Halifax Stanfield Intl",        city:"Halifax",          lat:44.8808, lon:-63.5086, rwy:2347, sfc:"paved" },
+  { icao:"MMMX", name:"Mexico City International",     city:"Mexico City",      lat:19.4363, lon:-99.0721, rwy:4000, sfc:"paved" },
+  { icao:"MMGL", name:"Guadalajara International",     city:"Guadalajara",      lat:20.5218, lon:-103.3106, rwy:2200, sfc:"paved" },
+  { icao:"MMCN", name:"Ciudad Obregón International",  city:"Ciudad Obregon",   lat:27.3926, lon:-109.8330, rwy:2200, sfc:"paved" },
+  { icao:"MMPR", name:"Puerto Vallarta International", city:"Puerto Vallarta",  lat:20.6801, lon:-105.2544, rwy:2200, sfc:"paved" },
+  { icao:"MMUN", name:"Cancún International",          city:"Cancun",           lat:21.0365, lon:-86.8771, rwy:2200, sfc:"paved" },
+  // Caribbean
+  { icao:"TNCM", name:"Princess Juliana International",city:"St Maarten",       lat:18.0410, lon:-63.1089, rwy:2301, sfc:"paved" },
+  { icao:"TBPB", name:"Grantley Adams International",  city:"Barbados",         lat:13.0746, lon:-59.4925, rwy:2200, sfc:"paved" },
+  { icao:"MUJG", name:"Jardines del Rey Airport",      city:"Cayo Coco",        lat:22.4610, lon:-78.3289, rwy:2200, sfc:"paved" },
+  // Asia — regional
+  { icao:"RJTT", name:"Tokyo Haneda",                  city:"Tokyo",            lat:35.5494, lon:139.7798, rwy:3360, sfc:"paved" },
+  { icao:"RJAA", name:"Narita International",          city:"Tokyo",            lat:35.7647, lon:140.3864, rwy:4000, sfc:"paved" },
+  { icao:"RJOO", name:"Osaka Itami Airport",           city:"Osaka",            lat:34.7855, lon:135.4381, rwy:1828, sfc:"paved" },
+  { icao:"RJBB", name:"Osaka Kansai International",    city:"Osaka",            lat:34.4272, lon:135.2440, rwy:3500, sfc:"paved" },
+  { icao:"RJFF", name:"Fukuoka Airport",               city:"Fukuoka",          lat:33.5858, lon:130.4511, rwy:2800, sfc:"paved" },
+  { icao:"RJCC", name:"Sapporo New Chitose",           city:"Sapporo",          lat:42.7752, lon:141.6922, rwy:3000, sfc:"paved" },
+  { icao:"ROAH", name:"Naha Airport",                  city:"Okinawa",          lat:26.1958, lon:127.6464, rwy:2200, sfc:"paved" },
+  { icao:"ZBAA", name:"Beijing Capital Intl",          city:"Beijing",          lat:40.0799, lon:116.6031, rwy:3800, sfc:"paved" },
+  { icao:"ZBAD", name:"Beijing Daxing International",  city:"Beijing",          lat:39.5095, lon:116.4105, rwy:2200, sfc:"paved" },
+  { icao:"ZSPD", name:"Shanghai Pudong Intl",          city:"Shanghai",         lat:31.1443, lon:121.8083, rwy:4000, sfc:"paved" },
+  { icao:"ZSSS", name:"Shanghai Hongqiao",             city:"Shanghai",         lat:31.1979, lon:121.3363, rwy:2200, sfc:"paved" },
+  { icao:"ZGGG", name:"Guangzhou Baiyun",              city:"Guangzhou",        lat:23.3924, lon:113.2990, rwy:3800, sfc:"paved" },
+  { icao:"ZGSZ", name:"Shenzhen Bao'an",               city:"Shenzhen",         lat:22.6393, lon:113.8107, rwy:3800, sfc:"paved" },
+  { icao:"ZUUU", name:"Chengdu Tianfu International",  city:"Chengdu",          lat:30.3126, lon:104.4440, rwy:3600, sfc:"paved" },
+  { icao:"ZHCC", name:"Zhengzhou Xinzheng",            city:"Zhengzhou",        lat:34.5197, lon:113.8408, rwy:2200, sfc:"paved" },
+  { icao:"VHHH", name:"Hong Kong International",       city:"Hong Kong",        lat:22.3080, lon:113.9185, rwy:3800, sfc:"paved" },
+  { icao:"RCTP", name:"Taoyuan International",         city:"Taipei",           lat:25.0777, lon:121.2330, rwy:3660, sfc:"paved" },
+  { icao:"RCSS", name:"Taipei Songshan",               city:"Taipei",           lat:25.0694, lon:121.5522, rwy:2605, sfc:"paved" },
+  { icao:"RKSI", name:"Incheon International",         city:"Seoul",            lat:37.4602, lon:126.4407, rwy:4000, sfc:"paved" },
+  { icao:"RKSS", name:"Seoul Gimpo",                   city:"Seoul",            lat:37.5583, lon:126.7906, rwy:3600, sfc:"paved" },
+  { icao:"RKPK", name:"Busan Gimhae",                  city:"Busan",            lat:35.1795, lon:128.9381, rwy:2200, sfc:"paved" },
+  { icao:"WSSS", name:"Singapore Changi",              city:"Singapore",        lat:1.3644,  lon:103.9915, rwy:4000, sfc:"paved" },
+  { icao:"WMKK", name:"Kuala Lumpur Intl",             city:"Kuala Lumpur",     lat:2.7456,  lon:101.7099, rwy:2200, sfc:"paved" },
+  { icao:"WMKL", name:"Langkawi International",        city:"Langkawi",         lat:6.3297,  lon:99.7287, rwy:2000, sfc:"paved" },
+  { icao:"WBKK", name:"Kota Kinabalu International",   city:"Kota Kinabalu",    lat:5.9372,  lon:116.0508, rwy:2200, sfc:"paved" },
+  { icao:"VTBS", name:"Suvarnabhumi Airport",          city:"Bangkok",          lat:13.6900, lon:100.7501, rwy:4000, sfc:"paved" },
+  { icao:"VTBD", name:"Bangkok Don Mueang",            city:"Bangkok",          lat:13.9126, lon:100.6070, rwy:2200, sfc:"paved" },
+  { icao:"VTSP", name:"Phuket International",          city:"Phuket",           lat:8.1132,  lon:98.3169, rwy:3000, sfc:"paved" },
+  { icao:"VTSM", name:"Samui Airport",                 city:"Koh Samui",        lat:9.5478,  lon:100.0625, rwy:2200, sfc:"paved" },
+  { icao:"VVNB", name:"Hanoi Noi Bai",                 city:"Hanoi",            lat:21.2212, lon:105.8072, rwy:2200, sfc:"paved" },
+  { icao:"VVTS", name:"Ho Chi Minh City Tan Son Nhat", city:"Ho Chi Minh City", lat:10.8188, lon:106.6520, rwy:2200, sfc:"paved" },
+  { icao:"WIII", name:"Soekarno-Hatta Intl",           city:"Jakarta",          lat:-6.1256, lon:106.6559, rwy:3660, sfc:"paved" },
+  { icao:"WADD", name:"Bali Ngurah Rai",               city:"Bali",             lat:-8.7482, lon:115.1670, rwy:2200, sfc:"paved" },
+  { icao:"RPLL", name:"Ninoy Aquino International",    city:"Manila",           lat:14.5086, lon:121.0197, rwy:3737, sfc:"paved" },
+  { icao:"RPMZ", name:"Zamboanga International",       city:"Zamboanga",        lat:6.9224,  lon:122.0597, rwy:2200, sfc:"paved" },
+  { icao:"VIDP", name:"Indira Gandhi International",   city:"Delhi",            lat:28.5562, lon:77.1000, rwy:4430, sfc:"paved" },
+  { icao:"VABB", name:"Chhatrapati Shivaji Intl",      city:"Mumbai",           lat:19.0896, lon:72.8656, rwy:3660, sfc:"paved" },
+  { icao:"VOMM", name:"Chennai International",         city:"Chennai",          lat:12.9900, lon:80.1693, rwy:2200, sfc:"paved" },
+  { icao:"VOBL", name:"Kempegowda International",      city:"Bengaluru",        lat:13.1986, lon:77.7066, rwy:2200, sfc:"paved" },
+  { icao:"VECC", name:"Kolkata Netaji Subhas",         city:"Kolkata",          lat:22.6547, lon:88.4467, rwy:2200, sfc:"paved" },
+  { icao:"VOGO", name:"Goa Dabolim Airport",           city:"Goa",              lat:15.3808, lon:73.8314, rwy:2200, sfc:"paved" },
+  { icao:"OMDB", name:"Dubai International",           city:"Dubai",            lat:25.2532, lon:55.3657, rwy:4350, sfc:"paved" },
+  { icao:"OMDW", name:"Al Maktoum International",      city:"Dubai",            lat:24.8963, lon:55.1614, rwy:2200, sfc:"paved" },
+  { icao:"OMAA", name:"Abu Dhabi International",       city:"Abu Dhabi",        lat:24.4330, lon:54.6511, rwy:2200, sfc:"paved" },
+  { icao:"OTHH", name:"Hamad International",           city:"Doha",             lat:25.2731, lon:51.6080, rwy:4572, sfc:"paved" },
+  { icao:"OEJN", name:"King Abdulaziz Intl",           city:"Jeddah",           lat:21.6796, lon:39.1565, rwy:2200, sfc:"paved" },
+  { icao:"OERK", name:"King Khalid International",     city:"Riyadh",           lat:24.9578, lon:46.6989, rwy:4205, sfc:"paved" },
+  { icao:"OKBK", name:"Kuwait International",          city:"Kuwait City",      lat:29.2267, lon:47.9689, rwy:3400, sfc:"paved" },
+  { icao:"OIIE", name:"Imam Khomeini International",   city:"Tehran",           lat:35.4161, lon:51.1522, rwy:4267, sfc:"paved" },
+  { icao:"OIII", name:"Tehran Mehrabad",               city:"Tehran",           lat:35.6892, lon:51.3144, rwy:2200, sfc:"paved" },
+  { icao:"OEDF", name:"Dammam King Fahd Intl",         city:"Dammam",           lat:26.4712, lon:49.7979, rwy:4267, sfc:"paved" },
+  { icao:"OOMS", name:"Muscat International",          city:"Muscat",           lat:23.5933, lon:58.2844, rwy:4080, sfc:"paved" },
+  { icao:"OBKH", name:"Bahrain International",         city:"Bahrain",          lat:26.2708, lon:50.6336, rwy:2200, sfc:"paved" },
+  { icao:"OSDI", name:"Damascus International",        city:"Damascus",         lat:33.4114, lon:36.5156, rwy:2200, sfc:"paved" },
+  { icao:"OLBA", name:"Beirut Rafic Hariri Intl",      city:"Beirut",           lat:33.8209, lon:35.4886, rwy:3180, sfc:"paved" },
+  { icao:"LLBG", name:"Ben Gurion International",      city:"Tel Aviv",         lat:32.0114, lon:34.8867, rwy:2200, sfc:"paved" },
+  // Middle East & Central Asia
+  { icao:"LTAI", name:"Antalya Airport",               city:"Antalya",          lat:36.8987, lon:30.7992, rwy:3400, sfc:"paved" },
+  { icao:"LTBA", name:"Istanbul Ataturk",              city:"Istanbul",         lat:40.9769, lon:28.8146, rwy:3000, sfc:"paved" },
+  { icao:"LTFM", name:"Istanbul Airport",              city:"Istanbul",         lat:41.2753, lon:28.7519, rwy:4100, sfc:"paved" },
+  { icao:"LTFE", name:"Bodrum Milas Airport",          city:"Bodrum",           lat:37.2506, lon:27.6644, rwy:2200, sfc:"paved" },
+  { icao:"OAKB", name:"Kabul International",           city:"Kabul",            lat:34.5659, lon:69.2123, rwy:3500, sfc:"paved" },
+  { icao:"OPKC", name:"Karachi Jinnah Intl",           city:"Karachi",          lat:24.9065, lon:67.1608, rwy:3353, sfc:"paved" },
+  { icao:"OPLH", name:"Lahore Allama Iqbal Intl",      city:"Lahore",           lat:31.5216, lon:74.4036, rwy:3539, sfc:"paved" },
+  // Oceania
+  { icao:"YSSY", name:"Sydney Kingsford Smith",        city:"Sydney",           lat:-33.9461, lon:151.1772, rwy:3962, sfc:"paved" },
+  { icao:"YMML", name:"Melbourne Airport",             city:"Melbourne",        lat:-37.6733, lon:144.8430, rwy:3657, sfc:"paved" },
+  { icao:"YBBN", name:"Brisbane Airport",              city:"Brisbane",         lat:-27.3842, lon:153.1175, rwy:3560, sfc:"paved" },
+  { icao:"YPPH", name:"Perth Airport",                 city:"Perth",            lat:-31.9403, lon:115.9670, rwy:3444, sfc:"paved" },
+  { icao:"YPAD", name:"Adelaide Airport",              city:"Adelaide",         lat:-34.9450, lon:138.5306, rwy:3100, sfc:"paved" },
+  { icao:"YBCS", name:"Cairns Airport",                city:"Cairns",           lat:-16.8858, lon:145.7553, rwy:3159, sfc:"paved" },
+  { icao:"YBMC", name:"Sunshine Coast Airport",        city:"Sunshine Coast",   lat:-26.6033, lon:153.0917, rwy:2200, sfc:"paved" },
+  { icao:"YBTL", name:"Townsville Airport",            city:"Townsville",       lat:-19.2525, lon:146.7653, rwy:2438, sfc:"paved" },
+  { icao:"NZAA", name:"Auckland Airport",              city:"Auckland",         lat:-37.0082, lon:174.7917, rwy:3635, sfc:"paved" },
+  { icao:"NZCH", name:"Christchurch Airport",          city:"Christchurch",     lat:-43.4894, lon:172.5322, rwy:3288, sfc:"paved" },
+  { icao:"NZWN", name:"Wellington Airport",            city:"Wellington",       lat:-41.3272, lon:174.8050, rwy:1936, sfc:"paved" },
+  { icao:"NZQN", name:"Queenstown Airport",            city:"Queenstown",       lat:-45.0211, lon:168.7392, rwy:1900, sfc:"paved" },
+  { icao:"AGGH", name:"Honiara International",         city:"Honiara",          lat:-9.4280,  lon:160.0547, rwy:2591, sfc:"paved" },
+  { icao:"NFFN", name:"Nadi International",            city:"Nadi",             lat:-17.7554, lon:177.4431, rwy:3140, sfc:"paved" },
+  { icao:"NGFU", name:"Funafuti International",        city:"Funafuti",         lat:-8.5250,  lon:179.1961, rwy:2200, sfc:"paved" },
+  // Africa
+  { icao:"FAOR", name:"O.R. Tambo International",      city:"Johannesburg",     lat:-26.1392, lon:28.2460, rwy:4418, sfc:"paved" },
+  { icao:"FACT", name:"Cape Town International",       city:"Cape Town",        lat:-33.9648, lon:18.6017, rwy:2200, sfc:"paved" },
+  { icao:"FALE", name:"King Shaka International",      city:"Durban",           lat:-29.6144, lon:31.1197, rwy:2200, sfc:"paved" },
+  { icao:"HAAB", name:"Addis Ababa Bole Intl",         city:"Addis Ababa",      lat:8.9779,  lon:38.7993, rwy:3800, sfc:"paved" },
+  { icao:"HECA", name:"Cairo International",           city:"Cairo",            lat:30.1219, lon:31.4056, rwy:4000, sfc:"paved" },
+  { icao:"HLLM", name:"Tripoli International",         city:"Tripoli",          lat:32.6635, lon:13.1590, rwy:2200, sfc:"paved" },
+  { icao:"GMMN", name:"Mohammed V International",      city:"Casablanca",       lat:33.3675, lon:-7.5900, rwy:3720, sfc:"paved" },
+  { icao:"GMME", name:"Rabat–Salé Airport",            city:"Rabat",            lat:34.0514, lon:-6.7515, rwy:2200, sfc:"paved" },
+  { icao:"GMTT", name:"Tangier Ibn Battouta",          city:"Tangier",          lat:35.7269, lon:-5.9168, rwy:2200, sfc:"paved" },
+  { icao:"DTTA", name:"Tunis-Carthage International",  city:"Tunis",            lat:36.8510, lon:10.2272, rwy:3200, sfc:"paved" },
+  { icao:"DAAG", name:"Algiers Houari Boumediene",     city:"Algiers",          lat:36.6910, lon:3.2154, rwy:2200, sfc:"paved" },
+  { icao:"DNMM", name:"Murtala Muhammed Intl",         city:"Lagos",            lat:6.5774,  lon:3.3216, rwy:3900, sfc:"paved" },
+  { icao:"DNKN", name:"Kano Mallam Aminu Intl",        city:"Kano",             lat:12.0476, lon:8.5246, rwy:2200, sfc:"paved" },
+  { icao:"DXXX", name:"Lomé-Tokoin Airport",           city:"Lome",             lat:6.1656,  lon:1.2545, rwy:2200, sfc:"paved" },
+  { icao:"DIAP", name:"Abidjan Port Bouet",            city:"Abidjan",          lat:5.2613,  lon:-3.9263, rwy:2200, sfc:"paved" },
+  { icao:"DGAA", name:"Accra Kotoka International",    city:"Accra",            lat:5.6052,  lon:-0.1668, rwy:2200, sfc:"paved" },
+  { icao:"FKKD", name:"Douala International",          city:"Douala",           lat:4.0061,  lon:9.7195, rwy:2200, sfc:"paved" },
+  { icao:"FCBB", name:"Maya-Maya Airport",             city:"Brazzaville",      lat:-4.2517, lon:15.2531, rwy:2640, sfc:"paved" },
+  { icao:"FZAA", name:"Kinshasa N'djili",              city:"Kinshasa",         lat:-4.3858, lon:15.4446, rwy:2200, sfc:"paved" },
+  { icao:"HTDA", name:"Julius Nyerere Intl",           city:"Dar es Salaam",    lat:-6.8781, lon:39.2026, rwy:2200, sfc:"paved" },
+  { icao:"HKNA", name:"Nairobi Wilson Airport",        city:"Nairobi",          lat:-1.3217, lon:36.8148, rwy:2200, sfc:"paved" },
+  { icao:"HKJK", name:"Nairobi Jomo Kenyatta Intl",   city:"Nairobi",          lat:-1.3192, lon:36.9275, rwy:2200, sfc:"paved" },
+  { icao:"FMMI", name:"Antananarivo Ivato",            city:"Antananarivo",     lat:-18.7969, lon:47.4789, rwy:3100, sfc:"paved" },
+  { icao:"FSIA", name:"Seychelles International",      city:"Seychelles",       lat:-4.6744, lon:55.5218, rwy:2200, sfc:"paved" },
+  { icao:"FIMP", name:"Mauritius Sir Seewoosagur",     city:"Mauritius",        lat:-20.4302, lon:57.6836, rwy:2200, sfc:"paved" },
+  // South America
+  { icao:"SBGR", name:"São Paulo Guarulhos Intl",      city:"São Paulo",        lat:-23.4356, lon:-46.4731, rwy:3700, sfc:"paved" },
+  { icao:"SBSP", name:"São Paulo Congonhas",           city:"São Paulo",        lat:-23.6261, lon:-46.6564, rwy:2200, sfc:"paved" },
+  { icao:"SBGL", name:"Rio de Janeiro Galeão",         city:"Rio de Janeiro",   lat:-22.8099, lon:-43.2505, rwy:4240, sfc:"paved" },
+  { icao:"SBRJ", name:"Rio Santos Dumont",             city:"Rio de Janeiro",   lat:-22.9105, lon:-43.1631, rwy:2200, sfc:"paved" },
+  { icao:"SAEZ", name:"Buenos Aires Ezeiza",           city:"Buenos Aires",     lat:-34.8222, lon:-58.5358, rwy:3300, sfc:"paved" },
+  { icao:"SABE", name:"Buenos Aires Aeroparque",       city:"Buenos Aires",     lat:-34.5592, lon:-58.4156, rwy:2200, sfc:"paved" },
+  { icao:"SCEL", name:"Santiago Arturo Merino Benitez",city:"Santiago",         lat:-33.3930, lon:-70.7858, rwy:4083, sfc:"paved" },
+  { icao:"SKBO", name:"Bogotá El Dorado",              city:"Bogotá",           lat:4.7016,  lon:-74.1469, rwy:3800, sfc:"paved" },
+  { icao:"SPJC", name:"Lima Jorge Chávez",             city:"Lima",             lat:-12.0219, lon:-77.1143, rwy:3507, sfc:"paved" },
+  { icao:"SEQM", name:"Quito Mariscal Sucre",          city:"Quito",            lat:-0.1292,  lon:-78.3575, rwy:2200, sfc:"paved" },
+  { icao:"SLLP", name:"La Paz El Alto International",  city:"La Paz",           lat:-16.5133, lon:-68.1922, rwy:2200, sfc:"paved" },
+  { icao:"SUAA", name:"Montevideo Carrasco",           city:"Montevideo",       lat:-34.8384, lon:-56.0308, rwy:2200, sfc:"paved" },
+  { icao:"SMJP", name:"Johan Adolf Pengel Intl",       city:"Paramaribo",       lat:5.4528,  lon:-55.1878, rwy:2200, sfc:"paved" },
+  { icao:"SYCJ", name:"Cheddi Jagan International",    city:"Georgetown",       lat:6.4986,  lon:-58.2541, rwy:2200, sfc:"paved" },
+];
+
+
+// ─── Aircraft Database ─────────────────────────────────────────────────────────
+const AIRCRAFT = [
+  // GA Piston
+  { code:"C172",  name:"Cessna 172 Skyhawk",           type:"GA Piston",          cruiseKts:122,  cruiseAlt:"FL065", minRwy:400, surfaces:["paved","grass","unpaved"] },
+  { code:"C182",  name:"Cessna 182 Skylane",            type:"GA Piston",          cruiseKts:145,  cruiseAlt:"FL075", minRwy:450, surfaces:["paved","grass","unpaved"] },
+  { code:"C210",  name:"Cessna 210 Centurion",          type:"GA Piston",          cruiseKts:170,  cruiseAlt:"FL095", minRwy:500, surfaces:["paved","grass","unpaved"] },
+  { code:"PA28",  name:"Piper PA-28 Cherokee",          type:"GA Piston",          cruiseKts:117,  cruiseAlt:"FL060", minRwy:400, surfaces:["paved","grass","unpaved"] },
+  { code:"PA46",  name:"Piper PA-46 Malibu",            type:"GA Piston",          cruiseKts:200,  cruiseAlt:"FL180", minRwy:600, surfaces:["paved","grass"] },
+  { code:"BE36",  name:"Beechcraft Bonanza G36",        type:"GA Piston",          cruiseKts:162,  cruiseAlt:"FL100", minRwy:500, surfaces:["paved","grass","unpaved"] },
+  { code:"SR22",  name:"Cirrus SR22",                   type:"GA Piston",          cruiseKts:185,  cruiseAlt:"FL170", minRwy:600, surfaces:["paved","grass"] },
+  { code:"DA42",  name:"Diamond DA42 Twin Star",        type:"GA Piston",          cruiseKts:178,  cruiseAlt:"FL160", minRwy:600, surfaces:["paved","grass"] },
+  // Single Turboprop
+  { code:"KODI",  name:"Daher Kodiak 100",              type:"Single Turboprop",   cruiseKts:175,  cruiseAlt:"FL120", minRwy:300, surfaces:["paved","grass","unpaved"] },
+  { code:"TBM9",  name:"Daher TBM 930",                 type:"Single Turboprop",   cruiseKts:300,  cruiseAlt:"FL310", minRwy:800, surfaces:["paved"] },
+  { code:"TBM7",  name:"Daher TBM 700",                 type:"Single Turboprop",   cruiseKts:285,  cruiseAlt:"FL290", minRwy:800, surfaces:["paved"] },
+  { code:"C208",  name:"Cessna 208 Caravan",            type:"Single Turboprop",   cruiseKts:180,  cruiseAlt:"FL120", minRwy:400, surfaces:["paved","grass","unpaved"] },
+  { code:"C28A",  name:"Cessna 208B Grand Caravan EX",  type:"Single Turboprop",   cruiseKts:175,  cruiseAlt:"FL110", minRwy:450, surfaces:["paved","grass","unpaved"] },
+  { code:"PC6T",  name:"Pilatus PC-6 Turbo Porter",     type:"Single Turboprop",   cruiseKts:120,  cruiseAlt:"FL100", minRwy:200, surfaces:["paved","grass","unpaved"] },
+  { code:"PC12",  name:"Pilatus PC-12 NGX",             type:"Single Turboprop",   cruiseKts:270,  cruiseAlt:"FL250", minRwy:700, surfaces:["paved","grass"] },
+  { code:"M600",  name:"Piper M600 SLS",                type:"Single Turboprop",   cruiseKts:260,  cruiseAlt:"FL280", minRwy:800, surfaces:["paved"] },
+  // Twin Turboprop
+  { code:"BE9L",  name:"Beechcraft King Air C90",       type:"Twin Turboprop",     cruiseKts:226,  cruiseAlt:"FL230", minRwy:700, surfaces:["paved","grass"] },
+  { code:"BE20",  name:"Beechcraft King Air 200",       type:"Twin Turboprop",     cruiseKts:272,  cruiseAlt:"FL280", minRwy:800, surfaces:["paved"] },
+  { code:"B350",  name:"Beechcraft King Air 350",       type:"Twin Turboprop",     cruiseKts:295,  cruiseAlt:"FL300", minRwy:1000, surfaces:["paved"] },
+  { code:"B190",  name:"Beechcraft 1900D",              type:"Twin Turboprop",     cruiseKts:280,  cruiseAlt:"FL250", minRwy:1200, surfaces:["paved"] },
+  { code:"SW4",   name:"Swearingen Metroliner SA227",   type:"Twin Turboprop",     cruiseKts:260,  cruiseAlt:"FL250", minRwy:1100, surfaces:["paved"] },
+  { code:"PAY3",  name:"Piper PA-42 Cheyenne III",      type:"Twin Turboprop",     cruiseKts:280,  cruiseAlt:"FL270", minRwy:900, surfaces:["paved"] },
+  { code:"DHC6",  name:"de Havilland Canada Twin Otter",type:"Twin Turboprop",     cruiseKts:170,  cruiseAlt:"FL100", minRwy:400, surfaces:["paved","grass","unpaved"] },
+  { code:"BN2P",  name:"Britten-Norman Islander",       type:"Twin Turboprop",     cruiseKts:140,  cruiseAlt:"FL080", minRwy:350, surfaces:["paved","grass","unpaved"] },
+  // Regional Turboprop
+  { code:"AT42",  name:"ATR 42-500",                    type:"Regional Turboprop", cruiseKts:265,  cruiseAlt:"FL170", minRwy:1290, surfaces:["paved"] },
+  { code:"AT75",  name:"ATR 72-500",                    type:"Regional Turboprop", cruiseKts:270,  cruiseAlt:"FL180", minRwy:1290, surfaces:["paved"] },
+  { code:"AT76",  name:"ATR 72-600",                    type:"Regional Turboprop", cruiseKts:275,  cruiseAlt:"FL180", minRwy:1290, surfaces:["paved"] },
+  { code:"DH8A",  name:"Dash 8 Q100",                   type:"Regional Turboprop", cruiseKts:265,  cruiseAlt:"FL200", minRwy:1000, surfaces:["paved"] },
+  { code:"DH8D",  name:"Dash 8 Q400",                   type:"Regional Turboprop", cruiseKts:360,  cruiseAlt:"FL250", minRwy:1400, surfaces:["paved"] },
+  { code:"SF34",  name:"Saab 340B",                     type:"Regional Turboprop", cruiseKts:250,  cruiseAlt:"FL200", minRwy:1200, surfaces:["paved"] },
+  { code:"JS41",  name:"BAe Jetstream 41",              type:"Regional Turboprop", cruiseKts:250,  cruiseAlt:"FL200", minRwy:1100, surfaces:["paved"] },
+  // Business Jet
+  { code:"C25A",  name:"Cessna Citation CJ2",           type:"Business Jet",       cruiseKts:380,  cruiseAlt:"FL410", minRwy:1000, surfaces:["paved"] },
+  { code:"C25C",  name:"Cessna Citation CJ4",           type:"Business Jet",       cruiseKts:402,  cruiseAlt:"FL450", minRwy:1100, surfaces:["paved"] },
+  { code:"C56X",  name:"Cessna Citation XLS+",          type:"Business Jet",       cruiseKts:415,  cruiseAlt:"FL450", minRwy:1500, surfaces:["paved"] },
+  { code:"C68A",  name:"Cessna Citation Sovereign",     type:"Business Jet",       cruiseKts:430,  cruiseAlt:"FL470", minRwy:1600, surfaces:["paved"] },
+  { code:"C750",  name:"Cessna Citation X",             type:"Business Jet",       cruiseKts:525,  cruiseAlt:"FL510", minRwy:1700, surfaces:["paved"] },
+  { code:"LJ45",  name:"Learjet 45XR",                  type:"Business Jet",       cruiseKts:440,  cruiseAlt:"FL510", minRwy:1300, surfaces:["paved"] },
+  { code:"LJ60",  name:"Learjet 60XR",                  type:"Business Jet",       cruiseKts:464,  cruiseAlt:"FL510", minRwy:1500, surfaces:["paved"] },
+  { code:"H25B",  name:"Hawker 800XP",                  type:"Business Jet",       cruiseKts:445,  cruiseAlt:"FL410", minRwy:1600, surfaces:["paved"] },
+  { code:"BE40",  name:"Beechcraft Premier I",          type:"Business Jet",       cruiseKts:430,  cruiseAlt:"FL410", minRwy:1100, surfaces:["paved"] },
+  { code:"GL5T",  name:"Bombardier Global 5000",        type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"] },
+  { code:"GLEX",  name:"Bombardier Global Express XRS", type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"] },
+  { code:"CL60",  name:"Bombardier Challenger 601",     type:"Business Jet",       cruiseKts:459,  cruiseAlt:"FL430", minRwy:1700, surfaces:["paved"] },
+  { code:"CL65",  name:"Bombardier Challenger 650",     type:"Business Jet",       cruiseKts:470,  cruiseAlt:"FL410", minRwy:1800, surfaces:["paved"] },
+  { code:"F2TH",  name:"Dassault Falcon 2000",          type:"Business Jet",       cruiseKts:460,  cruiseAlt:"FL470", minRwy:1700, surfaces:["paved"] },
+  { code:"F900",  name:"Dassault Falcon 900EX",         type:"Business Jet",       cruiseKts:480,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"] },
+  { code:"E50P",  name:"Embraer Phenom 100",            type:"Business Jet",       cruiseKts:380,  cruiseAlt:"FL410", minRwy:1000, surfaces:["paved"] },
+  { code:"E55P",  name:"Embraer Phenom 300",            type:"Business Jet",       cruiseKts:420,  cruiseAlt:"FL450", minRwy:1200, surfaces:["paved"] },
+  { code:"E545",  name:"Embraer Legacy 500",            type:"Business Jet",       cruiseKts:466,  cruiseAlt:"FL450", minRwy:1600, surfaces:["paved"] },
+  { code:"GALX",  name:"IAI Gulfstream G200",           type:"Business Jet",       cruiseKts:459,  cruiseAlt:"FL450", minRwy:1700, surfaces:["paved"] },
+  { code:"GLF5",  name:"Gulfstream G550",               type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1900, surfaces:["paved"] },
+  { code:"GLF6",  name:"Gulfstream G650ER",             type:"Business Jet",       cruiseKts:516,  cruiseAlt:"FL510", minRwy:1900, surfaces:["paved"] },
+  // Regional Jet
+  { code:"CRJ2",  name:"Bombardier CRJ-200",            type:"Regional Jet",       cruiseKts:430,  cruiseAlt:"FL350", minRwy:1600, surfaces:["paved"] },
+  { code:"CRJ7",  name:"Bombardier CRJ-700",            type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1700, surfaces:["paved"] },
+  { code:"CRJ9",  name:"Bombardier CRJ-900",            type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"] },
+  { code:"E135",  name:"Embraer ERJ-135",               type:"Regional Jet",       cruiseKts:440,  cruiseAlt:"FL370", minRwy:1600, surfaces:["paved"] },
+  { code:"E145",  name:"Embraer ERJ-145",               type:"Regional Jet",       cruiseKts:440,  cruiseAlt:"FL370", minRwy:1700, surfaces:["paved"] },
+  { code:"E170",  name:"Embraer E170",                  type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"] },
+  { code:"E175",  name:"Embraer E175",                  type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL390", minRwy:1800, surfaces:["paved"] },
+  { code:"E190",  name:"Embraer E190",                  type:"Regional Jet",       cruiseKts:450,  cruiseAlt:"FL390", minRwy:1900, surfaces:["paved"] },
+  { code:"E195",  name:"Embraer E195-E2",               type:"Regional Jet",       cruiseKts:450,  cruiseAlt:"FL410", minRwy:2000, surfaces:["paved"] },
+  { code:"SU95",  name:"Sukhoi Superjet 100",           type:"Regional Jet",       cruiseKts:460,  cruiseAlt:"FL390", minRwy:1800, surfaces:["paved"] },
+  // Narrow-body
+  { code:"A318",  name:"Airbus A318",                   type:"Narrow-body",        cruiseKts:450,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"] },
+  { code:"A319",  name:"Airbus A319",                   type:"Narrow-body",        cruiseKts:450,  cruiseAlt:"FL380", minRwy:1900, surfaces:["paved"] },
+  { code:"A320",  name:"Airbus A320",                   type:"Narrow-body",        cruiseKts:451,  cruiseAlt:"FL390", minRwy:2100, surfaces:["paved"] },
+  { code:"A321",  name:"Airbus A321",                   type:"Narrow-body",        cruiseKts:451,  cruiseAlt:"FL390", minRwy:2200, surfaces:["paved"] },
+  { code:"A21N",  name:"Airbus A321neo",                type:"Narrow-body",        cruiseKts:452,  cruiseAlt:"FL410", minRwy:2200, surfaces:["paved"] },
+  { code:"A20N",  name:"Airbus A320neo",                type:"Narrow-body",        cruiseKts:452,  cruiseAlt:"FL410", minRwy:2100, surfaces:["paved"] },
+  { code:"B732",  name:"Boeing 737-200",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"] },
+  { code:"B733",  name:"Boeing 737-300",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:2000, surfaces:["paved"] },
+  { code:"B735",  name:"Boeing 737-500",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:1900, surfaces:["paved"] },
+  { code:"B736",  name:"Boeing 737-600",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2000, surfaces:["paved"] },
+  { code:"B738",  name:"Boeing 737-800",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2090, surfaces:["paved"] },
+  { code:"B739",  name:"Boeing 737-900",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2200, surfaces:["paved"] },
+  { code:"B737",  name:"Boeing 737 MAX 8",              type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL410", minRwy:2100, surfaces:["paved"] },
+  { code:"B73J",  name:"Boeing 737 MAX 10",             type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL410", minRwy:2300, surfaces:["paved"] },
+  { code:"B752",  name:"Boeing 757-200",                type:"Narrow-body",        cruiseKts:458,  cruiseAlt:"FL370", minRwy:2200, surfaces:["paved"] },
+  { code:"B753",  name:"Boeing 757-300",                type:"Narrow-body",        cruiseKts:458,  cruiseAlt:"FL370", minRwy:2300, surfaces:["paved"] },
+  { code:"MD80",  name:"McDonnell Douglas MD-80",       type:"Narrow-body",        cruiseKts:440,  cruiseAlt:"FL370", minRwy:2100, surfaces:["paved"] },
+  { code:"MD90",  name:"McDonnell Douglas MD-90",       type:"Narrow-body",        cruiseKts:440,  cruiseAlt:"FL370", minRwy:2100, surfaces:["paved"] },
+  { code:"B717",  name:"Boeing 717-200",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:1900, surfaces:["paved"] },
+  { code:"F100",  name:"Fokker 100",                    type:"Narrow-body",        cruiseKts:432,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"] },
+  { code:"F70",   name:"Fokker 70",                     type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1800, surfaces:["paved"] },
+  { code:"DC93",  name:"McDonnell Douglas DC-9-30",     type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"] },
+  // Wide-body
+  { code:"A332",  name:"Airbus A330-200",               type:"Wide-body",          cruiseKts:470,  cruiseAlt:"FL380", minRwy:2500, surfaces:["paved"] },
+  { code:"A333",  name:"Airbus A330-300",               type:"Wide-body",          cruiseKts:470,  cruiseAlt:"FL380", minRwy:2500, surfaces:["paved"] },
+  { code:"A338",  name:"Airbus A330-800neo",            type:"Wide-body",          cruiseKts:472,  cruiseAlt:"FL410", minRwy:2600, surfaces:["paved"] },
+  { code:"A339",  name:"Airbus A330-900neo",            type:"Wide-body",          cruiseKts:472,  cruiseAlt:"FL410", minRwy:2600, surfaces:["paved"] },
+  { code:"A342",  name:"Airbus A340-200",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:2900, surfaces:["paved"] },
+  { code:"A345",  name:"Airbus A340-500",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:3050, surfaces:["paved"] },
+  { code:"A346",  name:"Airbus A340-600",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"] },
+  { code:"A359",  name:"Airbus A350-900",               type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2600, surfaces:["paved"] },
+  { code:"A35K",  name:"Airbus A350-1000",              type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"] },
+  { code:"B762",  name:"Boeing 767-200ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2500, surfaces:["paved"] },
+  { code:"B763",  name:"Boeing 767-300ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2600, surfaces:["paved"] },
+  { code:"B764",  name:"Boeing 767-400ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2700, surfaces:["paved"] },
+  { code:"B772",  name:"Boeing 777-200ER",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:2900, surfaces:["paved"] },
+  { code:"B773",  name:"Boeing 777-300",                type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"] },
+  { code:"B77W",  name:"Boeing 777-300ER",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3050, surfaces:["paved"] },
+  { code:"B77L",  name:"Boeing 777-200LR",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"] },
+  { code:"B778",  name:"Boeing 777X-8",                 type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL430", minRwy:3000, surfaces:["paved"] },
+  { code:"B779",  name:"Boeing 777X-9",                 type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL430", minRwy:3100, surfaces:["paved"] },
+  { code:"B787",  name:"Boeing 787-8",                  type:"Wide-body",          cruiseKts:487,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"] },
+  { code:"B789",  name:"Boeing 787-9",                  type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"] },
+  { code:"B78X",  name:"Boeing 787-10",                 type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2900, surfaces:["paved"] },
+  { code:"DC10",  name:"McDonnell Douglas DC-10",       type:"Wide-body",          cruiseKts:460,  cruiseAlt:"FL350", minRwy:3000, surfaces:["paved"] },
+  { code:"MD11",  name:"McDonnell Douglas MD-11",       type:"Wide-body",          cruiseKts:473,  cruiseAlt:"FL370", minRwy:3000, surfaces:["paved"] },
+  { code:"L101",  name:"Lockheed L-1011 TriStar",       type:"Wide-body",          cruiseKts:460,  cruiseAlt:"FL350", minRwy:3000, surfaces:["paved"] },
+  // Super Wide-body
+  { code:"B741",  name:"Boeing 747-100",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL350", minRwy:3200, surfaces:["paved"] },
+  { code:"B742",  name:"Boeing 747-200",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL360", minRwy:3200, surfaces:["paved"] },
+  { code:"B743",  name:"Boeing 747-300",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL370", minRwy:3200, surfaces:["paved"] },
+  { code:"B744",  name:"Boeing 747-400",                type:"Super Wide-body",    cruiseKts:490,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"] },
+  { code:"B748",  name:"Boeing 747-8I",                 type:"Super Wide-body",    cruiseKts:490,  cruiseAlt:"FL400", minRwy:3100, surfaces:["paved"] },
+  { code:"A388",  name:"Airbus A380-800",               type:"Super Wide-body",    cruiseKts:488,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"] },
+  // Supersonic
+  { code:"CONC",  name:"Concorde",                      type:"Supersonic",         cruiseKts:1165, cruiseAlt:"FL550", minRwy:3600, surfaces:["paved"] },
+];
+
+// ─── Airline Database ─────────────────────────────────────────────────────────
+const AIRLINES = [
+  { icao:"RYR",  iata:"FR", name:"Ryanair" },
+  { icao:"BAW",  iata:"BA", name:"British Airways" },
+  { icao:"EZY",  iata:"U2", name:"easyJet" },
+  { icao:"VLG",  iata:"VY", name:"Vueling" },
+  { icao:"IBE",  iata:"IB", name:"Iberia" },
+  { icao:"AFR",  iata:"AF", name:"Air France" },
+  { icao:"DLH",  iata:"LH", name:"Lufthansa" },
+  { icao:"KLM",  iata:"KL", name:"KLM Royal Dutch Airlines" },
+  { icao:"AZA",  iata:"AZ", name:"ITA Airways" },
+  { icao:"SAS",  iata:"SK", name:"Scandinavian Airlines" },
+  { icao:"TAP",  iata:"TP", name:"TAP Air Portugal" },
+  { icao:"AUA",  iata:"OS", name:"Austrian Airlines" },
+  { icao:"SWR",  iata:"LX", name:"Swiss International Air Lines" },
+  { icao:"BEL",  iata:"SN", name:"Brussels Airlines" },
+  { icao:"EIN",  iata:"EI", name:"Aer Lingus" },
+  { icao:"FIN",  iata:"AY", name:"Finnair" },
+  { icao:"NOZ",  iata:"NO", name:"Norwegian Air Shuttle" },
+  { icao:"TRA",  iata:"HV", name:"Transavia" },
+  { icao:"WZZ",  iata:"W6", name:"Wizz Air" },
+  { icao:"WEN",  iata:"W9", name:"Wizz Air UK" },
+  { icao:"EWG",  iata:"EW", name:"Eurowings" },
+  { icao:"LOT",  iata:"LO", name:"LOT Polish Airlines" },
+  { icao:"CSA",  iata:"OK", name:"Czech Airlines" },
+  { icao:"OAL",  iata:"OA", name:"Olympic Air" },
+  { icao:"ROT",  iata:"RO", name:"TAROM" },
+  { icao:"THY",  iata:"TK", name:"Turkish Airlines" },
+  { icao:"PGT",  iata:"PC", name:"Pegasus Airlines" },
+  { icao:"AHY",  iata:"J2", name:"Azerbaijan Airlines" },
+  { icao:"GFA",  iata:"GF", name:"Gulf Air" },
+  { icao:"RAM",  iata:"AT", name:"Royal Air Maroc" },
+  { icao:"TUN",  iata:"TU", name:"Tunisair" },
+  { icao:"TOM",  iata:"BY", name:"TUI Airways" },
+  { icao:"TCX",  iata:"MT", name:"TUI fly UK" },
+  { icao:"JEA",  iata:"LS", name:"Jet2" },
+  { icao:"EXS",  iata:"LS", name:"Jet2.com" },
+  { icao:"LOG",  iata:"BE", name:"Loganair" },
+  { icao:"ICE",  iata:"FI", name:"Icelandair" },
+  { icao:"SXD",  iata:"XQ", name:"SunExpress" },
+  { icao:"CAI",  iata:"XC", name:"Corendon Airlines" },
+  { icao:"AEE",  iata:"A3", name:"Aegean Airlines" },
+  { icao:"LGL",  iata:"LG", name:"Luxair" },
+  { icao:"SHT",  iata:"SH", name:"BA CityFlyer" },
+  { icao:"HOP",  iata:"A5", name:"HOP! Air France" },
+  { icao:"TVF",  iata:"TO", name:"Transavia France" },
+  { icao:"IBK",  iata:"I2", name:"Iberia Express" },
+  { icao:"VLI",  iata:"VS", name:"Virgin Atlantic" },
+  { icao:"EJU",  iata:"U2", name:"easyJet Europe" },
+  { icao:"SAT",  iata:"S4", name:"SATA Internacional" },
+  { icao:"TSC",  iata:"TS", name:"Air Transat" },
+  { icao:"TAR",  iata:"TU", name:"Nouvelair" },
+  { icao:"UAE",  iata:"EK", name:"Emirates" },
+  { icao:"ETD",  iata:"EY", name:"Etihad Airways" },
+  { icao:"QTR",  iata:"QR", name:"Qatar Airways" },
+  { icao:"FLY",  iata:"FZ", name:"flydubai" },
+  { icao:"ABY",  iata:"G9", name:"Air Arabia" },
+  { icao:"SVA",  iata:"SV", name:"Saudi Arabian Airlines" },
+  { icao:"KAC",  iata:"KU", name:"Kuwait Airways" },
+  { icao:"MEA",  iata:"ME", name:"Middle East Airlines" },
+  { icao:"OMA",  iata:"WY", name:"Oman Air" },
+  { icao:"AIC",  iata:"AI", name:"Air India" },
+  { icao:"IGO",  iata:"6E", name:"IndiGo" },
+  { icao:"SIA",  iata:"SQ", name:"Singapore Airlines" },
+  { icao:"MAS",  iata:"MH", name:"Malaysia Airlines" },
+  { icao:"GIA",  iata:"GA", name:"Garuda Indonesia" },
+  { icao:"CPA",  iata:"CX", name:"Cathay Pacific" },
+  { icao:"CES",  iata:"MU", name:"China Eastern Airlines" },
+  { icao:"CSN",  iata:"CZ", name:"China Southern Airlines" },
+  { icao:"CCA",  iata:"CA", name:"Air China" },
+  { icao:"CHH",  iata:"HU", name:"Hainan Airlines" },
+  { icao:"XMN",  iata:"MF", name:"Xiamen Airlines" },
+  { icao:"CAL",  iata:"CI", name:"China Airlines" },
+  { icao:"EVA",  iata:"BR", name:"EVA Air" },
+  { icao:"KAL",  iata:"KE", name:"Korean Air" },
+  { icao:"AAR",  iata:"OZ", name:"Asiana Airlines" },
+  { icao:"JAL",  iata:"JL", name:"Japan Airlines" },
+  { icao:"ANA",  iata:"NH", name:"All Nippon Airways" },
+  { icao:"PIA",  iata:"PK", name:"Pakistan International Airlines" },
+  { icao:"HVN",  iata:"VN", name:"Vietnam Airlines" },
+  { icao:"THA",  iata:"TG", name:"Thai Airways" },
+  { icao:"AIQ",  iata:"FD", name:"Thai AirAsia" },
+  { icao:"AWQ",  iata:"QZ", name:"Indonesia AirAsia" },
+  { icao:"PAL",  iata:"PR", name:"Philippine Airlines" },
+  { icao:"CEB",  iata:"5J", name:"Cebu Pacific" },
+  { icao:"SLK",  iata:"UL", name:"SriLankan Airlines" },
+  { icao:"QFA",  iata:"QF", name:"Qantas" },
+  { icao:"VOZ",  iata:"VA", name:"Virgin Australia" },
+  { icao:"JST",  iata:"JQ", name:"Jetstar Airways" },
+  { icao:"ANZ",  iata:"NZ", name:"Air New Zealand" },
+  { icao:"AAL",  iata:"AA", name:"American Airlines" },
+  { icao:"UAL",  iata:"UA", name:"United Airlines" },
+  { icao:"DAL",  iata:"DL", name:"Delta Air Lines" },
+  { icao:"SWA",  iata:"WN", name:"Southwest Airlines" },
+  { icao:"ASA",  iata:"AS", name:"Alaska Airlines" },
+  { icao:"SKW",  iata:"OO", name:"SkyWest Airlines" },
+  { icao:"JBU",  iata:"B6", name:"JetBlue Airways" },
+  { icao:"FFT",  iata:"F9", name:"Frontier Airlines" },
+  { icao:"NKS",  iata:"NK", name:"Spirit Airlines" },
+  { icao:"HAL",  iata:"HA", name:"Hawaiian Airlines" },
+  { icao:"RPA",  iata:"YX", name:"Republic Airways" },
+  { icao:"SCX",  iata:"XP", name:"Sun Country Airlines" },
+  { icao:"QXE",  iata:"QX", name:"Horizon Air" },
+  { icao:"ENY",  iata:"MQ", name:"Envoy Air" },
+  { icao:"ACA",  iata:"AC", name:"Air Canada" },
+  { icao:"WJA",  iata:"WS", name:"WestJet" },
+  { icao:"PCO",  iata:"PD", name:"Porter Airlines" },
+  { icao:"AMX",  iata:"AM", name:"Aeromexico" },
+  { icao:"VOI",  iata:"Y4", name:"Volaris" },
+  { icao:"VIV",  iata:"VB", name:"VivaAerobus" },
+  { icao:"LAN",  iata:"LA", name:"LATAM Airlines" },
+  { icao:"TAM",  iata:"JJ", name:"LATAM Brasil" },
+  { icao:"GLO",  iata:"G3", name:"Gol Transportes Aereos" },
+  { icao:"AZU",  iata:"AD", name:"Azul Brazilian Airlines" },
+  { icao:"AVA",  iata:"AV", name:"Avianca" },
+  { icao:"COA",  iata:"CM", name:"Copa Airlines" },
+  { icao:"ETH",  iata:"ET", name:"Ethiopian Airlines" },
+  { icao:"KQA",  iata:"KQ", name:"Kenya Airways" },
+  { icao:"MSR",  iata:"MS", name:"EgyptAir" },
+  { icao:"RWD",  iata:"WB", name:"RwandAir" },
+  { icao:"SAA",  iata:"SA", name:"South African Airways" },
+  { icao:"CAW",  iata:"BW", name:"Caribbean Airlines" },
+  { icao:"FDX",  iata:"FX", name:"FedEx Express" },
+  { icao:"UPS",  iata:"5X", name:"UPS Airlines" },
+  { icao:"CLX",  iata:"CV", name:"Cargolux" },
+  { icao:"GEC",  iata:"LH", name:"Lufthansa Cargo" },
+  { icao:"DHL",  iata:"ES", name:"DHL Air" },
+  { icao:"GTI",  iata:"BC", name:"Atlas Air" },
+  { icao:"NAX",  iata:"DY", name:"Norwegian Air Norway" },
+];
+
+const RUNWAY_DB = {
+  "AGGH": [60,240],
+  "BGBW": [70,250],
+  "BIIS": [110,290],
+  "BIKF": [200,20,280,100],
+  "CYEG": [120,300],
+  "CYHZ": [60,240,150,330],
+  "CYOW": [90,270,140,320],
+  "CYQB": [60,240],
+  "CYUL": [60,240,100,280],
+  "CYVR": [80,260],
+  "CYWG": [130,310,180,360],
+  "CYYC": [160,340],
+  "CYYT": [110,290,160,340],
+  "CYYZ": [60,240,150,330],
+  "CZST": [170,350],
+  "DAAG": [50,230],
+  "DGAA": [210,30],
+  "DIAP": [30,210],
+  "DNKN": [160,340],
+  "DNMM": [180,360],
+  "DTTA": [110,290],
+  "DXXX": [40,220],
+  "EBBR": [70,250,20,200],
+  "EBCI": [60,240],
+  "EDDB": [70,250],
+  "EDDF": [70,250,80,260],
+  "EDDH": [50,230,150,330],
+  "EDDL": [50,230,60,240],
+  "EDDM": [80,260,90,270],
+  "EDDS": [70,250],
+  "EETN": [80,260],
+  "EFHK": [40,220,150,330],
+  "EFRO": [30,210],
+  "EFTU": [80,260],
+  "EGAA": [70,250,180,360],
+  "EGAC": [40,220],
+  "EGBB": [150,330],
+  "EGBP": [90,270],
+  "EGCB": [130,310],
+  "EGCC": [50,230,60,240],
+  "EGFF": [120,300],
+  "EGGW": [70,250],
+  "EGHC": [160,340],
+  "EGHE": [90,270],
+  "EGHH": [260,80],
+  "EGHI": [20,200],
+  "EGJA": [80,260],
+  "EGJB": [90,270],
+  "EGJJ": [90,270],
+  "EGKB": [30,210],
+  "EGKK": [80,260],
+  "EGLC": [100,280],
+  "EGLF": [60,240],
+  "EGLL": [90,270,91,271],
+  "EGMC": [60,240],
+  "EGMD": [130,310],
+  "EGNJ": [200,20],
+  "EGNM": [140,320],
+  "EGNT": [70,250],
+  "EGNX": [270,90],
+  "EGPB": [90,270],
+  "EGPD": [160,340,30,210],
+  "EGPE": [60,240],
+  "EGPF": [50,230,90,270],
+  "EGPH": [60,240],
+  "EGPK": [130,310],
+  "EGPL": [60,240],
+  "EGPN": [40,220],
+  "EGPU": [10,190],
+  "EGSS": [40,220],
+  "EGSY": [200,20],
+  "EGTE": [80,260],
+  "EHAM": [60,240,90,270,180,360,40,220],
+  "EHEH": [40,220,310,130],
+  "EICK": [160,340,70,250],
+  "EIDL": [270,90],
+  "EIDW": [100,280,110,290,160,340],
+  "EIKN": [270,90],
+  "EIKY": [260,80],
+  "EIME": [110,290,50,230],
+  "EINC": [160,340],
+  "EINN": [60,240,140,320],
+  "EISG": [280,100],
+  "EIWF": [250,70],
+  "EKBI": [90,270,270,90],
+  "EKCH": [40,220,120,300],
+  "ENBR": [170,350],
+  "ENGM": [10,190],
+  "ENTC": [10,190],
+  "ENVA": [90,270],
+  "EPWA": [110,290,150,330],
+  "ESGG": [30,210],
+  "ESSA": [10,190,80,260],
+  "EVRA": [180,360],
+  "EYKA": [100,280],
+  "EYVI": [20,200],
+  "FACT": [160,340],
+  "FALE": [60,240],
+  "FAOR": [30,210],
+  "FBSK": [130,310],
+  "FCBB": [160,340],
+  "FIMP": [140,320],
+  "FKKD": [120,300],
+  "FLKK": [100,280],
+  "FMCH": [130,310],
+  "FMMI": [120,300],
+  "FSIA": [130,310],
+  "FTTJ": [150,330],
+  "FVHA": [50,230],
+  "FWKI": [140,320],
+  "FZAA": [240,60],
+  "GCFV": [10,190],
+  "GCLA": [180,360],
+  "GCRR": [320,140],
+  "GCTS": [70,250],
+  "GMME": [350,170],
+  "GMMN": [170,350],
+  "GMTT": [100,280],
+  "HAAB": [70,250],
+  "HECA": [50,230],
+  "HKJK": [60,240],
+  "HKNA": [330,150],
+  "HLLM": [50,230],
+  "HTDA": [50,230],
+  "KABQ": [30,210],
+  "KATL": [80,260,90,270,100,280],
+  "KBIS": [130,310],
+  "KBOS": [40,220,150,330],
+  "KBUR": [150,330],
+  "KBWI": [100,280,160,340],
+  "KBZN": [120,300],
+  "KCLE": [60,240],
+  "KCLT": [180,360],
+  "KCOS": [170,350],
+  "KCVG": [90,270],
+  "KDAL": [130,310,160,340],
+  "KDCA": [40,220,190,10],
+  "KDEN": [170,350,160,340,70,250],
+  "KDFW": [130,310,170,350,180,360],
+  "KDLH": [90,270],
+  "KEWR": [40,220,110,290],
+  "KFAR": [170,350,90,270],
+  "KFCA": [20,200],
+  "KFLL": [100,280],
+  "KGCC": [160,340],
+  "KHOU": [130,310,40,220],
+  "KIAD": [120,300],
+  "KIAH": [90,270,150,330],
+  "KIND": [50,230],
+  "KJAX": [70,250],
+  "KJFK": [40,220,130,310],
+  "KLAS": [80,260,250,70],
+  "KLAX": [60,240,70,250],
+  "KLGA": [40,220,130,310],
+  "KMCO": [180,360],
+  "KMDW": [130,310],
+  "KMIA": [90,270,80,260],
+  "KMKE": [100,280,190,10],
+  "KMSP": [120,300,170,350],
+  "KOAK": [100,280],
+  "KORD": [40,220,100,280,130,310],
+  "KPDX": [100,280,210,30],
+  "KPHL": [90,270,270,90],
+  "KPHX": [80,260],
+  "KPIT": [100,280,140,320,280,100],
+  "KRAP": [130,310],
+  "KRDU": [50,230],
+  "KRSW": [60,240],
+  "KSAN": [90,270],
+  "KSEA": [160,340],
+  "KSFO": [100,280,280,100],
+  "KSJC": [120,300],
+  "KSLC": [160,340],
+  "KSNA": [200,20],
+  "KTPA": [190,10,100,280],
+  "KTUS": [110,290],
+  "LATI": [170,350],
+  "LBSF": [90,270],
+  "LCLK": [40,220],
+  "LCPH": [110,290],
+  "LDZA": [50,230],
+  "LEAL": [110,290],
+  "LEBL": [20,200,70,250],
+  "LEIB": [60,240],
+  "LEMD": [140,320,150,330,180,360,360,180],
+  "LEMG": [130,310],
+  "LEPA": [60,240],
+  "LESO": [40,220],
+  "LEVX": [360,180],
+  "LFBD": [230,50],
+  "LFBO": [140,320],
+  "LFLL": [180,360],
+  "LFLY": [350,170],
+  "LFMI": [150,330],
+  "LFMK": [140,320],
+  "LFMN": [40,220],
+  "LFPG": [90,270,100,280,80,260],
+  "LFPO": [60,240,80,260],
+  "LFRB": [70,250],
+  "LFRN": [100,280],
+  "LFRS": [40,220],
+  "LFST": [60,240],
+  "LGAV": [30,210],
+  "LGIR": [90,270],
+  "LGRP": [70,250],
+  "LGTS": [160,340],
+  "LHBP": [130,310,310,130],
+  "LICC": [80,260],
+  "LICJ": [70,250],
+  "LIMC": [170,350],
+  "LIME": [130,310],
+  "LIPZ": [40,220],
+  "LIRF": [160,340,70,250],
+  "LIRN": [60,240],
+  "LJLJ": [120,300],
+  "LKPR": [60,240,310,130],
+  "LLBG": [80,260,120,300],
+  "LMML": [50,230,130,310],
+  "LOWI": [80,260],
+  "LOWS": [150,330],
+  "LOWW": [110,290,160,340],
+  "LPAZ": [180,360],
+  "LPFR": [100,280],
+  "LPLA": [150,330],
+  "LPMA": [50,230],
+  "LPPR": [170,350],
+  "LPPT": [30,210,20,200],
+  "LROP": [80,260],
+  "LSGG": [40,220],
+  "LSZH": [100,280,160,340],
+  "LTAI": [70,250],
+  "LTBA": [60,240],
+  "LTFE": [360,180],
+  "LTFM": [170,350,330,150],
+  "LYBT": [120,300],
+  "LZIB": [130,310],
+  "MBPV": [100,280],
+  "MDSD": [170,350],
+  "MMCN": [150,330],
+  "MMGL": [100,280],
+  "MMMX": [50,230],
+  "MMPR": [140,320],
+  "MMUN": [120,300],
+  "MYNN": [140,320],
+  "NFFN": [290,110],
+  "NGFU": [360,180],
+  "NTAA": [40,220],
+  "NZAA": [50,230],
+  "NZCH": [20,200],
+  "NZDN": [30,210],
+  "NZQN": [230,50],
+  "NZWN": [160,340],
+  "OAKB": [290,110],
+  "OBKH": [120,300],
+  "OEDF": [160,340],
+  "OEJN": [160,340],
+  "OERK": [150,330],
+  "OIIE": [290,110],
+  "OIII": [290,110],
+  "OKBK": [150,330],
+  "OLBA": [180,360],
+  "OMAA": [130,310],
+  "OMDB": [120,300],
+  "OMDW": [120,300],
+  "OOMS": [90,270],
+  "OPKC": [70,250],
+  "OPLH": [180,360],
+  "OSDI": [50,230],
+  "OTHH": [160,340],
+  "PABE": [120,300],
+  "PADQ": [70,250],
+  "PAFA": [20,200],
+  "PAJN": [80,260],
+  "PANC": [60,240,150,330],
+  "PAOM": [90,270],
+  "PHKO": [170,350],
+  "PHNL": [40,220,80,260],
+  "PHOG": [50,230],
+  "RCSS": [100,280],
+  "RCTP": [60,240],
+  "RJAA": [160,340],
+  "RJBB": [60,240],
+  "RJCC": [180,360],
+  "RJFF": [160,340],
+  "RJOO": [140,320],
+  "RJTT": [160,340],
+  "RKJJ": [40,220],
+  "RKPC": [70,250],
+  "RKSI": [150,330],
+  "RKSS": [140,320],
+  "ROAH": [180,360],
+  "RPLL": [60,240],
+  "RPMZ": [50,230],
+  "SABE": [90,270],
+  "SAEZ": [110,290],
+  "SBGL": [100,280],
+  "SBGR": [90,270],
+  "SBRJ": [20,200],
+  "SBSP": [170,350],
+  "SCEL": [170,350],
+  "SEQM": [360,180],
+  "SKBO": [130,310],
+  "SLLP": [90,270],
+  "SMJP": [100,280],
+  "SPJC": [150,330],
+  "SUAA": [90,270],
+  "SYCJ": [110,290],
+  "TBPB": [90,270],
+  "TFFF": [110,290],
+  "TFFR": [110,290],
+  "TJSJ": [80,260],
+  "TNCM": [100,280],
+  "UKBB": [360,180],
+  "ULLI": [100,280],
+  "UMMS": [130,310],
+  "UTTT": [110,290],
+  "UUEE": [60,240,70,250],
+  "VABB": [90,270,140,320],
+  "VCBI": [40,220],
+  "VDPP": [60,240],
+  "VECC": [190,10],
+  "VGZR": [140,320],
+  "VHHH": [70,250],
+  "VIDP": [100,280,110,290,270,90],
+  "VLVT": [130,310],
+  "VNKT": [20,200],
+  "VOBL": [90,270],
+  "VOGO": [180,360],
+  "VOMM": [70,250],
+  "VTBD": [360,180],
+  "VTBS": [20,200],
+  "VTCC": [360,180],
+  "VTSM": [350,170],
+  "VTSP": [270,90],
+  "VVNB": [110,290],
+  "VVTS": [250,70],
+  "VYYY": [210,30],
+  "WADD": [90,270],
+  "WBKK": [90,270],
+  "WBSB": [350,170],
+  "WIII": [250,70],
+  "WMKK": [150,330],
+  "WMKL": [360,180],
+  "WMKP": [40,220],
+  "WSSS": [20,200],
+  "YBBN": [140,320],
+  "YBCG": [140,320],
+  "YBCS": [150,330],
+  "YBHM": [140,320],
+  "YBTL": [190,10],
+  "YMML": [160,340,270,90],
+  "YPAD": [230,50],
+  "YPDN": [360,180],
+  "YPKG": [90,270],
+  "YPPH": [60,240],
+  "YSCB": [170,350],
+  "YSSY": [160,340],
+  "ZBAA": [180,360,360,180],
+  "ZBAD": [110,290],
+  "ZGGG": [20,200],
+  "ZGSZ": [150,330],
+  "ZSPD": [160,340],
+  "ZSSS": [180,360],
+  "ZUCK": [20,200],
+  "ZUUU": [20,200],
+};
+
+// ─── Region map ───────────────────────────────────────────────────────────────
+const REGION_PREFIXES = {
+  "Europe":        ["EG","EI","LE","LF","ED","EH","LI","LS","LO","EB","ES","EK","EN","EF","LP","LG","LK","EP","LH","UU"],
+  "North America": ["K","CY","MM"],
+  "Asia":          ["RJ","ZB","ZS","VH","WS","OM","OI","VI","VT","WI","RP","RC","OE","OK","OT"],
+  "Oceania":       ["YS","YM","YB","NZ","YP"],
+  "Africa":        ["FA","HA","HE","GM","DN","FM"],
+  "South America": ["SB","SA","SK","SP","SC"],
+};
+
+// ─── Route History Persistence ────────────────────────────────────────────────
+const HISTORY_KEY = "rf_route_history";
+
+function loadRouteHistory() {
+  try {
+    const saved = localStorage.getItem(HISTORY_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveRouteHistory() {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(state.recentRoutes));
+  } catch(e) {}
+}
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let state = {
+  aircraft: AIRCRAFT.find(a => a.code === "B738"),
+  durationMin: 120,
+  tolerance: 20,
+  region: "ANY",
+  pilotId: "",
+  mode: "full-random",
+  fixedDep: null,
+  fixedDest: null,
+  airlineIcao: "",
+  flightNumber: "",
+  atcCallsign: "",
+  result: null,
+  recentRoutes: loadRouteHistory(),
+  generating: false,
+  sent: false,
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function haversineNm(lat1, lon1, lat2, lon2) {
+  const R = 3440.065;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function toHHMM(mins) {
+  return String(Math.floor(mins/60)).padStart(2,"0") + ":" + String(mins%60).padStart(2,"0");
+}
+
+function bearingDeg(lat1, lon1, lat2, lon2) {
+  const φ1=lat1*Math.PI/180, φ2=lat2*Math.PI/180, dλ=(lon2-lon1)*Math.PI/180;
+  const y=Math.sin(dλ)*Math.cos(φ2);
+  const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(dλ);
+  return ((Math.atan2(y,x)*180/Math.PI)+360)%360;
+}
+
+function bearingLabel(deg) {
+  return ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.round(deg/22.5)%16];
+}
+
+function filteredAirports() {
+  let pool = AIRPORTS;
+
+  // Region filter
+  if (state.region !== "ANY") {
+    const prefixes = REGION_PREFIXES[state.region] || [];
+    pool = pool.filter(a => prefixes.some(p => a.icao.startsWith(p)));
+  }
+
+  // Aircraft runway / surface filter
+  if (state.aircraft && state.aircraft.minRwy) {
+    const minRwy   = state.aircraft.minRwy;
+    const surfaces = state.aircraft.surfaces || ["paved"];
+    pool = pool.filter(a =>
+      a.rwy >= minRwy && surfaces.includes(a.sfc)
+    );
+  }
+
+  return pool;
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function init() {
+  buildAircraftSelect();
+  updateAircraftTags();
+  updateDurationDisplay();
+  updateNmHint();
+  document.getElementById("tol-display").textContent = `± ${state.tolerance}%`;
+}
+
+function buildAircraftSelect() {
+  const sel = document.getElementById("aircraft-select");
+  sel.innerHTML = "";
+  const types = [...new Set(AIRCRAFT.map(a => a.type))];
+  types.forEach(type => {
+    const grp = document.createElement("optgroup");
+    grp.label = "── " + type;
+    AIRCRAFT.filter(a => a.type === type).forEach(ac => {
+      const opt = document.createElement("option");
+      opt.value = ac.code;
+      opt.textContent = `${ac.code} — ${ac.name}`;
+      if (ac.code === state.aircraft.code) opt.selected = true;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+}
+
+function updateAircraftTags() {
+  const ac = state.aircraft;
+  const sfcLabel = ac.surfaces ? (ac.surfaces.includes("unpaved") || ac.surfaces.includes("grass") ? "PAVED+UNPAVED" : "PAVED ONLY") : "PAVED ONLY";
+  document.getElementById("aircraft-tags").innerHTML =
+    `<span class="tag">CR: ${ac.cruiseKts} KTS</span>` +
+    `<span class="tag">${ac.cruiseAlt}</span>` +
+    `<span class="tag">${ac.type}</span>` +
+    `<span class="tag">MIN RWY: ${ac.minRwy || 1500}M</span>` +
+    `<span class="tag">${sfcLabel}</span>`;
+}
+
+function updateDurationDisplay() {
+  document.getElementById("duration-display").textContent = toHHMM(state.durationMin);
+}
+
+function updateNmHint() {
+  const nm = Math.round((state.durationMin / 60) * state.aircraft.cruiseKts);
+  document.getElementById("nm-hint").textContent = `≈ ${nm.toLocaleString()} NM at cruise`;
+}
+
+// ─── Event handlers ───────────────────────────────────────────────────────────
+function onAircraftChange() {
+  const code = document.getElementById("aircraft-select").value;
+  state.aircraft = AIRCRAFT.find(a => a.code === code) || state.aircraft;
+  updateAircraftTags();
+  updateNmHint();
+}
+
+function onDurationChange() {
+  state.durationMin = Number(document.getElementById("duration-slider").value);
+  updateDurationDisplay();
+  updateNmHint();
+  updateSliderFill("duration-slider", (state.durationMin - 30) / (840 - 30) * 100);
+}
+
+function onTolChange() {
+  state.tolerance = Number(document.getElementById("tol-slider").value);
+  document.getElementById("tol-display").textContent = `± ${state.tolerance}%`;
+  updateSliderFill("tol-slider", (state.tolerance - 5) / (40 - 5) * 100);
+}
+
+function updateSliderFill(id, pct) {
+  const el = document.getElementById(id);
+  el.style.background = `linear-gradient(90deg, #00e87a ${pct}%, #1a4a3a ${pct}%)`;
+}
+
+function setTheme(theme) {
+  // Remove all theme classes
+  document.body.classList.remove("theme-amber","theme-blue","theme-red","theme-nvg");
+  if (theme) document.body.classList.add("theme-" + theme);
+  // Update active swatch
+  document.querySelectorAll(".theme-swatch").forEach(s => {
+    s.classList.toggle("active", s.dataset.theme === theme);
+  });
+  localStorage.setItem("rf_theme", theme);
+}
+
+function savePilotId() {
+  state.pilotId = document.getElementById("pilot-id").value.trim();
+}
+
+
+function saveRegion() {
+  state.region = document.getElementById("region-select").value;
+  const main = document.getElementById("region-select-main");
+  if (main) main.value = state.region;
+}
+
+function saveRegionMain() {
+  state.region = document.getElementById("region-select-main").value;
+  const settings = document.getElementById("region-select");
+  if (settings) settings.value = state.region;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll(".tab-btn").forEach(b => {
+    const bTab = b.getAttribute("onclick").match(/'([^']+)'/)[1];
+    b.classList.toggle("active", bTab === tab);
+  });
+  document.getElementById("tab-planner").classList.toggle("hidden", tab !== "planner");
+  document.getElementById("tab-map").classList.toggle("hidden", tab !== "map");
+  document.getElementById("tab-settings").classList.toggle("hidden", tab !== "settings");
+
+  // Toggle full-width mode for map tab
+  document.body.classList.toggle("map-active", tab === "map");
+
+  if (tab === "map") {
+    // Wait for display:block to paint, then init/resize, then fit
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!mapInitialised) {
+          resizeMap();
+          setTimeout(() => {
+            initMap();
+            // initMap draws route internally, fitToRoute called from drawRoute
+          }, 80);
+        } else {
+          resizeMap();
+          setTimeout(() => {
+            leafletMap.invalidateSize();
+            if (lastBounds) fitToRoute();
+          }, 80);
+        }
+      });
+    });
+  }
+}
+
+function resizeMap() {
+  const el = document.getElementById("leaflet-map");
+  if (!el) return;
+  // Fill remaining vertical space: window height minus the chrome above the map
+  const bar = document.getElementById("map-route-bar");
+  const btns = el.nextElementSibling;
+  const barH  = bar  ? bar.offsetHeight  + 12 : 60;
+  const btnsH = btns ? btns.offsetHeight + 12 : 50;
+  const tabsH = document.querySelector(".tabs").offsetHeight + 16;
+  const headerH = document.querySelector(".header").offsetHeight + 32;
+  const padding = 48; // top + bottom padding
+  const available = window.innerHeight - headerH - tabsH - barH - btnsH - padding;
+  el.style.height = Math.max(300, available) + "px";
+}
+
+// Resize map when window is resized
+window.addEventListener("resize", () => {
+  if (document.body.classList.contains("map-active")) {
+    resizeMap();
+    setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 50);
+  }
+});
+
+// ─── Generate ─────────────────────────────────────────────────────────────────
+function generate() {
+  if (state.generating) return;
+  state.generating = true;
+  state.sent = false;
+
+  const btn = document.getElementById("gen-btn");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="blink">◈ COMPUTING ROUTE... ◈</span>`;
+  document.getElementById("result-area").innerHTML = "";
+  document.getElementById("no-result").style.display = "none";
+
+  setTimeout(() => {
+    const pool = filteredAirports();
+    const tol = state.tolerance / 100;
+    const targetNm = (state.durationMin / 60) * state.aircraft.cruiseKts;
+    const minNm = targetNm * (1 - tol), maxNm = targetNm * (1 + tol);
+    const mode = state.mode;
+    let found = null;
+
+    if (mode === "manual") {
+      // Both fixed — just validate both are selected
+      if (!state.fixedDep || !state.fixedDest) {
+        state.generating = false;
+        btn.disabled = false;
+        btn.innerHTML = "&#x25C8; DISPATCH FLIGHT &#x25C8;";
+        document.getElementById("no-result").style.display = "block";
+        document.getElementById("no-result").textContent = "SELECT BOTH AIRPORTS TO DISPATCH";
+        return;
+      }
+      const dep = state.fixedDep, dest = state.fixedDest;
+      const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+      const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+      const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+      found = { dep, dest, dist, flightMins, hdg };
+
+    } else if (mode === "fixed-dep") {
+      // Dep fixed, pick random dest within range
+      if (!state.fixedDep) {
+        state.generating = false;
+        btn.disabled = false;
+        btn.innerHTML = "&#x25C8; RANDOMISE FLIGHT &#x25C8;";
+        document.getElementById("no-result").style.display = "block";
+        document.getElementById("no-result").textContent = "SELECT A DEPARTURE AIRPORT FIRST";
+        return;
+      }
+      const dep = state.fixedDep;
+      const candidates = pool.filter(a =>
+        a.icao !== dep.icao &&
+        haversineNm(dep.lat, dep.lon, a.lat, a.lon) >= minNm &&
+        haversineNm(dep.lat, dep.lon, a.lat, a.lon) <= maxNm
+      );
+      if (candidates.length > 0) {
+        const dest = candidates[Math.floor(Math.random() * candidates.length)];
+        const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+        const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+        const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+        found = { dep, dest, dist, flightMins, hdg };
+      }
+
+    } else if (mode === "fixed-dest") {
+      // Dest fixed, pick random dep within range
+      if (!state.fixedDest) {
+        state.generating = false;
+        btn.disabled = false;
+        btn.innerHTML = "&#x25C8; RANDOMISE FLIGHT &#x25C8;";
+        document.getElementById("no-result").style.display = "block";
+        document.getElementById("no-result").textContent = "SELECT AN ARRIVAL AIRPORT FIRST";
+        return;
+      }
+      const dest = state.fixedDest;
+      const candidates = pool.filter(a =>
+        a.icao !== dest.icao &&
+        haversineNm(a.lat, a.lon, dest.lat, dest.lon) >= minNm &&
+        haversineNm(a.lat, a.lon, dest.lat, dest.lon) <= maxNm
+      );
+      if (candidates.length > 0) {
+        const dep = candidates[Math.floor(Math.random() * candidates.length)];
+        const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+        const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+        const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+        found = { dep, dest, dist, flightMins, hdg };
+      }
+
+    } else {
+      // Full random — original logic
+      let attempts = 0;
+      while (attempts < 2000 && !found) {
+        const depIdx = Math.floor(Math.random() * pool.length);
+        const dep = pool[depIdx];
+        const candidates = pool.filter((a, i) => {
+          if (i === depIdx) return false;
+          const d = haversineNm(dep.lat, dep.lon, a.lat, a.lon);
+          return d >= minNm && d <= maxNm;
+        });
+        if (candidates.length > 0) {
+          const dest = candidates[Math.floor(Math.random() * candidates.length)];
+          const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+          const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+          const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+          found = { dep, dest, dist, flightMins, hdg };
+        }
+        attempts++;
+      }
+    }
+
+    state.result = found;
+    state.generating = false;
+    btn.disabled = false;
+    btn.innerHTML = mode === "manual" ? "&#x25C8; DISPATCH FLIGHT &#x25C8;" : "&#x25C8; RANDOMISE FLIGHT &#x25C8;";
+
+    if (found) {
+      // Add to recent routes history (max 5, no duplicates)
+      state.recentRoutes = [found, ...state.recentRoutes.filter(
+        r => !(r.dep.icao === found.dep.icao && r.dest.icao === found.dest.icao)
+      )].slice(0, 5);
+      saveRouteHistory();
+      renderResult(found);
+      renderHistory();
+      // Fetch weather for both airports
+      fetchAndRenderWeather(found.dep.icao, found.dest.icao);
+      // Update map if already initialised
+      if (mapInitialised) drawRoute(found);
+    } else {
+      document.getElementById("no-result").style.display = "block";
+      document.getElementById("no-result").textContent = "NO ROUTE FOUND — TRY WIDENING TOLERANCE OR REGION";
+    }
+  }, 500);
+}
+
+function renderResult(r) {
+  const hdgStr = Math.round(r.hdg).toString().padStart(3,"0");
+  const warnHtml = state.pilotId ? "" :
+    `<div class="warning">⚠ Add Pilot ID in Settings to auto-fill your account</div>`;
+
+  document.getElementById("result-area").innerHTML = `
+    <div class="result-card" id="result-card">
+      <div class="corner tl"></div><div class="corner tr"></div>
+      <div class="corner bl"></div><div class="corner br"></div>
+      <div class="route-row">
+        <div class="airport-block">
+          <div class="airport-code">${r.dep.icao}</div>
+          <div class="airport-name">${r.dep.name}</div>
+          <div class="airport-city">${r.dep.city}</div>
+        </div>
+        <div class="arrow-block">
+          <div class="hdg-label">${hdgStr}° ${bearingLabel(r.hdg)}</div>
+          <div class="arrow-sym">──►</div>
+          <div class="dist-label">${r.dist} NM</div>
+        </div>
+        <div class="airport-block right">
+          <div class="airport-code">${r.dest.icao}</div>
+          <div class="airport-name">${r.dest.name}</div>
+          <div class="airport-city">${r.dest.city}</div>
+        </div>
+      </div>
+      <div class="stats-grid" id="stats-grid-inner">
+        <div><div class="stat-label">Est. Block</div><div class="stat-value">${toHHMM(r.flightMins)}</div></div>
+        <div><div class="stat-label">Distance</div><div class="stat-value">${r.dist} NM</div></div>
+        <div><div class="stat-label">Aircraft</div><div class="stat-value">${state.aircraft.code}</div></div>
+      </div>
+      ${(state.airlineIcao || state.flightNumber) ? `<div style="margin-bottom:16px;padding:10px 12px;background:rgba(0,232,122,0.05);border:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center"><span style="font-size:10px;color:var(--dim3);letter-spacing:2px;text-transform:uppercase">Callsign</span><span style="font-family:Orbitron,sans-serif;font-size:16px;color:var(--accent2);letter-spacing:3px">${state.airlineIcao || '???'}${state.flightNumber || ''}</span></div>` : ''}
+
+      <!-- Weather panel - populated after METAR fetch -->
+      <div id="wx-panel-container">
+        <div class="wx-panel">
+          <div class="wx-card"><div class="wx-airport-label">${r.dep.icao} WEATHER</div><div class="wx-loading">FETCHING METAR...</div></div>
+          <div class="wx-card"><div class="wx-airport-label">${r.dest.icao} WEATHER</div><div class="wx-loading">FETCHING METAR...</div></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn" style="flex:1;font-size:11px" onclick="generate()">↺ REROLL</button>
+        <button class="btn" style="flex:1;font-size:11px;border-color:var(--dim2);color:var(--accent3)" id="share-btn" onclick="shareRoute()">⇧ SHARE</button>
+        <button class="btn send" id="simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">→ SIMBRIEF</button>
+      </div>
+      <div id="share-panel" style="display:none;margin-top:10px;padding:12px;background:var(--input-bg);border:1px solid var(--border);animation:fadeIn 0.2s ease">
+        <div style="font-size:9px;color:var(--dim3);letter-spacing:2px;margin-bottom:8px">SHARE THIS ROUTE</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <button class="btn" style="flex:1;font-size:10px;padding:8px" onclick="copyRouteText()">📋 COPY TEXT</button>
+          <button class="btn" style="flex:1;font-size:10px;padding:8px" onclick="copyRouteLink()">🔗 COPY LINK</button>
+        </div>
+        <div id="share-preview" style="font-size:10px;color:var(--dim4);letter-spacing:1px;line-height:1.8;border-top:1px solid var(--border);padding-top:8px;margin-top:2px"></div>
+        <div id="share-feedback" style="font-size:10px;color:var(--accent);letter-spacing:2px;margin-top:6px;min-height:14px;text-align:center"></div>
+      </div>
+      ${warnHtml}
+    </div>`;
+}
+
+// ─── Mode switching ───────────────────────────────────────────────────────────
+function setMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll(".mode-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.mode === mode);
+  });
+  document.getElementById("dep-field").style.display  = (mode === "fixed-dep"  || mode === "manual") ? "block" : "none";
+  document.getElementById("dest-field").style.display = (mode === "fixed-dest" || mode === "manual") ? "block" : "none";
+  const durationField = document.getElementById("duration-field");
+  if (durationField) durationField.style.display = (mode === "manual") ? "none" : "block";
+  const btn = document.getElementById("gen-btn");
+  if (btn) btn.innerHTML = (mode === "manual") ? "&#x25C8; DISPATCH FLIGHT &#x25C8;" : "&#x25C8; RANDOMISE FLIGHT &#x25C8;";
+}
+
+// ─── Airport search dropdown ───────────────────────────────────────────────────
+const airportSuppressBlur = { dep: false, dest: false };
+
+function onAirportSearch(side) {
+  const q = document.getElementById(side + "-search").value.toLowerCase().trim();
+  const matches = q
+    ? AIRPORTS.filter(a =>
+        a.icao.toLowerCase().startsWith(q) ||
+        a.city.toLowerCase().startsWith(q) ||
+        a.name.toLowerCase().includes(q)
+      ).slice(0, 80)
+    : AIRPORTS.slice(0, 80);
+  renderAirportDropdown(side, matches);
+  document.getElementById(side + "-dropdown").style.display = "block";
+}
+
+function renderAirportDropdown(side, airports) {
+  const dd = document.getElementById(side + "-dropdown");
+  dd.innerHTML = "";
+  if (airports.length === 0) {
+    dd.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--dim3)">No airports found</div>';
+    return;
+  }
+  airports.forEach(a => {
+    const item = document.createElement("div");
+    item.style.cssText = "padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bg3);";
+    item.innerHTML =
+      '<div>' +
+        '<span style="font-family:Orbitron,sans-serif;font-size:12px;color:var(--accent2);letter-spacing:2px;margin-right:10px">' + a.icao + '</span>' +
+        '<span style="font-size:13px;color:var(--accent3)">' + a.name + '</span>' +
+      '</div>' +
+      '<span style="font-size:10px;color:var(--dim);letter-spacing:1px;white-space:nowrap;margin-left:8px">' + a.city + '</span>';
+    item.addEventListener("mouseover", () => item.style.background = "rgba(0,232,122,0.08)");
+    item.addEventListener("mouseout",  () => item.style.background = "");
+    item.addEventListener("mousedown", (e) => { e.preventDefault(); airportSuppressBlur[side] = true; });
+    item.addEventListener("click", () => {
+      selectAirport(side, a);
+      airportSuppressBlur[side] = false;
+    });
+    dd.appendChild(item);
+  });
+}
+
+function selectAirport(side, a) {
+  if (side === "dep") state.fixedDep = a;
+  else state.fixedDest = a;
+  document.getElementById(side + "-search").value = a.icao + " — " + a.name;
+  document.getElementById(side + "-clear-x").style.display = "inline";
+  document.getElementById(side + "-dropdown").style.display = "none";
+}
+
+function openAirportDropdown(side) {
+  const matches = AIRPORTS.slice(0, 80);
+  renderAirportDropdown(side, matches);
+  document.getElementById(side + "-dropdown").style.display = "block";
+}
+
+function closeAirportDropdown(side) {
+  if (airportSuppressBlur[side]) { airportSuppressBlur[side] = false; return; }
+  document.getElementById(side + "-dropdown").style.display = "none";
+}
+
+function clearAirport(side) {
+  if (side === "dep") state.fixedDep = null;
+  else state.fixedDest = null;
+  document.getElementById(side + "-search").value = "";
+  document.getElementById(side + "-clear-x").style.display = "none";
+}
+
+// ─── Airline search dropdown ──────────────────────────────────────────────────
+let airlineDropdownOpen = false;
+let filteredAirlines = [];
+let suppressBlur = false;
+
+function onAirlineSearch() {
+  const q = document.getElementById("airline-search").value.toLowerCase().trim();
+  filteredAirlines = q
+    ? AIRLINES.filter(a =>
+        a.icao.toLowerCase().startsWith(q) ||
+        a.name.toLowerCase().includes(q) ||
+        (a.iata && a.iata.toLowerCase().startsWith(q))
+      ).slice(0, 100)
+    : AIRLINES.slice(0, 100);
+  renderAirlineDropdown();
+  showAirlineDropdown();
+}
+
+function renderAirlineDropdown() {
+  const dd = document.getElementById("airline-dropdown");
+  if (filteredAirlines.length === 0) {
+    dd.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--dim3);letter-spacing:1px">No airlines found</div>';
+    return;
+  }
+  // Build items using DOM — no inline event strings, no escaping issues
+  dd.innerHTML = "";
+  filteredAirlines.forEach((a, idx) => {
+    const item = document.createElement("div");
+    item.style.cssText = "padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bg3);";
+    item.innerHTML =
+      '<div>' +
+        '<span style="font-family:Orbitron,sans-serif;font-size:12px;color:var(--accent2);letter-spacing:2px;margin-right:10px">' + a.icao + '</span>' +
+        '<span style="font-size:13px;color:var(--accent3)">' + a.name + '</span>' +
+      '</div>' +
+      (a.iata ? '<span style="font-size:10px;color:var(--dim);letter-spacing:1px">' + a.iata + '</span>' : '');
+    item.addEventListener("mouseover",  () => item.style.background = "rgba(0,232,122,0.08)");
+    item.addEventListener("mouseout",   () => item.style.background = "");
+    // mousedown fires BEFORE blur — set a flag so blur doesn't close the list before click registers
+    item.addEventListener("mousedown",  (e) => { e.preventDefault(); suppressBlur = true; });
+    item.addEventListener("click",      () => { selectAirline(a); suppressBlur = false; });
+    dd.appendChild(item);
+  });
+}
+
+function selectAirline(a) {
+  state.airlineIcao = a.icao;
+  document.getElementById("airline-search").value = a.icao + " — " + a.name;
+  document.getElementById("airline-clear-x").style.display = "inline";
+  hideAirlineDropdown();
+  updateCallsignPreview();
+  document.getElementById("airline-search").blur();
+}
+
+function showAirlineDropdown() {
+  document.getElementById("airline-dropdown").style.display = "block";
+  airlineDropdownOpen = true;
+}
+
+function hideAirlineDropdown() {
+  document.getElementById("airline-dropdown").style.display = "none";
+  airlineDropdownOpen = false;
+}
+
+function openAirlineDropdown() {
+  filteredAirlines = AIRLINES.slice(0, 100);
+  renderAirlineDropdown();
+  showAirlineDropdown();
+}
+
+function closeAirlineDropdown() {
+  if (suppressBlur) { suppressBlur = false; return; }
+  hideAirlineDropdown();
+}
+
+function clearAirlineSelection() {
+  state.airlineIcao = "";
+  document.getElementById("airline-search").value = "";
+  document.getElementById("airline-clear-x").style.display = "none";
+  updateCallsignPreview();
+}
+
+function onFlightNumChange() {
+  state.flightNumber = document.getElementById("flight-number").value.trim();
+  updateCallsignPreview();
+}
+
+function onAtcCallsignChange() {
+  state.atcCallsign = document.getElementById("atc-callsign").value.toUpperCase().trim();
+  updateCallsignPreview();
+}
+
+function clearCallsign() {
+  clearAirlineSelection();
+  state.flightNumber = "";
+  state.atcCallsign = "";
+  document.getElementById("flight-number").value = "";
+  document.getElementById("atc-callsign").value = "";
+  updateCallsignPreview();
+}
+
+function updateCallsignPreview() {
+  const preview = document.getElementById("callsign-preview");
+  if (!preview) return;
+  const parts = [];
+  if (state.airlineIcao || state.flightNumber) {
+    parts.push((state.airlineIcao || "???") + (state.flightNumber || ""));
+  }
+  if (state.atcCallsign) {
+    parts.push("ATC: " + state.atcCallsign);
+  }
+  preview.textContent = parts.join("   |   ");
+}
+
+function viewOnMap() {
+  switchTab("map");
+  // fitToRoute fires automatically inside switchTab once map is visible
+}
+
+// ─── Route History ───────────────────────────────────────────────────────────
+
+
+function renderHistory() {
+  const area = document.getElementById("history-area");
+  if (!area || state.recentRoutes.length === 0) return;
+
+  const items = state.recentRoutes.map((r, i) => `
+    <div class="history-item" onclick="replayRoute(${i})">
+      <div style="display:flex;align-items:center">
+        <span class="history-icao">${r.dep.icao}</span>
+        <span class="history-arrow">──►</span>
+        <span class="history-icao">${r.dest.icao}</span>
+      </div>
+      <div class="history-meta">${toHHMM(r.flightMins)} · ${r.dist} NM</div>
+    </div>`).join('');
+
+  area.innerHTML = `
+    <div class="history-section">
+      <div class="history-label">Recent Routes</div>
+      ${items}
+    </div>`;
+}
+
+function replayRoute(index) {
+  const r = state.recentRoutes[index];
+  if (!r) return;
+  // Move replayed route to top of history
+  state.recentRoutes.splice(index, 1);
+  state.recentRoutes.unshift(r);
+  state.result = r;
+  renderResult(r);
+  renderHistory();
+  fetchAndRenderWeather(r.dep.icao, r.dest.icao);
+  if (mapInitialised) drawRoute(r);
+}
+
+// ─── METAR / Weather ───────────────────────────────────────────────────────────
+
+async function fetchAndRenderWeather(depIcao, destIcao) {
+  try {
+    const url = `https://aviationweather.gov/api/data/metar?ids=${depIcao},${destIcao}&format=json`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+
+    const depMetar  = data.find(m => m.icaoId === depIcao)  || null;
+    const destMetar = data.find(m => m.icaoId === destIcao) || null;
+
+    const container = document.getElementById("wx-panel-container");
+    if (!container) return;
+
+    container.innerHTML = `<div class="wx-panel">
+      ${buildWxCard(depIcao,  depMetar,  "DEP")}
+      ${buildWxCard(destIcao, destMetar, "ARR")}
+    </div>`;
+  } catch(e) {
+    const container = document.getElementById("wx-panel-container");
+    if (container) container.innerHTML =
+      `<div style="font-size:10px;color:var(--dim);letter-spacing:1px;margin-bottom:12px;text-align:center">WEATHER UNAVAILABLE</div>`;
+  }
+}
+
+function buildWxCard(icao, m, role) {
+  if (!m) return `<div class="wx-card">
+    <div class="wx-airport-label">${icao} WEATHER</div>
+    <div class="wx-na">NO METAR AVAILABLE</div>
+  </div>`;
+
+  const wind    = parseWind(m);
+  const sky     = parseSky(m);
+  const precip  = parsePrecip(m);
+  const rwy     = suggestRunway(m, icao);
+  const compass = windCompass(wind.dir);
+
+  return `<div class="wx-card">
+    <div class="wx-airport-label">${icao} ${role === "DEP" ? "DEPARTURE" : "ARRIVAL"}</div>
+
+    <div class="wx-row">
+      ${compass}
+      <div>
+        <div class="wx-text">${wind.text}</div>
+        <div class="wx-sub">${wind.varText}</div>
+      </div>
+    </div>
+
+    <div class="wx-row">
+      <div class="wx-icon">☁</div>
+      <div class="wx-text">${sky}</div>
+    </div>
+
+    ${precip ? `<div class="wx-row"><div class="wx-icon">🌧</div><div class="wx-text">${precip}</div></div>` : ''}
+
+    <div class="wx-rwy">ACTIVE RWY <span>${rwy}</span></div>
+  </div>`;
+}
+
+function parseWind(m) {
+  const dir  = m.wdir;
+  const spd  = m.wspd  || 0;
+  const gust = m.wgst  || 0;
+  const calm = spd < 3;
+  let text, varText = "";
+
+  if (dir === 0 && calm) {
+    text = "CALM";
+  } else if (dir === 990) {
+    text = `VRB / ${spd} KT`;
+  } else {
+    text = `${String(dir).padStart(3,"0")}° / ${spd} KT`;
+    if (gust) text += ` G${gust}KT`;
+  }
+
+  if (m.wdirFrom && m.wdirTo) {
+    varText = `Variable ${m.wdirFrom}°–${m.wdirTo}°`;
+  }
+
+  return { dir, spd, text, varText, calm: dir === 0 && calm, vrb: dir === 990 };
+}
+
+function windCompass(dir) {
+  // Small SVG compass with arrow pointing FROM the wind direction
+  const rot = (typeof dir === "number" && dir !== 990) ? dir : 0;
+  const valid = typeof dir === "number" && dir !== 0 && dir !== 990;
+  const arrowColour = valid ? "#00e87a" : "#2a5a3a";
+  return `<svg width="32" height="32" viewBox="0 0 32 32" style="flex:0 0 32px">
+    <circle cx="16" cy="16" r="14" fill="none" stroke="#1a4a3a" stroke-width="1.5"/>
+    <!-- Compass cardinal ticks -->
+    <line x1="16" y1="2"  x2="16" y2="5"  stroke="#2a5a3a" stroke-width="1"/>
+    <line x1="16" y1="27" x2="16" y2="30" stroke="#2a5a3a" stroke-width="1"/>
+    <line x1="2"  y1="16" x2="5"  y2="16" stroke="#2a5a3a" stroke-width="1"/>
+    <line x1="27" y1="16" x2="30" y2="16" stroke="#2a5a3a" stroke-width="1"/>
+    <!-- N label -->
+    <text x="16" y="10" text-anchor="middle" font-size="5" fill="#3a6a4a" font-family="Share Tech Mono,monospace">N</text>
+    <!-- Wind arrow (points FROM wind direction, rotated) -->
+    <g transform="rotate(${rot}, 16, 16)">
+      <line x1="16" y1="5" x2="16" y2="22" stroke="${arrowColour}" stroke-width="2" stroke-linecap="round"/>
+      <polygon points="16,4 13,11 19,11" fill="${arrowColour}"/>
+    </g>
+  </svg>`;
+}
+
+function parseSky(m) {
+  // clouds is array of {cover, base} or use cover/base fields
+  const layers = m.clouds || [];
+  if (layers.length === 0) {
+    const cover = m.cover || m.cloudCover || "CLR";
+    return skyLabel(cover, null);
+  }
+  // Pick lowest BKN or OVC, else highest reported layer
+  const sig = layers.find(l => l.cover === "BKN" || l.cover === "OVC") || layers[layers.length - 1];
+  return skyLabel(sig.cover, sig.base);
+}
+
+function skyLabel(cover, base) {
+  const labels = { CLR:"Clear", SKC:"Clear", CAVOK:"Clear / CAVOK", FEW:"Few clouds", SCT:"Scattered", BKN:"Broken", OVC:"Overcast" };
+  const label = labels[cover] || cover || "Clear";
+  return base ? `${label} ${base}ft` : label;
+}
+
+function parsePrecip(m) {
+  const wx = m.wxString || m.presentWx || "";
+  if (!wx) return "";
+  const map = {
+    "TS":"Thunderstorm", "+TS":"Heavy Thunderstorm", "TSRA":"Thunder & Rain",
+    "+RA":"Heavy Rain", "-RA":"Light Rain", "RA":"Rain",
+    "+SN":"Heavy Snow", "-SN":"Light Snow", "SN":"Snow",
+    "DZ":"Drizzle", "-DZ":"Light Drizzle",
+    "FG":"Fog", "BR":"Mist", "HZ":"Haze",
+    "SH":"Showers", "SHRA":"Rain Showers", "SHSN":"Snow Showers",
+    "FU":"Smoke", "FZRA":"Freezing Rain", "FZDZ":"Freezing Drizzle",
+    "GR":"Hail", "GS":"Small Hail",
+  };
+  for (const [code, label] of Object.entries(map)) {
+    if (wx.includes(code)) return label;
+  }
+  return wx.length < 20 ? wx : "";
+}
+
+// ─── Runway Database (actual headings per airport) ───────────────────────────
+const RUNWAY_HEADINGS = {
+  "EGLL": [{id:"09",hdg:91}, {id:"27",hdg:271}],
+  "EGKK": [{id:"08",hdg:84}, {id:"26",hdg:264}],
+  "EGSS": [{id:"04",hdg:41}, {id:"22",hdg:221}],
+  "EGGW": [{id:"07",hdg:73}, {id:"25",hdg:253}],
+  "EGLC": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "EGCC": [{id:"05",hdg:52}, {id:"23",hdg:232}],
+  "EGBB": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "EGNX": [{id:"09",hdg:91}, {id:"27",hdg:271}],
+  "EGPH": [{id:"06",hdg:61}, {id:"24",hdg:241}],
+  "EGPF": [{id:"05",hdg:54}, {id:"23",hdg:234}],
+  "EGPK": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "EGPD": [{id:"16",hdg:164}, {id:"34",hdg:344}],
+  "EGAC": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "EGAA": [{id:"07",hdg:71}, {id:"25",hdg:251}],
+  "EGPB": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "EGPE": [{id:"06",hdg:58}, {id:"24",hdg:238}],
+  "EGNT": [{id:"07",hdg:71}, {id:"25",hdg:251}],
+  "EGHH": [{id:"08",hdg:81}, {id:"26",hdg:261}],
+  "EGHI": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "EGFF": [{id:"12",hdg:121}, {id:"30",hdg:301}],
+  "EGTE": [{id:"08",hdg:82}, {id:"26",hdg:262}],
+  "EGSH": [{id:"09",hdg:94}, {id:"27",hdg:274}],
+  "EGBJ": [{id:"04",hdg:44}, {id:"22",hdg:224}],
+  "EGJJ": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "EGJB": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "EGJA": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "EGPI": [{id:"13",hdg:131}, {id:"31",hdg:311}],
+  "EGNM": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "EGNS": [{id:"04",hdg:44}, {id:"22",hdg:224}],
+  "EGPA": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "EGPN": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "EGPO": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "EGPU": [{id:"12",hdg:117}, {id:"30",hdg:297}],
+  "EGPL": [{id:"06",hdg:59}, {id:"24",hdg:239}],
+  "EGHC": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "EGHE": [{id:"15",hdg:152}, {id:"33",hdg:332}],
+  "EGHF": [{id:"04",hdg:43}, {id:"22",hdg:223}],
+  "EGMC": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "EGMD": [{id:"04",hdg:44}, {id:"22",hdg:224}],
+  "EGLF": [{id:"07",hdg:74}, {id:"25",hdg:254}],
+  "EGKB": [{id:"11",hdg:111}, {id:"29",hdg:291}],
+  "EGSY": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "EGBP": [{id:"08",hdg:82}, {id:"26",hdg:262}],
+  "EIDW": [{id:"10",hdg:100}, {id:"16",hdg:163}, {id:"28",hdg:280}, {id:"34",hdg:343}],
+  "EINN": [{id:"06",hdg:61}, {id:"24",hdg:241}],
+  "EICK": [{id:"16",hdg:162}, {id:"34",hdg:342}],
+  "EIKN": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "EIKY": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "EISG": [{id:"11",hdg:109}, {id:"29",hdg:289}],
+  "EIDL": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "EIWF": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "EIME": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "EINC": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "LFPG": [{id:"08",hdg:83}, {id:"09",hdg:91}, {id:"26",hdg:263}, {id:"27",hdg:271}],
+  "LFPO": [{id:"06",hdg:60}, {id:"24",hdg:240}, {id:"08",hdg:80}, {id:"26",hdg:260}],
+  "LFPB": [{id:"07",hdg:73}, {id:"25",hdg:253}],
+  "LFSB": [{id:"15",hdg:152}, {id:"33",hdg:332}],
+  "LFML": [{id:"13",hdg:131}, {id:"31",hdg:311}],
+  "LFMN": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "LFBO": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "LFLY": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "LFRB": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "LFRS": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "LFRN": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "LFMK": [{id:"13",hdg:129}, {id:"31",hdg:309}],
+  "LFST": [{id:"05",hdg:51}, {id:"23",hdg:231}],
+  "EDDF": [{id:"07",hdg:70}, {id:"08",hdg:78}, {id:"25",hdg:250}, {id:"26",hdg:258}],
+  "EDDM": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "EDDL": [{id:"05",hdg:51}, {id:"23",hdg:231}],
+  "EDDB": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "EDDH": [{id:"05",hdg:51}, {id:"15",hdg:149}, {id:"23",hdg:231}, {id:"33",hdg:329}],
+  "EDDS": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "EDDK": [{id:"06",hdg:60}, {id:"14",hdg:140}, {id:"24",hdg:240}, {id:"32",hdg:320}],
+  "EHAM": [{id:"04",hdg:44}, {id:"06",hdg:57}, {id:"18",hdg:183}, {id:"22",hdg:224}, {id:"24",hdg:237}, {id:"36",hdg:3}],
+  "EHEH": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "LEMD": [{id:"14",hdg:142}, {id:"18",hdg:183}, {id:"32",hdg:322}, {id:"36",hdg:3}],
+  "LEBL": [{id:"02",hdg:20}, {id:"07",hdg:70}, {id:"20",hdg:200}, {id:"25",hdg:250}],
+  "LEMG": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "LEPA": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "LEAL": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "LEIB": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "GCRR": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "GCFV": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "GCTS": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "GCLA": [{id:"03",hdg:28}, {id:"21",hdg:208}],
+  "LESO": [{id:"04",hdg:44}, {id:"22",hdg:224}],
+  "LEVX": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "LPPT": [{id:"03",hdg:33}, {id:"21",hdg:213}],
+  "LPPR": [{id:"17",hdg:172}, {id:"35",hdg:352}],
+  "LPFR": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "LPMA": [{id:"05",hdg:54}, {id:"23",hdg:234}],
+  "LPAZ": [{id:"18",hdg:181}, {id:"36",hdg:1}],
+  "LPLA": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "LIRF": [{id:"07",hdg:70}, {id:"16",hdg:163}, {id:"25",hdg:250}, {id:"34",hdg:343}],
+  "LIME": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "LIMC": [{id:"17",hdg:172}, {id:"35",hdg:352}],
+  "LIPZ": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "LIRN": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "LICJ": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "LICT": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "LICC": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "LSZH": [{id:"10",hdg:100}, {id:"14",hdg:138}, {id:"16",hdg:160}, {id:"28",hdg:280}, {id:"32",hdg:318}, {id:"34",hdg:340}],
+  "LSGG": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "LOWW": [{id:"11",hdg:110}, {id:"16",hdg:160}, {id:"29",hdg:290}, {id:"34",hdg:340}],
+  "LOWI": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "LOWS": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "EBBR": [{id:"02",hdg:25}, {id:"07",hdg:70}, {id:"20",hdg:205}, {id:"25",hdg:250}],
+  "EBCI": [{id:"24",hdg:238}],
+  "ESSA": [{id:"01",hdg:10}, {id:"08",hdg:80}, {id:"19",hdg:190}, {id:"26",hdg:260}],
+  "ESGG": [{id:"03",hdg:27}, {id:"21",hdg:207}],
+  "EKCH": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "EKBI": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "ENGM": [{id:"01",hdg:14}, {id:"19",hdg:194}],
+  "ENBR": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "ENVA": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "ENBO": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "ENTC": [{id:"01",hdg:9}, {id:"19",hdg:189}],
+  "EFHK": [{id:"04",hdg:40}, {id:"15",hdg:150}, {id:"22",hdg:220}, {id:"33",hdg:330}],
+  "EFTU": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "EFRO": [{id:"04",hdg:42}, {id:"22",hdg:222}],
+  "BIKF": [{id:"01",hdg:10}, {id:"10",hdg:100}, {id:"19",hdg:190}, {id:"28",hdg:280}],
+  "BIIS": [{id:"07",hdg:67}, {id:"25",hdg:247}],
+  "BGBW": [{id:"05",hdg:54}, {id:"23",hdg:234}],
+  "LKPR": [{id:"06",hdg:60}, {id:"12",hdg:117}, {id:"24",hdg:240}, {id:"30",hdg:297}],
+  "EPWA": [{id:"15",hdg:151}, {id:"33",hdg:331}],
+  "LHBP": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "LROP": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "LDZA": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "LZIB": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "LBSF": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "LYBT": [{id:"12",hdg:117}, {id:"30",hdg:297}],
+  "LWSK": [{id:"16",hdg:162}, {id:"34",hdg:342}],
+  "LATI": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "LGAV": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "LGRP": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "LGIR": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "LGSK": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "LCPH": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "LCLK": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "UMMS": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "UKBB": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "UUEE": [{id:"06",hdg:60}, {id:"07",hdg:75}, {id:"24",hdg:240}, {id:"25",hdg:255}],
+  "ULLI": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "EVRA": [{id:"18",hdg:183}, {id:"36",hdg:3}],
+  "EYKA": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "EYVI": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "EETN": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "LJLJ": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "LMML": [{id:"05",hdg:50}, {id:"14",hdg:137}, {id:"23",hdg:230}, {id:"32",hdg:317}],
+  "LTFM": [{id:"04",hdg:35}, {id:"16",hdg:152}, {id:"22",hdg:215}, {id:"34",hdg:332}],
+  "LTBA": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "LTAI": [{id:"18",hdg:182}, {id:"36",hdg:2}],
+  "LTFE": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "OMDB": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "OMDW": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "OMAA": [{id:"01",hdg:10}, {id:"13",hdg:130}, {id:"19",hdg:190}, {id:"31",hdg:310}],
+  "OTHH": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "OERK": [{id:"15",hdg:150}, {id:"16",hdg:163}, {id:"33",hdg:330}, {id:"34",hdg:343}],
+  "OEJN": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "OKBK": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "OIIE": [{id:"11",hdg:110}, {id:"29",hdg:290}],
+  "OIII": [{id:"11",hdg:111}, {id:"29",hdg:291}],
+  "OEDF": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "OOMS": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "OBKH": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "OSDZ": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "OSDI": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "OLBA": [{id:"03",hdg:30}, {id:"17",hdg:170}],
+  "LLBG": [{id:"08",hdg:80}, {id:"12",hdg:120}, {id:"26",hdg:260}, {id:"30",hdg:300}],
+  "OJAI": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "OYAA": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "RJTT": [{id:"16",hdg:160}, {id:"22",hdg:220}, {id:"34",hdg:340}],
+  "RJAA": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "RJOO": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "RJBB": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "RJFF": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "RJCC": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "ROAH": [{id:"00",hdg:0}, {id:"18",hdg:180}],
+  "ZBAA": [{id:"01",hdg:10}, {id:"18",hdg:183}, {id:"19",hdg:190}, {id:"36",hdg:3}],
+  "ZBAD": [{id:"11",hdg:115}, {id:"29",hdg:295}],
+  "ZSPD": [{id:"16",hdg:163}, {id:"34",hdg:343}],
+  "ZSSS": [{id:"18",hdg:183}, {id:"36",hdg:3}],
+  "ZGGG": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "ZGSZ": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "ZUUU": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "ZUCK": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "ZJSY": [{id:"08",hdg:80}, {id:"25",hdg:250}],
+  "VHHH": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "RCTP": [{id:"05",hdg:60}, {id:"06",hdg:60}, {id:"23",hdg:240}, {id:"24",hdg:240}],
+  "RCSS": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "RKSI": [{id:"15",hdg:150}, {id:"16",hdg:160}, {id:"33",hdg:330}, {id:"34",hdg:340}],
+  "RKSS": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "RKPC": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "RKPK": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "RKJJ": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "WSSS": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "WMKK": [{id:"15",hdg:150}, {id:"32",hdg:328}],
+  "WMKL": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "WMKP": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "WBKK": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "WBSB": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "VTBS": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "VTBD": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "VTSP": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "VTSM": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "VVNB": [{id:"11",hdg:110}, {id:"29",hdg:290}],
+  "VVTS": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "VVDN": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "VVPB": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "WIII": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "WADD": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "RPLL": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "RPMZ": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "VIDP": [{id:"09",hdg:91}, {id:"10",hdg:100}, {id:"11",hdg:111}, {id:"28",hdg:271}, {id:"29",hdg:280}],
+  "VABB": [{id:"09",hdg:90}, {id:"14",hdg:140}, {id:"27",hdg:270}, {id:"32",hdg:320}],
+  "VOMM": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "VOBL": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "VECC": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "VOGO": [{id:"11",hdg:110}, {id:"29",hdg:290}],
+  "OPKC": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "OPLH": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "OAKB": [{id:"05",hdg:50}, {id:"29",hdg:290}],
+  "UTTT": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "VCBI": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "VGZR": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "VNKT": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "KJFK": [{id:"04",hdg:40}, {id:"13",hdg:130}, {id:"22",hdg:220}, {id:"31",hdg:310}],
+  "KLGA": [{id:"04",hdg:40}, {id:"13",hdg:130}, {id:"22",hdg:220}, {id:"31",hdg:310}],
+  "KEWR": [{id:"04",hdg:40}, {id:"11",hdg:110}, {id:"22",hdg:220}, {id:"29",hdg:290}],
+  "KLAX": [{id:"06",hdg:60}, {id:"07",hdg:70}, {id:"24",hdg:240}, {id:"25",hdg:250}],
+  "KBUR": [{id:"08",hdg:80}, {id:"15",hdg:150}, {id:"26",hdg:260}, {id:"33",hdg:330}],
+  "KSNA": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "KOAK": [{id:"12",hdg:114}, {id:"30",hdg:294}],
+  "KSFO": [{id:"01",hdg:10}, {id:"10",hdg:100}, {id:"19",hdg:190}, {id:"28",hdg:280}],
+  "KSJC": [{id:"12",hdg:120}, {id:"30",hdg:300}, {id:"11",hdg:110}, {id:"29",hdg:290}],
+  "KORD": [{id:"04",hdg:40}, {id:"09",hdg:90}, {id:"10",hdg:100}, {id:"22",hdg:220}, {id:"27",hdg:270}, {id:"28",hdg:280}],
+  "KMDW": [{id:"04",hdg:40}, {id:"13",hdg:130}, {id:"22",hdg:220}, {id:"31",hdg:310}],
+  "KATL": [{id:"08",hdg:80}, {id:"09",hdg:90}, {id:"10",hdg:100}, {id:"26",hdg:260}, {id:"27",hdg:270}, {id:"28",hdg:280}],
+  "KDFW": [{id:"13",hdg:130}, {id:"17",hdg:170}, {id:"18",hdg:180}, {id:"31",hdg:310}, {id:"35",hdg:350}, {id:"36",hdg:360}],
+  "KDAL": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "KDEN": [{id:"07",hdg:70}, {id:"08",hdg:80}, {id:"16",hdg:160}, {id:"17",hdg:170}, {id:"25",hdg:250}, {id:"26",hdg:260}, {id:"34",hdg:340}, {id:"35",hdg:350}],
+  "KMIA": [{id:"08",hdg:80}, {id:"09",hdg:90}, {id:"26",hdg:260}, {id:"27",hdg:270}, {id:"10",hdg:100}, {id:"28",hdg:280}],
+  "KFLL": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "KMCO": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "KTPA": [{id:"01",hdg:10}, {id:"10",hdg:100}, {id:"19",hdg:190}, {id:"28",hdg:280}],
+  "KLAS": [{id:"01",hdg:10}, {id:"07",hdg:70}, {id:"08",hdg:80}, {id:"19",hdg:190}, {id:"25",hdg:250}, {id:"26",hdg:260}],
+  "KPHX": [{id:"07",hdg:70}, {id:"08",hdg:80}, {id:"25",hdg:250}, {id:"26",hdg:260}],
+  "KBOS": [{id:"04",hdg:40}, {id:"09",hdg:90}, {id:"15",hdg:150}, {id:"22",hdg:220}, {id:"27",hdg:270}, {id:"33",hdg:330}],
+  "KSEA": [{id:"16",hdg:160}, {id:"34",hdg:340}],
+  "KPDX": [{id:"03",hdg:28}, {id:"10",hdg:100}, {id:"21",hdg:208}, {id:"28",hdg:280}],
+  "KIAH": [{id:"08",hdg:80}, {id:"09",hdg:90}, {id:"15",hdg:150}, {id:"26",hdg:260}, {id:"27",hdg:270}, {id:"33",hdg:330}],
+  "KHOU": [{id:"04",hdg:40}, {id:"12",hdg:120}, {id:"22",hdg:220}, {id:"30",hdg:300}],
+  "KPHL": [{id:"09",hdg:90}, {id:"17",hdg:170}, {id:"27",hdg:270}, {id:"35",hdg:350}],
+  "KBWI": [{id:"10",hdg:100}, {id:"15",hdg:150}, {id:"28",hdg:280}, {id:"33",hdg:330}],
+  "KDCA": [{id:"01",hdg:10}, {id:"15",hdg:150}, {id:"19",hdg:190}, {id:"33",hdg:330}],
+  "KIAD": [{id:"01",hdg:10}, {id:"11",hdg:110}, {id:"12",hdg:120}, {id:"19",hdg:190}, {id:"29",hdg:290}, {id:"30",hdg:300}],
+  "KCLT": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "KMSP": [{id:"04",hdg:40}, {id:"12",hdg:120}, {id:"17",hdg:170}, {id:"22",hdg:220}, {id:"30",hdg:300}, {id:"35",hdg:350}],
+  "KSLC": [{id:"16",hdg:160}, {id:"17",hdg:170}, {id:"34",hdg:340}, {id:"35",hdg:350}],
+  "KCOS": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "KTUS": [{id:"03",hdg:30}, {id:"11",hdg:110}, {id:"21",hdg:210}, {id:"29",hdg:290}],
+  "KABQ": [{id:"03",hdg:30}, {id:"08",hdg:80}, {id:"21",hdg:210}, {id:"26",hdg:260}],
+  "KSAN": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "KMKE": [{id:"01",hdg:10}, {id:"07",hdg:70}, {id:"19",hdg:190}, {id:"25",hdg:250}],
+  "KIND": [{id:"05",hdg:50}, {id:"14",hdg:140}, {id:"23",hdg:230}, {id:"32",hdg:320}],
+  "KCVG": [{id:"09",hdg:90}, {id:"18",hdg:180}, {id:"27",hdg:270}, {id:"36",hdg:360}],
+  "KCLE": [{id:"06",hdg:60}, {id:"10",hdg:100}, {id:"24",hdg:240}, {id:"28",hdg:280}],
+  "KPIT": [{id:"10",hdg:100}, {id:"28",hdg:280}, {id:"32",hdg:320}],
+  "KRDU": [{id:"05",hdg:50}, {id:"14",hdg:140}, {id:"23",hdg:230}, {id:"32",hdg:320}],
+  "KJAX": [{id:"07",hdg:70}, {id:"14",hdg:140}, {id:"25",hdg:250}, {id:"32",hdg:320}],
+  "KRSW": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "KFAR": [{id:"09",hdg:90}, {id:"18",hdg:180}, {id:"27",hdg:270}, {id:"36",hdg:360}],
+  "KBIS": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "KRAP": [{id:"05",hdg:50}, {id:"14",hdg:140}, {id:"23",hdg:230}, {id:"32",hdg:320}],
+  "KGCC": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "KDLH": [{id:"03",hdg:30}, {id:"09",hdg:90}, {id:"21",hdg:210}, {id:"27",hdg:270}],
+  "KBZN": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "KFCA": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "PANC": [{id:"06",hdg:60}, {id:"07",hdg:70}, {id:"15",hdg:150}, {id:"24",hdg:240}, {id:"25",hdg:250}, {id:"33",hdg:330}],
+  "PAFA": [{id:"02",hdg:20}, {id:"06",hdg:60}, {id:"20",hdg:200}, {id:"24",hdg:240}],
+  "PAJN": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "PADQ": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "PAOM": [{id:"03",hdg:28}, {id:"09",hdg:90}, {id:"21",hdg:208}, {id:"27",hdg:270}, {id:"34",hdg:344}],
+  "PABE": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "PHOG": [{id:"02",hdg:20}, {id:"05",hdg:50}, {id:"20",hdg:200}, {id:"23",hdg:230}],
+  "PHNL": [{id:"04",hdg:40}, {id:"08",hdg:80}, {id:"22",hdg:220}, {id:"26",hdg:260}],
+  "PHKO": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "CYYZ": [{id:"05",hdg:51}, {id:"06",hdg:60}, {id:"15",hdg:150}, {id:"23",hdg:231}, {id:"24",hdg:240}, {id:"33",hdg:330}],
+  "CYVR": [{id:"08",hdg:80}, {id:"12",hdg:120}, {id:"26",hdg:260}, {id:"30",hdg:300}],
+  "CYUL": [{id:"06",hdg:60}, {id:"10",hdg:100}, {id:"24",hdg:240}, {id:"28",hdg:280}],
+  "CYYC": [{id:"11",hdg:110}, {id:"16",hdg:160}, {id:"29",hdg:290}, {id:"34",hdg:340}],
+  "CYEG": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "CYOW": [{id:"04",hdg:40}, {id:"07",hdg:70}, {id:"22",hdg:220}, {id:"25",hdg:250}, {id:"14",hdg:140}, {id:"32",hdg:320}],
+  "CYHZ": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "CYWG": [{id:"13",hdg:130}, {id:"18",hdg:180}, {id:"31",hdg:310}, {id:"36",hdg:360}],
+  "CYQB": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "CYYT": [{id:"03",hdg:30}, {id:"11",hdg:110}, {id:"16",hdg:160}, {id:"21",hdg:210}, {id:"29",hdg:290}, {id:"34",hdg:340}],
+  "CZST": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "MMMX": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "MMGL": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "MMCN": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "MMPR": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "MMUN": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "MBPV": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "MYNN": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "MDSD": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "TJSJ": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "TNCM": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "TBPB": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "TFFR": [{id:"11",hdg:110}, {id:"29",hdg:290}],
+  "TFFF": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "MUJG": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "FAOR": [{id:"03",hdg:28}, {id:"21",hdg:208}],
+  "FACT": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "FALE": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "HAAB": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "HECA": [{id:"05",hdg:51}, {id:"23",hdg:231}],
+  "HLLM": [{id:"15",hdg:152}, {id:"33",hdg:332}],
+  "GMMN": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "GMME": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "GMTT": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "DTTA": [{id:"01",hdg:10}, {id:"11",hdg:110}, {id:"19",hdg:190}, {id:"29",hdg:290}],
+  "DAAG": [{id:"05",hdg:50}, {id:"09",hdg:90}, {id:"23",hdg:230}, {id:"27",hdg:270}],
+  "DNMM": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "DNKN": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "DXXX": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "DIAP": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "DGAA": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "FKKD": [{id:"12",hdg:120}, {id:"30",hdg:300}],
+  "FCBB": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "FZAA": [{id:"24",hdg:240}],
+  "HTDA": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "HKNA": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "HKJK": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "FMMI": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "FSIA": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "FIMP": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "FWKI": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "FLKK": [{id:"10",hdg:100}, {id:"28",hdg:280}],
+  "FVHA": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "FBSK": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "FMCH": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "FTTJ": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "SBGR": [{id:"09",hdg:93}, {id:"27",hdg:273}],
+  "SBSP": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "SBGL": [{id:"10",hdg:100}, {id:"15",hdg:150}, {id:"28",hdg:280}, {id:"33",hdg:330}],
+  "SBRJ": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "SAEZ": [{id:"11",hdg:110}, {id:"17",hdg:170}, {id:"29",hdg:290}, {id:"35",hdg:350}],
+  "SABE": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "SCEL": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "SKBO": [{id:"13",hdg:130}, {id:"31",hdg:310}],
+  "SPJC": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "SEQM": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "SLLP": [{id:"09",hdg:90}, {id:"27",hdg:270}],
+  "SUAA": [{id:"07",hdg:70}, {id:"25",hdg:250}],
+  "SMJP": [{id:"08",hdg:80}, {id:"26",hdg:260}],
+  "SYCJ": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "YSSY": [{id:"07",hdg:70}, {id:"16",hdg:163}, {id:"25",hdg:250}, {id:"34",hdg:343}],
+  "YMML": [{id:"09",hdg:90}, {id:"16",hdg:160}, {id:"27",hdg:270}, {id:"34",hdg:340}],
+  "YBBN": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "YPPH": [{id:"03",hdg:30}, {id:"06",hdg:60}, {id:"21",hdg:210}, {id:"24",hdg:240}],
+  "YPAD": [{id:"05",hdg:50}, {id:"12",hdg:120}, {id:"23",hdg:230}, {id:"30",hdg:300}],
+  "YPDN": [{id:"11",hdg:110}, {id:"18",hdg:180}, {id:"29",hdg:290}, {id:"36",hdg:360}],
+  "YBCS": [{id:"15",hdg:150}, {id:"33",hdg:330}],
+  "YBMC": [{id:"18",hdg:180}, {id:"36",hdg:360}],
+  "YBTL": [{id:"01",hdg:10}, {id:"19",hdg:190}],
+  "YBCG": [{id:"14",hdg:140}, {id:"32",hdg:320}],
+  "YSCB": [{id:"17",hdg:170}, {id:"35",hdg:350}],
+  "NZAA": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "NZCH": [{id:"02",hdg:20}, {id:"11",hdg:110}, {id:"20",hdg:200}, {id:"29",hdg:290}],
+  "NZWN": [{id:"16",hdg:163}, {id:"34",hdg:343}],
+  "NZQN": [{id:"05",hdg:50}, {id:"23",hdg:230}],
+  "NZDN": [{id:"03",hdg:30}, {id:"21",hdg:210}],
+  "AGGH": [{id:"06",hdg:60}, {id:"24",hdg:240}],
+  "NFFN": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+  "NGFU": [{id:"04",hdg:40}, {id:"22",hdg:220}],
+  "NTAA": [{id:"02",hdg:20}, {id:"20",hdg:200}],
+};
+
+function suggestRunway(m, icao) {
+  const dir = m.wdir;
+  const spd = m.wspd || 0;
+
+  if (dir === 990) return "CHECK ATIS";
+  if (!dir || spd < 3) return "CALM";
+
+  const runways = RUNWAY_HEADINGS[icao];
+
+  if (runways && runways.length > 0) {
+    // Find the runway whose heading most closely aligns with wind direction
+    // (smallest angular difference = most into-wind)
+    let best = null, bestDiff = 999;
+    for (const rwy of runways) {
+      const diff = Math.abs(angleDiff(dir, rwy.hdg));
+      if (diff < bestDiff) { bestDiff = diff; best = rwy; }
+    }
+    // Reciprocal = other end (heading +180)
+    const recipHdg = (best.hdg + 180) % 360;
+    const recipNum = Math.round(recipHdg / 10) || 36;
+    const recipId  = String(recipNum).padStart(2, "0");
+    return `${best.id} <span style="color:var(--dim);font-size:9px">(OPP ${recipId})</span>`;
+  }
+
+  // Fallback: no runway data, estimate from wind
+  let rwyNum = Math.round(dir / 10);
+  if (rwyNum === 0 || rwyNum > 36) rwyNum = 36;
+  const rwyStr = String(rwyNum).padStart(2, "0");
+  return `~${rwyStr} <span style="color:var(--dim);font-size:9px">(EST)</span>`;
+}
+
+function angleDiff(a, b) {
+  // Smallest signed difference between two headings
+  let d = ((b - a) + 360) % 360;
+  if (d > 180) d -= 360;
+  return d;
+}
+
+// ─── Route Sharing ───────────────────────────────────────────────────────────
+
+function shareRoute() {
+  if (!state.result) return;
+  const panel = document.getElementById("share-panel");
+  const isOpen = panel.style.display !== "none";
+  panel.style.display = isOpen ? "none" : "block";
+  if (!isOpen) updateSharePreview();
+}
+
+function updateSharePreview() {
+  const r = state.result;
+  if (!r) return;
+  const ac   = state.aircraft;
+  const text = buildShareText(r, ac);
+  document.getElementById("share-preview").innerText = text;
+}
+
+function buildShareText(r, ac) {
+  const lines = [
+    `✈  ${r.dep.icao} → ${r.dest.icao}`,
+    `${r.dep.name} → ${r.dest.name}`,
+    `${ac.code} — ${ac.name}`,
+    `${toHHMM(r.flightMins)}  ·  ${r.dist} NM`,
+  ];
+  if (state.airlineIcao || state.flightNumber) {
+    lines.push(`Callsign: ${state.airlineIcao || ""}${state.flightNumber || ""}`);
+  }
+  lines.push(`Generated by RandomFlight`);
+  return lines.join("\n");
+}
+
+function buildShareUrl(r, ac) {
+  const base = window.location.href.split("?")[0];
+  const p = new URLSearchParams({
+    dep:  r.dep.icao,
+    dest: r.dest.icao,
+    ac:   ac.code,
+    dur:  r.flightMins,
+    dist: r.dist,
+  });
+  return `${base}?${p.toString()}`;
+}
+
+function copyRouteText() {
+  if (!state.result) return;
+  const text = buildShareText(state.result, state.aircraft);
+  navigator.clipboard.writeText(text).then(() => {
+    showShareFeedback("✓ COPIED TO CLIPBOARD");
+  }).catch(() => {
+    // Fallback for environments where clipboard API isn't available
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showShareFeedback("✓ COPIED TO CLIPBOARD");
+  });
+}
+
+function copyRouteLink() {
+  if (!state.result) return;
+  const url = buildShareUrl(state.result, state.aircraft);
+  navigator.clipboard.writeText(url).then(() => {
+    showShareFeedback("✓ LINK COPIED");
+  }).catch(() => {
+    const ta = document.createElement("textarea");
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showShareFeedback("✓ LINK COPIED");
+  });
+}
+
+function showShareFeedback(msg) {
+  const el = document.getElementById("share-feedback");
+  if (!el) return;
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ""; }, 2500);
+}
+
+// ─── URL Route Loading (shared links) ────────────────────────────────────────
+
+function loadRouteFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const dep  = params.get("dep");
+  const dest = params.get("dest");
+  const ac   = params.get("ac");
+  const dur  = params.get("dur");
+  const dist = params.get("dist");
+
+  if (!dep || !dest) return; // no shared route in URL
+
+  const depAirport  = AIRPORTS.find(a => a.icao === dep);
+  const destAirport = AIRPORTS.find(a => a.icao === dest);
+  const aircraft    = AIRCRAFT.find(a => a.code === ac) || state.aircraft;
+
+  if (!depAirport || !destAirport) {
+    console.warn("RandomFlight: shared airport not found in database", dep, dest);
+    return;
+  }
+
+  // Build a result object
+  const distNum = parseInt(dist) || Math.round(haversineNm(depAirport.lat, depAirport.lon, destAirport.lat, destAirport.lon));
+  const durNum  = parseInt(dur)  || Math.round((distNum / aircraft.cruiseKts) * 60);
+  const hdg     = bearingDeg(depAirport.lat, depAirport.lon, destAirport.lat, destAirport.lon);
+
+  const found = {
+    dep:       depAirport,
+    dest:      destAirport,
+    dist:      distNum,
+    flightMins: durNum,
+    hdg,
+  };
+
+  // Set aircraft in state and UI
+  state.aircraft = aircraft;
+  const sel = document.getElementById("aircraft-select");
+  if (sel) sel.value = aircraft.code;
+  updateAircraftTags();
+
+  // Load the route
+  state.result = found;
+  state.recentRoutes = [found, ...state.recentRoutes.filter(
+    r => !(r.dep.icao === found.dep.icao && r.dest.icao === found.dest.icao)
+  )].slice(0, 5);
+  saveRouteHistory();
+  renderResult(found);
+  renderHistory();
+  fetchAndRenderWeather(found.dep.icao, found.dest.icao);
+
+  // Show a banner so the user knows this was a shared route
+  const banner = document.createElement("div");
+  banner.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--accent);color:var(--bg);font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:2px;text-align:center;padding:8px;";
+  banner.textContent = `✈ SHARED ROUTE LOADED: ${dep} → ${dest}`;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 3000);
+}
+
+function sendToSimBrief() {
+  if (!state.result) return;
+  if (!state.aircraft) { alert("No aircraft selected."); return; }
+
+  const p = new URLSearchParams();
+  p.append("orig",     state.result.dep.icao);
+  p.append("dest",     state.result.dest.icao);
+  p.append("type",     state.aircraft.code);
+  if (state.pilotId)     p.append("pid",      state.pilotId);
+  if (state.airlineIcao) p.append("airline",  state.airlineIcao);
+  if (state.flightNumber) p.append("fltnum",  state.flightNumber);
+  if (state.atcCallsign)  p.append("callsign", state.atcCallsign);
+
+  const url = "https://www.simbrief.com/system/dispatch.php?" + p.toString();
+  window.open(url, "_blank");
+
+  // Update both SimBrief buttons (planner + map tab)
+  ["simbrief-btn", "map-simbrief-btn"].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) { btn.textContent = "✓ SENT TO SIMBRIEF"; btn.classList.add("sent"); }
+  });
+}
+
+// ─── Leaflet Map ──────────────────────────────────────────────────────────────
+let leafletMap = null;
+let mapInitialised = false;
+let routeLayer = null;
+let lastBounds = null;
+
+// Map layer references
+let layerControl = null;
+
+function initMap() {
+  if (mapInitialised) {
+    setTimeout(() => { if (leafletMap) leafletMap.invalidateSize(); }, 100);
+    return;
+  }
+  mapInitialised = true;
+
+  leafletMap = L.map("leaflet-map", {
+    center: [30, 10],
+    zoom: 2,
+    zoomControl: true,
+    attributionControl: true,
+    layers: [], // start empty, add below
+  });
+
+  // ── Base layers ──────────────────────────────────────────────────────────────
+  const darkLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains: "abcd", maxZoom: 19,
+  });
+
+  const streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+    maxZoom: 19,
+  });
+
+  const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Imagery &copy; <a href="https://www.esri.com/">Esri</a>',
+    maxZoom: 19,
+  });
+
+  // Start with dark layer
+  darkLayer.addTo(leafletMap);
+
+  // ── Day/Night terminator ──────────────────────────────────────────────────────
+  // Use a simple calculated terminator overlay
+  const terminatorLayer = L.layerGroup();
+  drawTerminator(terminatorLayer);
+  // Refresh terminator every 5 minutes
+  setInterval(() => { terminatorLayer.clearLayers(); drawTerminator(terminatorLayer); }, 5 * 60 * 1000);
+
+  // ── Layer control ─────────────────────────────────────────────────────────────
+  const baseLayers = {
+    "🌑 Dark":      darkLayer,
+    "🗺 Street":    streetLayer,
+    "🛰 Satellite": satelliteLayer,
+  };
+
+  const overlays = {
+    "🌙 Day / Night": terminatorLayer,
+  };
+
+  layerControl = L.control.layers(baseLayers, overlays, {
+    position: "topright",
+    collapsed: true,
+  }).addTo(leafletMap);
+
+  // Style the layer control to match the app theme
+  styleLayerControl();
+
+  // If a route already exists draw it after the map has had time to settle
+  if (state.result) setTimeout(() => { drawRoute(state.result); fitToRoute(); }, 200);
+}
+
+
+
+function drawTerminator(group) {
+  const now = new Date();
+
+  // ── Solar declination ──────────────────────────────────────────────────────
+  const jd  = now.getTime() / 86400000 + 2440587.5;
+  const n   = jd - 2451545.0;
+  const L0  = (280.46 + 0.9856474 * n) % 360;
+  const g   = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+  const lam = (L0 + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI / 180;
+  const eps = 23.439 * Math.PI / 180;
+  const dec = Math.asin(Math.sin(eps) * Math.sin(lam)); // radians
+
+  // ── Sub-solar longitude (sun is directly overhead here) ───────────────────
+  // UTC fractional hours → sun moves 15°/hour westward from 0° at noon
+  const utcH  = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+  const sunLon = ((12 - utcH) * 15 + 360) % 360;
+  // Convert to -180..180
+  const sunLonSigned = sunLon > 180 ? sunLon - 360 : sunLon;
+
+  // ── Build terminator line ─────────────────────────────────────────────────
+  // For each longitude, find the latitude where the sun is on the horizon
+  // Formula: tan(lat) = -cos(lon - sunLon) / tan(dec)
+  const pts = [];
+  for (let lon = -180; lon <= 180; lon++) {
+    const dlon = (lon - sunLonSigned) * Math.PI / 180;
+    if (Math.abs(dec) < 1e-10) {
+      // Equinox: terminator is the prime meridian ± 90°
+      pts.push([lon === 0 ? 90 : (lon < 0 ? -90 : 90), lon]);
+    } else {
+      const lat = Math.atan(-Math.cos(dlon) / Math.tan(dec)) * 180 / Math.PI;
+      pts.push([Math.max(-89.9, Math.min(89.9, lat)), lon]);
+    }
+  }
+
+  // ── Night polygon ─────────────────────────────────────────────────────────
+  // The night side is the pole OPPOSITE to where the sun's declination points
+  // If dec > 0 (sun in northern hemisphere) → south pole is in night
+  // If dec < 0 → north pole is in night
+  const decDeg  = dec * 180 / Math.PI;
+  const nightPole = decDeg >= 0 ? -90 : 90;
+  const dayPole   = decDeg >= 0 ?  90 : -90;
+
+  // Night polygon: terminator line + night pole corners
+  const nightPoly = [
+    ...pts,
+    [nightPole,  180],
+    [nightPole, -180],
+    pts[0], // close
+  ];
+
+  L.polygon(nightPoly, {
+    color: "transparent",
+    fillColor: "#00004a",
+    fillOpacity: 0.40,
+    smoothFactor: 2,
+  }).addTo(group);
+
+  // Terminator line
+  L.polyline(pts, {
+    color: "#ffd700",
+    weight: 1.5,
+    opacity: 0.8,
+    dashArray: "5 4",
+    smoothFactor: 1,
+  }).addTo(group);
+
+  // Small marker at sub-solar point (sun position)
+  L.circleMarker([decDeg, sunLonSigned], {
+    radius: 5,
+    color: "#ffd700",
+    fillColor: "#ffff00",
+    fillOpacity: 0.9,
+    weight: 1,
+  }).bindTooltip(`☀ Sun · ${now.toUTCString().slice(17,22)} UTC`, {
+    permanent: false, direction: "top",
+    className: "wx-tooltip",
+  }).addTo(group);
+}
+
+function styleLayerControl() {
+  setTimeout(() => {
+    const lc = document.querySelector(".leaflet-control-layers");
+    if (!lc) return;
+    lc.style.cssText += ";background:var(--bg)!important;border:1px solid var(--border2)!important;border-radius:0!important;color:var(--accent3)!important;font-family:'Share Tech Mono',monospace!important;font-size:11px!important;";
+    document.querySelectorAll(".leaflet-control-layers-base label, .leaflet-control-layers-overlays label").forEach(el => {
+      el.style.cssText += ";color:var(--accent3)!important;letter-spacing:1px;";
+    });
+    const toggle = document.querySelector(".leaflet-control-layers-toggle");
+    if (toggle) toggle.style.cssText += ";background-color:#050d0e!important;border:1px solid var(--border2)!important;";
+  }, 300);
+}
+
+function drawRoute(r) {
+  if (!leafletMap) return;
+
+  // Remove previous layer
+  if (routeLayer) { leafletMap.removeLayer(routeLayer); routeLayer = null; }
+
+  const depLatLng  = [r.dep.lat,  r.dep.lon];
+  const destLatLng = [r.dest.lat, r.dest.lon];
+
+  // Plane emoji icons for departure and arrival
+  const makeDepIcon = (label) => L.divIcon({
+    className: "",
+    html: `<div style="text-align:center;line-height:1">
+      <div style="font-size:28px;filter:drop-shadow(0 0 4px var(--glow2))">🛫</div>
+      <div style="background:rgba(5,13,14,0.85);border:1px solid #00e87a;color:var(--accent2);
+        font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;
+        padding:2px 6px;letter-spacing:1px;white-space:nowrap;margin-top:2px;
+        box-shadow:0 0 8px var(--glow2)">${label}</div>
+    </div>`,
+    iconAnchor: [14, 32],
+  });
+
+  const makeDestIcon = (label) => L.divIcon({
+    className: "",
+    html: `<div style="text-align:center;line-height:1">
+      <div style="font-size:28px;filter:drop-shadow(0 0 4px var(--glow2))">🛬</div>
+      <div style="background:rgba(5,13,14,0.85);border:1px solid #00e87a;color:var(--accent2);
+        font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;
+        padding:2px 6px;letter-spacing:1px;white-space:nowrap;margin-top:2px;
+        box-shadow:0 0 8px var(--glow2)">${label}</div>
+    </div>`,
+    iconAnchor: [14, 32],
+  });
+
+  // Great-circle arc: interpolate N points along the geodesic
+  const arcPoints = geodesicArc(depLatLng, destLatLng, 80);
+
+  routeLayer = L.layerGroup();
+
+  // Dashed arc line
+  L.polyline(arcPoints, {
+    color: "#00e87a",
+    weight: 2,
+    opacity: 0.7,
+    dashArray: "6 5",
+  }).addTo(routeLayer);
+
+  // Departure marker
+  L.marker(depLatLng, { icon: makeDepIcon(r.dep.icao) })
+    .bindPopup(`<b style="color:var(--accent2)">${r.dep.icao}</b><br>${r.dep.name}<br>${r.dep.city}`)
+    .addTo(routeLayer);
+
+  // Destination marker
+  L.marker(destLatLng, { icon: makeDestIcon(r.dest.icao) })
+    .bindPopup(`<b style="color:var(--accent2)">${r.dest.icao}</b><br>${r.dest.name}<br>${r.dest.city}`)
+    .addTo(routeLayer);
+
+  routeLayer.addTo(leafletMap);
+
+  // Update summary bar
+  document.getElementById("map-dep-code").textContent  = r.dep.icao;
+  document.getElementById("map-dest-code").textContent = r.dest.icao;
+  document.getElementById("map-stats").textContent     = toHHMM(r.flightMins) + "  ·  " + r.dist + " NM";
+  document.getElementById("map-no-route").style.display  = "none";
+  document.getElementById("map-container").style.display = "block";
+
+  const bounds  = L.latLngBounds(arcPoints);
+  const fitOpts = { padding: [50, 50], animate: false, maxZoom: 12 };
+
+  // Strict sequence: resize container → invalidateSize → fitBounds
+  // Each step waits for the previous to fully paint before running
+  // Store bounds for use when tab becomes visible
+  lastBounds = L.latLngBounds(arcPoints);
+
+  // Only attempt fitBounds if the map container is actually visible and sized
+  if (document.body.classList.contains("map-active") &&
+      document.getElementById("leaflet-map").offsetHeight > 0) {
+    fitToRoute();
+  }
+}
+
+function fitToRoute() {
+  if (!leafletMap || !lastBounds) return;
+  const fitOpts = { padding: [50, 50], animate: false, maxZoom: 12 };
+  resizeMap();
+  // Chain: resize → wait for paint → invalidate → wait → fitBounds → verify
+  requestAnimationFrame(() => {
+    leafletMap.invalidateSize();
+    requestAnimationFrame(() => {
+      leafletMap.fitBounds(lastBounds, fitOpts);
+      // One final check after tiles have had time to load
+      setTimeout(() => {
+        leafletMap.invalidateSize();
+        leafletMap.fitBounds(lastBounds, fitOpts);
+      }, 300);
+    });
+  });
+}
+
+// Interpolate a geodesic arc between two lat/lng points
+function geodesicArc(p1, p2, steps) {
+  const toRad = d => d * Math.PI / 180;
+  const toDeg = r => r * 180 / Math.PI;
+  const [lat1, lon1] = p1.map(toRad);
+  const [lat2, lon2] = p2.map(toRad);
+  const d = 2 * Math.asin(Math.sqrt(
+    Math.sin((lat2-lat1)/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin((lon2-lon1)/2)**2
+  ));
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const f = i / steps;
+    const A = Math.sin((1-f)*d) / Math.sin(d);
+    const B = Math.sin(f*d) / Math.sin(d);
+    const x = A*Math.cos(lat1)*Math.cos(lon1) + B*Math.cos(lat2)*Math.cos(lon2);
+    const y = A*Math.cos(lat1)*Math.sin(lon1) + B*Math.cos(lat2)*Math.sin(lon2);
+    const z = A*Math.sin(lat1) + B*Math.sin(lat2);
+    pts.push([toDeg(Math.atan2(z, Math.sqrt(x*x+y*y))), toDeg(Math.atan2(y, x))]);
+  }
+  return pts;
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+window.addEventListener("DOMContentLoaded", () => {
+  init();
+  updateSliderFill("duration-slider", (120 - 30) / (840 - 30) * 100);
+  updateSliderFill("tol-slider", (20 - 5) / (40 - 5) * 100);
+  renderHistory();
+  // Restore saved theme
+  const savedTheme = localStorage.getItem("rf_theme") || "";
+  if (savedTheme) setTheme(savedTheme);
+  // Load shared route from URL if present
+  loadRouteFromUrl();
+});
+</script>
+</body>
+</html>
