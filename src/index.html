@@ -460,7 +460,7 @@
 <!-- Download button â€” top right, web only, hidden in Electron -->
 <a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.2.7/RandomFlight-Setup-1.2.7.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
-         display:inline-flex;align-items:center;gap:7px;
+         display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
          color:var(--accent);font-family:'Share Tech Mono',monospace;
          font-size:11px;letter-spacing:2px;padding:7px 14px;
@@ -473,7 +473,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">â—ˆ DISPATCH SYSTEM v<span id="app-version">1.2.7</span> â—ˆ</div>
+    <div class="header-eyebrow">â—ˆ DISPATCH SYSTEM v<span id="app-version">1.2.2</span> â—ˆ</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -3475,10 +3475,12 @@ window.addEventListener("DOMContentLoaded", () => {
   init();
   updateSliderFill("duration-slider", (120 - 30) / (840 - 30) * 100);
   updateSliderFill("tol-slider", (20 - 5) / (40 - 5) * 100);
-  // Hide download button when running inside Electron
-  if (navigator.userAgent.includes("Electron")) {
-    const dlBtn = document.getElementById("download-btn");
-    if (dlBtn) dlBtn.style.display = "none";
+  // Show download button only on web, hide in Electron
+  const dlBtn = document.getElementById("download-btn");
+  if (dlBtn) {
+    if (!navigator.userAgent.includes("Electron")) {
+      dlBtn.style.display = "inline-flex";
+    }
   }
   renderHistory();
   // Restore saved theme
@@ -3490,5 +3492,3 @@ window.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
-
-
