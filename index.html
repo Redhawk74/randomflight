@@ -452,7 +452,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">◈ DISPATCH SYSTEM v<span id="app-version">1.0.1</span> ◈</div>
+    <div class="header-eyebrow">◈ DISPATCH SYSTEM v<span id="app-version">1.2.2</span> ◈</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -2972,7 +2972,8 @@ function buildShareText(r, ac) {
 }
 
 function buildShareUrl(r, ac) {
-  const base = window.location.href.split("?")[0];
+  // Use GitHub Pages URL when available, fall back to current location
+  const base = "https://redhawk74.github.io/randomflight";
   const p = new URLSearchParams({
     dep:  r.dep.icao,
     dest: r.dest.icao,
