@@ -1964,12 +1964,13 @@ function generate() {
   document.getElementById("no-result").style.display = "none";
 
   setTimeout(() => {
-    const pool = filteredAirports();
+    let pool = filteredAirports();
     const tol = state.tolerance / 100;
     const targetNm = (state.durationMin / 60) * state.aircraft.cruiseKts;
     const minNm = targetNm * (1 - tol), maxNm = targetNm * (1 + tol);
     const mode = state.mode;
     let found = null;
+    let expandedToGlobal = false;
 
     if (mode === "manual") {
       // Both fixed — just validate both are selected
@@ -2010,6 +2011,21 @@ function generate() {
         const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
         found = { dep, dest, dist, flightMins, hdg };
       }
+      // Expand to global if no candidates found in region
+      if (!found && state.region !== "ANY") {
+        const globalCandidates = AIRPORTS.filter(a =>
+          a.icao !== dep.icao &&
+          haversineNm(dep.lat, dep.lon, a.lat, a.lon) >= minNm &&
+          haversineNm(dep.lat, dep.lon, a.lat, a.lon) <= maxNm &&
+          (!state.aircraft.minRwy || (a.rwy >= state.aircraft.minRwy && state.aircraft.surfaces.includes(a.sfc)))
+        );
+        if (globalCandidates.length > 0) {
+          const dest = globalCandidates[Math.floor(Math.random() * globalCandidates.length)];
+          const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+          found = { dep, dest, dist, flightMins: Math.round((dist / state.aircraft.cruiseKts) * 60), hdg: bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon) };
+          expandedToGlobal = true;
+        }
+      }
 
     } else if (mode === "fixed-dest") {
       // Dest fixed, pick random dep within range
@@ -2036,24 +2052,39 @@ function generate() {
       }
 
     } else {
-      // Full random — original logic
-      let attempts = 0;
-      while (attempts < 2000 && !found) {
-        const depIdx = Math.floor(Math.random() * pool.length);
-        const dep = pool[depIdx];
-        const candidates = pool.filter((a, i) => {
-          if (i === depIdx) return false;
-          const d = haversineNm(dep.lat, dep.lon, a.lat, a.lon);
-          return d >= minNm && d <= maxNm;
-        });
-        if (candidates.length > 0) {
-          const dest = candidates[Math.floor(Math.random() * candidates.length)];
-          const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-          const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
-          const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
-          found = { dep, dest, dist, flightMins, hdg };
+      // Full random — try region pool first, then fall back to global
+      const tryPool = (searchPool) => {
+        let attempts = 0, result = null;
+        while (attempts < 2000 && !result) {
+          const depIdx = Math.floor(Math.random() * searchPool.length);
+          const dep = searchPool[depIdx];
+          const candidates = searchPool.filter((a, i) => {
+            if (i === depIdx) return false;
+            const d = haversineNm(dep.lat, dep.lon, a.lat, a.lon);
+            return d >= minNm && d <= maxNm;
+          });
+          if (candidates.length > 0) {
+            const dest = candidates[Math.floor(Math.random() * candidates.length)];
+            const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+            const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+            const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+            result = { dep, dest, dist, flightMins, hdg };
+          }
+          attempts++;
         }
-        attempts++;
+        return result;
+      };
+
+      found = tryPool(pool);
+
+      // If not found and a region filter is active, expand to global
+      if (!found && state.region !== "ANY") {
+        const globalPool = AIRPORTS.filter(a => {
+          if (!state.aircraft || !state.aircraft.minRwy) return true;
+          return a.rwy >= state.aircraft.minRwy && state.aircraft.surfaces.includes(a.sfc);
+        });
+        found = tryPool(globalPool);
+        if (found) expandedToGlobal = true;
       }
     }
 
@@ -2063,6 +2094,7 @@ function generate() {
     btn.innerHTML = mode === "manual" ? "&#x25C8; DISPATCH FLIGHT &#x25C8;" : "&#x25C8; RANDOMISE FLIGHT &#x25C8;";
 
     if (found) {
+      found.expandedToGlobal = expandedToGlobal;
       // Add to recent routes history (max 5, no duplicates)
       state.recentRoutes = [found, ...state.recentRoutes.filter(
         r => !(r.dep.icao === found.dep.icao && r.dest.icao === found.dest.icao)
@@ -2085,11 +2117,17 @@ function renderResult(r) {
   const hdgStr = Math.round(r.hdg).toString().padStart(3,"0");
   const warnHtml = state.pilotId ? "" :
     `<div class="warning">⚠ Add Pilot ID in Settings to auto-fill your account</div>`;
+  const expandedHtml = r.expandedToGlobal
+    ? `<div style="font-size:12px;color:var(--accent);letter-spacing:1px;margin-bottom:12px;padding:8px 10px;background:rgba(0,232,122,0.07);border:1px solid var(--border)">
+        ⚠ No route found within <strong>${state.region}</strong> for this duration — expanded to global airports
+       </div>`
+    : "";
 
   document.getElementById("result-area").innerHTML = `
     <div class="result-card" id="result-card">
       <div class="corner tl"></div><div class="corner tr"></div>
       <div class="corner bl"></div><div class="corner br"></div>
+      ${expandedHtml}
       <div class="route-row">
         <div class="airport-block">
           <div class="airport-code">${r.dep.icao}</div>
@@ -2954,7 +2992,10 @@ function updateSharePreview() {
   if (!r) return;
   const ac   = state.aircraft;
   const text = buildShareText(r, ac);
-  document.getElementById("share-preview").innerText = text;
+  const url = buildShareUrl(r, state.aircraft);
+  document.getElementById("share-preview").innerHTML =
+    `<div style="margin-bottom:6px">${text.replace(/\n/g,"<br>")}</div>` +
+    `<div style="color:var(--accent2);margin-top:4px">🔗 Link: <a href="${url}" style="color:var(--accent2)">${r.dep.icao} to ${r.dest.icao}</a></div>`;
 }
 
 function buildShareText(r, ac) {
@@ -3003,18 +3044,33 @@ function copyRouteText() {
 
 function copyRouteLink() {
   if (!state.result) return;
-  const url = buildShareUrl(state.result, state.aircraft);
-  navigator.clipboard.writeText(url).then(() => {
-    showShareFeedback("✓ LINK COPIED");
-  }).catch(() => {
-    const ta = document.createElement("textarea");
-    ta.value = url;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
-    showShareFeedback("✓ LINK COPIED");
-  });
+  const r   = state.result;
+  const url = buildShareUrl(r, state.aircraft);
+  // Build a clickable hyperlink: "EIDW to EGLL"
+  const linkText = `${r.dep.icao} to ${r.dest.icao}`;
+  const htmlLink = `<a href="${url}">${linkText}</a>`;
+
+  // Try to copy as rich HTML (works in most email clients, Discord, Slack etc.)
+  try {
+    const blob = new Blob([htmlLink], { type: "text/html" });
+    const plainBlob = new Blob([`${linkText}: ${url}`], { type: "text/plain" });
+    const item = new ClipboardItem({ "text/html": blob, "text/plain": plainBlob });
+    navigator.clipboard.write([item]).then(() => {
+      showShareFeedback("✓ LINK COPIED — PASTE ANYWHERE");
+    });
+  } catch(e) {
+    // Fallback: plain text with label
+    const plain = `${linkText}: ${url}`;
+    navigator.clipboard.writeText(plain).catch(() => {
+      const ta = document.createElement("textarea");
+      ta.value = plain;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    });
+    showShareFeedback("✓ LINK COPIED — PASTE ANYWHERE");
+  }
 }
 
 function showShareFeedback(msg) {
