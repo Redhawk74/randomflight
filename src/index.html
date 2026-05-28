@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RandomFlight — SimBrief Dispatch Generator</title>
+<title>RandomFlight â€” SimBrief Dispatch Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-RXDGRHEQD3"></script>
@@ -15,7 +15,7 @@
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-  /* Dark CartoDB tiles — no filter needed */
+  /* Dark CartoDB tiles â€” no filter needed */
   #leaflet-map .leaflet-tile-pane { filter: none; }
   #leaflet-map .leaflet-control-attribution {
     background: rgba(5,13,14,0.8) !important;
@@ -49,7 +49,7 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
 
-  /* ── Theme: FMS Green (default) ─────────────────────────────────────── */
+  /* â”€â”€ Theme: FMS Green (default) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   :root {
     --bg:         #050d0e;
     --bg2:        #071012;
@@ -75,7 +75,7 @@
     --wx-bg:      rgba(0,15,10,0.8);
     --send-color: #00b8d4;
   }
-  /* ── Theme: EFIS Amber ───────────────────────────────────────────────── */
+  /* â”€â”€ Theme: EFIS Amber â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   body.theme-amber {
     --bg:         #0e0a00;
     --bg2:        #120d00;
@@ -101,7 +101,7 @@
     --wx-bg:      rgba(14,10,0,0.8);
     --send-color: #ff8c00;
   }
-  /* ── Theme: ECAM Blue ────────────────────────────────────────────────── */
+  /* â”€â”€ Theme: ECAM Blue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   body.theme-blue {
     --bg:         #00060f;
     --bg2:        #000a18;
@@ -127,7 +127,7 @@
     --wx-bg:      rgba(0,6,15,0.8);
     --send-color: #00e5ff;
   }
-  /* ── Theme: Radar Red ────────────────────────────────────────────────── */
+  /* â”€â”€ Theme: Radar Red â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   body.theme-red {
     --bg:         #0f0000;
     --bg2:        #180000;
@@ -153,7 +153,7 @@
     --wx-bg:      rgba(15,0,0,0.8);
     --send-color: #ff6600;
   }
-  /* ── Theme: Night Vision ─────────────────────────────────────────────── */
+  /* â”€â”€ Theme: Night Vision â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   body.theme-nvg {
     --bg:         #000800;
     --bg2:        #001000;
@@ -180,7 +180,7 @@
     --send-color: #00cc88;
   }
 
-  /* ── Theme swatches in settings ─────────────────────────────────────── */
+  /* â”€â”€ Theme swatches in settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   .theme-grid {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
     margin-top: 8px;
@@ -242,7 +242,7 @@
   @media (min-width: 800px) {
     .app { padding: 28px 40px 80px; }
 
-    /* Two-column field grid INSIDE the planner — safe, doesn't affect tab visibility */
+    /* Two-column field grid INSIDE the planner â€” safe, doesn't affect tab visibility */
     .planner-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -457,10 +457,23 @@
 <div class="grid-bg"></div>
 <div class="scan-line"></div>
 
+<!-- Download button â€” top right, web only, hidden in Electron -->
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.2.7/RandomFlight-Setup-1.2.7.exe" target="_blank"
+  style="position:fixed;top:14px;right:16px;z-index:100;
+         display:inline-flex;align-items:center;gap:7px;
+         background:rgba(0,232,122,0.08);border:1px solid var(--accent);
+         color:var(--accent);font-family:'Share Tech Mono',monospace;
+         font-size:11px;letter-spacing:2px;padding:7px 14px;
+         text-decoration:none;transition:all 0.2s"
+  onmouseover="this.style.background='rgba(0,232,122,0.2)'"
+  onmouseout="this.style.background='rgba(0,232,122,0.08)'">
+  â¬‡ DOWNLOAD DESKTOP APP
+</a>
+
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">◈ DISPATCH SYSTEM v<span id="app-version">1.2.6</span> ◈</div>
+    <div class="header-eyebrow">â—ˆ DISPATCH SYSTEM v<span id="app-version">1.2.7</span> â—ˆ</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -536,14 +549,14 @@
       </div>
       <input type="range" id="duration-slider" min="30" max="840" step="5" value="120" oninput="onDurationChange()">
       <div class="slider-minmax"><span>30 MIN</span><span>14 HRS</span></div>
-      <div class="slider-hint" id="nm-hint">≈ 906 NM at cruise</div>
+      <div class="slider-hint" id="nm-hint">â‰ˆ 906 NM at cruise</div>
     </div>
 
     <!-- Region filter (also in Settings) -->
     <div class="field" id="duration-field-region">
       <label class="field-label">Region Filter</label>
       <select id="region-select-main" onchange="saveRegionMain()" style="width:100%">
-        <option value="ANY">🌍 Any Region</option>
+        <option value="ANY">ðŸŒ Any Region</option>
         <option value="Europe">Europe</option>
         <option value="North America">North America</option>
         <option value="Asia">Asia</option>
@@ -586,7 +599,7 @@
 
       <!-- ATC Callsign (optional, for non-commercial) -->
       <div style="margin-top:10px">
-        <label class="field-label" style="margin-bottom:6px">ATC Callsign <span style="color:var(--dim);font-size:10px;letter-spacing:1px">(OPTIONAL — non-commercial)</span></label>
+        <label class="field-label" style="margin-bottom:6px">ATC Callsign <span style="color:var(--dim);font-size:10px;letter-spacing:1px">(OPTIONAL â€” non-commercial)</span></label>
         <input type="text" id="atc-callsign" placeholder="e.g. NOVEMBER123 or GOLF-ABCD" maxlength="12"
           oninput="onAtcCallsignChange()" style="text-transform:uppercase;letter-spacing:2px;width:100%">
         <div class="hint" style="margin-top:4px">Populates the ATC callsign field in SimBrief</div>
@@ -601,7 +614,7 @@
     <button class="btn primary full" id="gen-btn" onclick="generate()">&#x25C8; RANDOMISE FLIGHT &#x25C8;</button>
 
     <div id="result-area"></div>
-    <div class="no-result" id="no-result">NO ROUTE GENERATED — HIT RANDOMISE</div>
+    <div class="no-result" id="no-result">NO ROUTE GENERATED â€” HIT RANDOMISE</div>
     <div id="history-area"></div>
   </div>
 
@@ -609,7 +622,7 @@
   <!-- Map Tab -->
   <div id="tab-map" class="tab-content hidden">
     <div id="map-no-route" style="text-align:center;padding:60px 0;color:var(--border);font-size:11px;letter-spacing:2px">
-      NO ROUTE GENERATED YET — USE THE PLANNER
+      NO ROUTE GENERATED YET â€” USE THE PLANNER
     </div>
     <div id="map-container" style="display:none">
       <!-- Route summary bar -->
@@ -617,7 +630,7 @@
         <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)"></div>
         <div>
           <span id="map-dep-code" style="font-family:Orbitron,sans-serif;font-size:18px;font-weight:900;color:var(--accent2);letter-spacing:3px"></span>
-          <span style="color:var(--border2);margin:0 10px;font-size:18px">──►</span>
+          <span style="color:var(--border2);margin:0 10px;font-size:18px">â”€â”€â–º</span>
           <span id="map-dest-code" style="font-family:Orbitron,sans-serif;font-size:18px;font-weight:900;color:var(--accent2);letter-spacing:3px"></span>
         </div>
         <div style="text-align:right">
@@ -629,8 +642,8 @@
       <div id="leaflet-map" style="height:420px;border:1px solid var(--border2);background:var(--bg2);transition:height 0.2s"></div>
       <!-- SimBrief button -->
       <div style="margin-top:12px;display:flex;gap:10px">
-        <button class="btn" style="flex:1;font-size:11px" onclick="switchTab('planner')">← BACK TO PLANNER</button>
-        <button class="btn send" id="map-simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">→ OPEN IN SIMBRIEF</button>
+        <button class="btn" style="flex:1;font-size:11px" onclick="switchTab('planner')">â† BACK TO PLANNER</button>
+        <button class="btn send" id="map-simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">â†’ OPEN IN SIMBRIEF</button>
       </div>
     </div>
   </div>
@@ -642,30 +655,30 @@
       <div class="theme-grid" id="theme-grid">
         <div class="theme-swatch active" data-theme="" onclick="setTheme('')"
           style="background:#050d0e;border-color:#1a4a3a;color:#3df0a0">
-          <div style="font-size:16px;margin-bottom:4px">🟢</div>FMS Green
+          <div style="font-size:16px;margin-bottom:4px">ðŸŸ¢</div>FMS Green
         </div>
         <div class="theme-swatch" data-theme="amber" onclick="setTheme('amber')"
           style="background:#0e0a00;border-color:#4a3200;color:#ffcc44">
-          <div style="font-size:16px;margin-bottom:4px">🟡</div>EFIS Amber
+          <div style="font-size:16px;margin-bottom:4px">ðŸŸ¡</div>EFIS Amber
         </div>
         <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')"
           style="background:#00060f;border-color:#0a2a50;color:#40c4ff">
-          <div style="font-size:16px;margin-bottom:4px">🔵</div>ECAM Blue
+          <div style="font-size:16px;margin-bottom:4px">ðŸ”µ</div>ECAM Blue
         </div>
         <div class="theme-swatch" data-theme="red" onclick="setTheme('red')"
           style="background:#0f0000;border-color:#4a0a0a;color:#ff6060">
-          <div style="font-size:16px;margin-bottom:4px">🔴</div>Radar Red
+          <div style="font-size:16px;margin-bottom:4px">ðŸ”´</div>Radar Red
         </div>
         <div class="theme-swatch" data-theme="nvg" onclick="setTheme('nvg')"
           style="background:#000800;border-color:#003a00;color:#44ff44">
-          <div style="font-size:16px;margin-bottom:4px">🌿</div>Night Vision
+          <div style="font-size:16px;margin-bottom:4px">ðŸŒ¿</div>Night Vision
         </div>
       </div>
     </div>
     <div class="field">
       <label class="field-label">SimBrief Pilot ID</label>
       <input type="text" id="pilot-id" placeholder="e.g. 123456" oninput="savePilotId()">
-      <div class="hint">Find yours at simbrief.com → Account → Pilot ID</div>
+      <div class="hint">Find yours at simbrief.com â†’ Account â†’ Pilot ID</div>
     </div>
     <div class="field">
       <label class="field-label">Region Filter</label>
@@ -682,7 +695,7 @@
     <div class="field">
       <div class="slider-row">
         <label class="field-label" style="margin:0">Duration Tolerance</label>
-        <span class="slider-val" id="tol-display" style="font-size:16px">± 20%</span>
+        <span class="slider-val" id="tol-display" style="font-size:16px">Â± 20%</span>
       </div>
       <input type="range" id="tol-slider" min="5" max="40" step="5" value="20" oninput="onTolChange()">
       <div class="hint">Higher tolerance = more airport variety</div>
@@ -692,16 +705,16 @@
 </div>
 
 <script>
-// ─── Airport Database ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Airport Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AIRPORTS = [
   // Europe
   { icao:"EGLL", name:"London Heathrow", city:"London", lat:51.4775, lon:-0.4614, rwy:3902, sfc:"paved" },
   { icao:"LFPG", name:"Charles de Gaulle", city:"Paris", lat:49.0097, lon:2.5478, rwy:4215, sfc:"paved" },
   { icao:"EDDF", name:"Frankfurt Airport", city:"Frankfurt", lat:50.0379, lon:8.5622, rwy:4000, sfc:"paved" },
   { icao:"EHAM", name:"Amsterdam Schiphol", city:"Amsterdam", lat:52.3086, lon:4.7639, rwy:3800, sfc:"paved" },
-  { icao:"LEMD", name:"Adolfo Suárez Madrid", city:"Madrid", lat:40.4936, lon:-3.5668, rwy:4349, sfc:"paved" },
+  { icao:"LEMD", name:"Adolfo SuÃ¡rez Madrid", city:"Madrid", lat:40.4936, lon:-3.5668, rwy:4349, sfc:"paved" },
   { icao:"LIRF", name:"Leonardo da Vinci", city:"Rome", lat:41.8003, lon:12.2389, rwy:3902, sfc:"paved" },
-  { icao:"LSZH", name:"Zürich Airport", city:"Zürich", lat:47.4647, lon:8.5492, rwy:3700, sfc:"paved" },
+  { icao:"LSZH", name:"ZÃ¼rich Airport", city:"ZÃ¼rich", lat:47.4647, lon:8.5492, rwy:3700, sfc:"paved" },
   { icao:"EDDM", name:"Munich Airport", city:"Munich", lat:48.3538, lon:11.7861, rwy:4000, sfc:"paved" },
   { icao:"LOWW", name:"Vienna International", city:"Vienna", lat:48.1103, lon:16.5697, rwy:3600, sfc:"paved" },
   { icao:"EBCI", name:"Brussels South Charleroi", city:"Brussels", lat:50.4592, lon:4.4528, rwy:3200, sfc:"paved" },
@@ -714,7 +727,7 @@ const AIRPORTS = [
   { icao:"EFHK", name:"Helsinki-Vantaa", city:"Helsinki", lat:60.3172, lon:24.9633, rwy:3440, sfc:"paved" },
   { icao:"LPPT", name:"Lisbon Airport", city:"Lisbon", lat:38.7756, lon:-9.1354, rwy:3805, sfc:"paved" },
   { icao:"LGAV", name:"Athens Eleftherios Venizelos", city:"Athens", lat:37.9364, lon:23.9445, rwy:4000, sfc:"paved" },
-  { icao:"LKPR", name:"Václav Havel Airport", city:"Prague", lat:50.1008, lon:14.2600, rwy:3715, sfc:"paved" },
+  { icao:"LKPR", name:"VÃ¡clav Havel Airport", city:"Prague", lat:50.1008, lon:14.2600, rwy:3715, sfc:"paved" },
   { icao:"EPWA", name:"Warsaw Chopin", city:"Warsaw", lat:52.1657, lon:20.9671, rwy:3690, sfc:"paved" },
   { icao:"LHBP", name:"Budapest Ferenc Liszt", city:"Budapest", lat:47.4369, lon:19.2556, rwy:3707, sfc:"paved" },
   { icao:"UUEE", name:"Sheremetyevo International", city:"Moscow", lat:55.9726, lon:37.4146, rwy:3700, sfc:"paved" },
@@ -734,7 +747,7 @@ const AIRPORTS = [
   { icao:"KSEA", name:"Seattle-Tacoma Intl", city:"Seattle", lat:47.4502, lon:-122.3088, rwy:3627, sfc:"paved" },
   { icao:"CYYZ", name:"Toronto Pearson Intl", city:"Toronto", lat:43.6772, lon:-79.6306, rwy:3368, sfc:"paved" },
   { icao:"CYVR", name:"Vancouver International", city:"Vancouver", lat:49.1967, lon:-123.1815, rwy:3505, sfc:"paved" },
-  { icao:"CYUL", name:"Montréal-Trudeau Intl", city:"Montreal", lat:45.4706, lon:-73.7408, rwy:3353, sfc:"paved" },
+  { icao:"CYUL", name:"MontrÃ©al-Trudeau Intl", city:"Montreal", lat:45.4706, lon:-73.7408, rwy:3353, sfc:"paved" },
   { icao:"MMMX", name:"Mexico City International", city:"Mexico City", lat:19.4363, lon:-99.0721, rwy:4000, sfc:"paved" },
   { icao:"KIAH", name:"George Bush Intercontinental", city:"Houston", lat:29.9902, lon:-95.3368, rwy:4084, sfc:"paved" },
   { icao:"KEWR", name:"Newark Liberty Intl", city:"Newark", lat:40.6895, lon:-74.1745, rwy:3353, sfc:"paved" },
@@ -779,12 +792,12 @@ const AIRPORTS = [
   { icao:"DNMM", name:"Murtala Muhammed Intl", city:"Lagos", lat:6.5774, lon:3.3216, rwy:3900, sfc:"paved" },
   { icao:"FMMI", name:"Ivato International", city:"Antananarivo", lat:-18.7969, lon:47.4789, rwy:3100, sfc:"paved" },
   // South America
-  { icao:"SBGR", name:"São Paulo Guarulhos Intl", city:"São Paulo", lat:-23.4356, lon:-46.4731, rwy:3700, sfc:"paved" },
+  { icao:"SBGR", name:"SÃ£o Paulo Guarulhos Intl", city:"SÃ£o Paulo", lat:-23.4356, lon:-46.4731, rwy:3700, sfc:"paved" },
   { icao:"SAEZ", name:"Ministro Pistarini Intl", city:"Buenos Aires", lat:-34.8222, lon:-58.5358, rwy:3300, sfc:"paved" },
-  { icao:"SKBO", name:"El Dorado International", city:"Bogotá", lat:4.7016, lon:-74.1469, rwy:3800, sfc:"paved" },
-  { icao:"SPJC", name:"Jorge Chávez International", city:"Lima", lat:-12.0219, lon:-77.1143, rwy:3507, sfc:"paved" },
-  { icao:"SCEL", name:"Arturo Merino Benítez Intl", city:"Santiago", lat:-33.3930, lon:-70.7858, rwy:4083, sfc:"paved" },
-  { icao:"SBGL", name:"Galeão International", city:"Rio de Janeiro", lat:-22.8099, lon:-43.2505, rwy:4240, sfc:"paved" },
+  { icao:"SKBO", name:"El Dorado International", city:"BogotÃ¡", lat:4.7016, lon:-74.1469, rwy:3800, sfc:"paved" },
+  { icao:"SPJC", name:"Jorge ChÃ¡vez International", city:"Lima", lat:-12.0219, lon:-77.1143, rwy:3507, sfc:"paved" },
+  { icao:"SCEL", name:"Arturo Merino BenÃ­tez Intl", city:"Santiago", lat:-33.3930, lon:-70.7858, rwy:4083, sfc:"paved" },
+  { icao:"SBGL", name:"GaleÃ£o International", city:"Rio de Janeiro", lat:-22.8099, lon:-43.2505, rwy:4240, sfc:"paved" },
   // Ireland
   { icao:"EINN", name:"Shannon Airport",               city:"Shannon",          lat:52.7020, lon:-8.9248, rwy:3199, sfc:"paved" },
   { icao:"EICK", name:"Cork Airport",                  city:"Cork",             lat:51.8413, lon:-8.4910, rwy:2133, sfc:"paved" },
@@ -823,27 +836,27 @@ const AIRPORTS = [
   { icao:"EGSH", name:"Norwich Airport",               city:"Norwich",          lat:52.6758, lon:1.2828, rwy:2200, sfc:"paved" },
   { icao:"EGFF", name:"Cardiff Airport",               city:"Cardiff",          lat:51.3967, lon:-3.3433, rwy:2390, sfc:"paved" },
   { icao:"EGBJ", name:"Gloucestershire Airport",       city:"Gloucester",       lat:51.8942, lon:-2.1672, rwy:2200, sfc:"paved" },
-  // Continental Europe — regional
+  // Continental Europe â€” regional
   { icao:"LFPG", name:"Charles de Gaulle",             city:"Paris",            lat:49.0097, lon:2.5478, rwy:4215, sfc:"paved" },
   { icao:"LFPO", name:"Paris Orly",                    city:"Paris",            lat:48.7233, lon:2.3794, rwy:2200, sfc:"paved" },
   { icao:"LFSB", name:"EuroAirport Basel-Mulhouse",    city:"Basel",            lat:47.5896, lon:7.5290, rwy:2200, sfc:"paved" },
   { icao:"LFML", name:"Marseille Provence",            city:"Marseille",        lat:43.4393, lon:5.2214, rwy:2200, sfc:"paved" },
-  { icao:"LFMN", name:"Nice Côte d'Azur",              city:"Nice",             lat:43.6584, lon:7.2159, rwy:2960, sfc:"paved" },
+  { icao:"LFMN", name:"Nice CÃ´te d'Azur",              city:"Nice",             lat:43.6584, lon:7.2159, rwy:2960, sfc:"paved" },
   { icao:"LFBO", name:"Toulouse Blagnac",              city:"Toulouse",         lat:43.6293, lon:1.3678, rwy:3500, sfc:"paved" },
-  { icao:"LFLY", name:"Lyon Saint-Exupéry",            city:"Lyon",             lat:45.7256, lon:5.0811, rwy:1660, sfc:"paved" },
+  { icao:"LFLY", name:"Lyon Saint-ExupÃ©ry",            city:"Lyon",             lat:45.7256, lon:5.0811, rwy:1660, sfc:"paved" },
   { icao:"LFRB", name:"Brest Bretagne",                city:"Brest",            lat:48.4479, lon:-4.4186, rwy:3100, sfc:"paved" },
   { icao:"EDDF", name:"Frankfurt Airport",             city:"Frankfurt",        lat:50.0379, lon:8.5622, rwy:4000, sfc:"paved" },
   { icao:"EDDM", name:"Munich Airport",                city:"Munich",           lat:48.3538, lon:11.7861, rwy:4000, sfc:"paved" },
-  { icao:"EDDL", name:"Düsseldorf Airport",            city:"Düsseldorf",       lat:51.2895, lon:6.7668, rwy:2200, sfc:"paved" },
+  { icao:"EDDL", name:"DÃ¼sseldorf Airport",            city:"DÃ¼sseldorf",       lat:51.2895, lon:6.7668, rwy:2200, sfc:"paved" },
   { icao:"EDDB", name:"Berlin Brandenburg",            city:"Berlin",           lat:52.3667, lon:13.5033, rwy:2200, sfc:"paved" },
   { icao:"EDDH", name:"Hamburg Airport",               city:"Hamburg",          lat:53.6303, lon:10.0062, rwy:2200, sfc:"paved" },
   { icao:"EDDS", name:"Stuttgart Airport",             city:"Stuttgart",        lat:48.6899, lon:9.2220, rwy:2200, sfc:"paved" },
   { icao:"EDDK", name:"Cologne Bonn Airport",          city:"Cologne",          lat:50.8659, lon:7.1427, rwy:2200, sfc:"paved" },
   { icao:"EHAM", name:"Amsterdam Schiphol",            city:"Amsterdam",        lat:52.3086, lon:4.7639, rwy:3800, sfc:"paved" },
   { icao:"EHEH", name:"Eindhoven Airport",             city:"Eindhoven",        lat:51.4501, lon:5.3745, rwy:2200, sfc:"paved" },
-  { icao:"LEMD", name:"Adolfo Suárez Madrid",          city:"Madrid",           lat:40.4936, lon:-3.5668, rwy:4349, sfc:"paved" },
+  { icao:"LEMD", name:"Adolfo SuÃ¡rez Madrid",          city:"Madrid",           lat:40.4936, lon:-3.5668, rwy:4349, sfc:"paved" },
   { icao:"LEBL", name:"Barcelona El Prat",             city:"Barcelona",        lat:41.2971, lon:2.0785, rwy:3352, sfc:"paved" },
-  { icao:"LEMG", name:"Málaga Costa del Sol",          city:"Malaga",           lat:36.6749, lon:-4.4991, rwy:3200, sfc:"paved" },
+  { icao:"LEMG", name:"MÃ¡laga Costa del Sol",          city:"Malaga",           lat:36.6749, lon:-4.4991, rwy:3200, sfc:"paved" },
   { icao:"LEPA", name:"Palma de Mallorca",             city:"Palma",            lat:39.5517, lon:2.7388, rwy:3270, sfc:"paved" },
   { icao:"LEAL", name:"Alicante-Elche Airport",        city:"Alicante",         lat:38.2822, lon:-0.5582, rwy:3000, sfc:"paved" },
   { icao:"LEIB", name:"Ibiza Airport",                 city:"Ibiza",            lat:38.8729, lon:1.3731, rwy:2200, sfc:"paved" },
@@ -864,7 +877,7 @@ const AIRPORTS = [
   { icao:"LIRN", name:"Naples International",          city:"Naples",           lat:40.8860, lon:14.2908, rwy:2200, sfc:"paved" },
   { icao:"LICJ", name:"Palermo Airport",               city:"Palermo",          lat:38.1759, lon:13.0910, rwy:3325, sfc:"paved" },
   { icao:"LICT", name:"Catania Airport",               city:"Catania",          lat:37.4668, lon:15.0664, rwy:2200, sfc:"paved" },
-  { icao:"LSZH", name:"Zürich Airport",                city:"Zürich",           lat:47.4647, lon:8.5492, rwy:3700, sfc:"paved" },
+  { icao:"LSZH", name:"ZÃ¼rich Airport",                city:"ZÃ¼rich",           lat:47.4647, lon:8.5492, rwy:3700, sfc:"paved" },
   { icao:"LSGG", name:"Geneva Airport",                city:"Geneva",           lat:46.2381, lon:6.1089, rwy:2200, sfc:"paved" },
   { icao:"LOWW", name:"Vienna International",          city:"Vienna",           lat:48.1103, lon:16.5697, rwy:3600, sfc:"paved" },
   { icao:"LOWI", name:"Innsbruck Airport",             city:"Innsbruck",        lat:47.2602, lon:11.3439, rwy:2200, sfc:"paved" },
@@ -878,14 +891,14 @@ const AIRPORTS = [
   { icao:"ENGM", name:"Oslo Gardermoen",               city:"Oslo",             lat:60.1939, lon:11.1004, rwy:3600, sfc:"paved" },
   { icao:"ENBR", name:"Bergen Airport",                city:"Bergen",           lat:60.2934, lon:5.2181, rwy:2200, sfc:"paved" },
   { icao:"ENVA", name:"Trondheim Airport",             city:"Trondheim",        lat:63.4578, lon:10.9239, rwy:2999, sfc:"paved" },
-  { icao:"ENTC", name:"Tromsø Airport",                city:"Tromsø",           lat:69.6833, lon:18.9189, rwy:2728, sfc:"paved" },
+  { icao:"ENTC", name:"TromsÃ¸ Airport",                city:"TromsÃ¸",           lat:69.6833, lon:18.9189, rwy:2728, sfc:"paved" },
   { icao:"EFHK", name:"Helsinki-Vantaa",               city:"Helsinki",         lat:60.3172, lon:24.9633, rwy:3440, sfc:"paved" },
   { icao:"EFTU", name:"Turku Airport",                 city:"Turku",            lat:60.5141, lon:22.2628, rwy:2200, sfc:"paved" },
   { icao:"EFRO", name:"Rovaniemi Airport",             city:"Rovaniemi",        lat:66.5648, lon:25.8304, rwy:2200, sfc:"paved" },
   { icao:"BIKF", name:"Reykjavik Keflavik",            city:"Reykjavik",        lat:63.9850, lon:-22.6056, rwy:2200, sfc:"paved" },
-  { icao:"BIIS", name:"Ísafjörður Airport",            city:"Isafjordur",       lat:66.0581, lon:-23.1353, rwy:2200, sfc:"paved" },
+  { icao:"BIIS", name:"ÃsafjÃ¶rÃ°ur Airport",            city:"Isafjordur",       lat:66.0581, lon:-23.1353, rwy:2200, sfc:"paved" },
   { icao:"BGBW", name:"Narsarsuaq Airport",            city:"Narsarsuaq",       lat:61.1605, lon:-45.4260, rwy:2200, sfc:"paved" },
-  { icao:"LKPR", name:"Václav Havel Airport",          city:"Prague",           lat:50.1008, lon:14.2600, rwy:3715, sfc:"paved" },
+  { icao:"LKPR", name:"VÃ¡clav Havel Airport",          city:"Prague",           lat:50.1008, lon:14.2600, rwy:3715, sfc:"paved" },
   { icao:"EPWA", name:"Warsaw Chopin",                 city:"Warsaw",           lat:52.1657, lon:20.9671, rwy:3690, sfc:"paved" },
   { icao:"LHBP", name:"Budapest Ferenc Liszt",         city:"Budapest",         lat:47.4369, lon:19.2556, rwy:3707, sfc:"paved" },
   { icao:"LROP", name:"Bucharest Henri Coanda",        city:"Bucharest",        lat:44.5711, lon:26.0850, rwy:3500, sfc:"paved" },
@@ -903,7 +916,7 @@ const AIRPORTS = [
   { icao:"UKBB", name:"Kyiv Boryspil",                 city:"Kyiv",             lat:50.3450, lon:30.8947, rwy:4000, sfc:"paved" },
   { icao:"UUEE", name:"Sheremetyevo International",    city:"Moscow",           lat:55.9726, lon:37.4146, rwy:3700, sfc:"paved" },
   { icao:"ULLI", name:"St Petersburg Pulkovo",         city:"St Petersburg",    lat:59.8003, lon:30.2625, rwy:2200, sfc:"paved" },
-  // North America — regional
+  // North America â€” regional
   { icao:"KJFK", name:"John F. Kennedy Intl",          city:"New York",         lat:40.6413, lon:-73.7781, rwy:4423, sfc:"paved" },
   { icao:"KLGA", name:"LaGuardia Airport",             city:"New York",         lat:40.7772, lon:-73.8726, rwy:2400, sfc:"paved" },
   { icao:"KEWR", name:"Newark Liberty Intl",           city:"Newark",           lat:40.6895, lon:-74.1745, rwy:3353, sfc:"paved" },
@@ -942,21 +955,21 @@ const AIRPORTS = [
   { icao:"PHOG", name:"Maui Kahului Airport",          city:"Maui",             lat:20.8986, lon:-156.4305, rwy:2721, sfc:"paved" },
   { icao:"CYYZ", name:"Toronto Pearson Intl",          city:"Toronto",          lat:43.6772, lon:-79.6306, rwy:3368, sfc:"paved" },
   { icao:"CYVR", name:"Vancouver International",       city:"Vancouver",        lat:49.1967, lon:-123.1815, rwy:3505, sfc:"paved" },
-  { icao:"CYUL", name:"Montréal-Trudeau Intl",         city:"Montreal",         lat:45.4706, lon:-73.7408, rwy:3353, sfc:"paved" },
+  { icao:"CYUL", name:"MontrÃ©al-Trudeau Intl",         city:"Montreal",         lat:45.4706, lon:-73.7408, rwy:3353, sfc:"paved" },
   { icao:"CYYC", name:"Calgary International",         city:"Calgary",          lat:51.1139, lon:-114.0200, rwy:3962, sfc:"paved" },
   { icao:"CYEG", name:"Edmonton International",        city:"Edmonton",         lat:53.3097, lon:-113.5797, rwy:3353, sfc:"paved" },
   { icao:"CYOW", name:"Ottawa Macdonald-Cartier",      city:"Ottawa",           lat:45.3225, lon:-75.6692, rwy:3048, sfc:"paved" },
   { icao:"CYHZ", name:"Halifax Stanfield Intl",        city:"Halifax",          lat:44.8808, lon:-63.5086, rwy:2347, sfc:"paved" },
   { icao:"MMMX", name:"Mexico City International",     city:"Mexico City",      lat:19.4363, lon:-99.0721, rwy:4000, sfc:"paved" },
   { icao:"MMGL", name:"Guadalajara International",     city:"Guadalajara",      lat:20.5218, lon:-103.3106, rwy:2200, sfc:"paved" },
-  { icao:"MMCN", name:"Ciudad Obregón International",  city:"Ciudad Obregon",   lat:27.3926, lon:-109.8330, rwy:2200, sfc:"paved" },
+  { icao:"MMCN", name:"Ciudad ObregÃ³n International",  city:"Ciudad Obregon",   lat:27.3926, lon:-109.8330, rwy:2200, sfc:"paved" },
   { icao:"MMPR", name:"Puerto Vallarta International", city:"Puerto Vallarta",  lat:20.6801, lon:-105.2544, rwy:2200, sfc:"paved" },
-  { icao:"MMUN", name:"Cancún International",          city:"Cancun",           lat:21.0365, lon:-86.8771, rwy:2200, sfc:"paved" },
+  { icao:"MMUN", name:"CancÃºn International",          city:"Cancun",           lat:21.0365, lon:-86.8771, rwy:2200, sfc:"paved" },
   // Caribbean
   { icao:"TNCM", name:"Princess Juliana International",city:"St Maarten",       lat:18.0410, lon:-63.1089, rwy:2301, sfc:"paved" },
   { icao:"TBPB", name:"Grantley Adams International",  city:"Barbados",         lat:13.0746, lon:-59.4925, rwy:2200, sfc:"paved" },
   { icao:"MUJG", name:"Jardines del Rey Airport",      city:"Cayo Coco",        lat:22.4610, lon:-78.3289, rwy:2200, sfc:"paved" },
-  // Asia — regional
+  // Asia â€” regional
   { icao:"RJTT", name:"Tokyo Haneda",                  city:"Tokyo",            lat:35.5494, lon:139.7798, rwy:3360, sfc:"paved" },
   { icao:"RJAA", name:"Narita International",          city:"Tokyo",            lat:35.7647, lon:140.3864, rwy:4000, sfc:"paved" },
   { icao:"RJOO", name:"Osaka Itami Airport",           city:"Osaka",            lat:34.7855, lon:135.4381, rwy:1828, sfc:"paved" },
@@ -1045,13 +1058,13 @@ const AIRPORTS = [
   { icao:"HECA", name:"Cairo International",           city:"Cairo",            lat:30.1219, lon:31.4056, rwy:4000, sfc:"paved" },
   { icao:"HLLM", name:"Tripoli International",         city:"Tripoli",          lat:32.6635, lon:13.1590, rwy:2200, sfc:"paved" },
   { icao:"GMMN", name:"Mohammed V International",      city:"Casablanca",       lat:33.3675, lon:-7.5900, rwy:3720, sfc:"paved" },
-  { icao:"GMME", name:"Rabat–Salé Airport",            city:"Rabat",            lat:34.0514, lon:-6.7515, rwy:2200, sfc:"paved" },
+  { icao:"GMME", name:"Rabatâ€“SalÃ© Airport",            city:"Rabat",            lat:34.0514, lon:-6.7515, rwy:2200, sfc:"paved" },
   { icao:"GMTT", name:"Tangier Ibn Battouta",          city:"Tangier",          lat:35.7269, lon:-5.9168, rwy:2200, sfc:"paved" },
   { icao:"DTTA", name:"Tunis-Carthage International",  city:"Tunis",            lat:36.8510, lon:10.2272, rwy:3200, sfc:"paved" },
   { icao:"DAAG", name:"Algiers Houari Boumediene",     city:"Algiers",          lat:36.6910, lon:3.2154, rwy:2200, sfc:"paved" },
   { icao:"DNMM", name:"Murtala Muhammed Intl",         city:"Lagos",            lat:6.5774,  lon:3.3216, rwy:3900, sfc:"paved" },
   { icao:"DNKN", name:"Kano Mallam Aminu Intl",        city:"Kano",             lat:12.0476, lon:8.5246, rwy:2200, sfc:"paved" },
-  { icao:"DXXX", name:"Lomé-Tokoin Airport",           city:"Lome",             lat:6.1656,  lon:1.2545, rwy:2200, sfc:"paved" },
+  { icao:"DXXX", name:"LomÃ©-Tokoin Airport",           city:"Lome",             lat:6.1656,  lon:1.2545, rwy:2200, sfc:"paved" },
   { icao:"DIAP", name:"Abidjan Port Bouet",            city:"Abidjan",          lat:5.2613,  lon:-3.9263, rwy:2200, sfc:"paved" },
   { icao:"DGAA", name:"Accra Kotoka International",    city:"Accra",            lat:5.6052,  lon:-0.1668, rwy:2200, sfc:"paved" },
   { icao:"FKKD", name:"Douala International",          city:"Douala",           lat:4.0061,  lon:9.7195, rwy:2200, sfc:"paved" },
@@ -1064,15 +1077,15 @@ const AIRPORTS = [
   { icao:"FSIA", name:"Seychelles International",      city:"Seychelles",       lat:-4.6744, lon:55.5218, rwy:2200, sfc:"paved" },
   { icao:"FIMP", name:"Mauritius Sir Seewoosagur",     city:"Mauritius",        lat:-20.4302, lon:57.6836, rwy:2200, sfc:"paved" },
   // South America
-  { icao:"SBGR", name:"São Paulo Guarulhos Intl",      city:"São Paulo",        lat:-23.4356, lon:-46.4731, rwy:3700, sfc:"paved" },
-  { icao:"SBSP", name:"São Paulo Congonhas",           city:"São Paulo",        lat:-23.6261, lon:-46.6564, rwy:2200, sfc:"paved" },
-  { icao:"SBGL", name:"Rio de Janeiro Galeão",         city:"Rio de Janeiro",   lat:-22.8099, lon:-43.2505, rwy:4240, sfc:"paved" },
+  { icao:"SBGR", name:"SÃ£o Paulo Guarulhos Intl",      city:"SÃ£o Paulo",        lat:-23.4356, lon:-46.4731, rwy:3700, sfc:"paved" },
+  { icao:"SBSP", name:"SÃ£o Paulo Congonhas",           city:"SÃ£o Paulo",        lat:-23.6261, lon:-46.6564, rwy:2200, sfc:"paved" },
+  { icao:"SBGL", name:"Rio de Janeiro GaleÃ£o",         city:"Rio de Janeiro",   lat:-22.8099, lon:-43.2505, rwy:4240, sfc:"paved" },
   { icao:"SBRJ", name:"Rio Santos Dumont",             city:"Rio de Janeiro",   lat:-22.9105, lon:-43.1631, rwy:2200, sfc:"paved" },
   { icao:"SAEZ", name:"Buenos Aires Ezeiza",           city:"Buenos Aires",     lat:-34.8222, lon:-58.5358, rwy:3300, sfc:"paved" },
   { icao:"SABE", name:"Buenos Aires Aeroparque",       city:"Buenos Aires",     lat:-34.5592, lon:-58.4156, rwy:2200, sfc:"paved" },
   { icao:"SCEL", name:"Santiago Arturo Merino Benitez",city:"Santiago",         lat:-33.3930, lon:-70.7858, rwy:4083, sfc:"paved" },
-  { icao:"SKBO", name:"Bogotá El Dorado",              city:"Bogotá",           lat:4.7016,  lon:-74.1469, rwy:3800, sfc:"paved" },
-  { icao:"SPJC", name:"Lima Jorge Chávez",             city:"Lima",             lat:-12.0219, lon:-77.1143, rwy:3507, sfc:"paved" },
+  { icao:"SKBO", name:"BogotÃ¡ El Dorado",              city:"BogotÃ¡",           lat:4.7016,  lon:-74.1469, rwy:3800, sfc:"paved" },
+  { icao:"SPJC", name:"Lima Jorge ChÃ¡vez",             city:"Lima",             lat:-12.0219, lon:-77.1143, rwy:3507, sfc:"paved" },
   { icao:"SEQM", name:"Quito Mariscal Sucre",          city:"Quito",            lat:-0.1292,  lon:-78.3575, rwy:2200, sfc:"paved" },
   { icao:"SLLP", name:"La Paz El Alto International",  city:"La Paz",           lat:-16.5133, lon:-68.1922, rwy:2200, sfc:"paved" },
   { icao:"SUAA", name:"Montevideo Carrasco",           city:"Montevideo",       lat:-34.8384, lon:-56.0308, rwy:2200, sfc:"paved" },
@@ -1081,7 +1094,7 @@ const AIRPORTS = [
 ];
 
 
-// ─── Aircraft Database ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Aircraft Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AIRCRAFT = [
   // GA Piston
   { code:"C172",  name:"Cessna 172 Skyhawk",           type:"GA Piston",          cruiseKts:122,  cruiseAlt:"FL065", minRwy:400, surfaces:["paved","grass","unpaved"] },
@@ -1210,7 +1223,7 @@ const AIRCRAFT = [
   { code:"CONC",  name:"Concorde",                      type:"Supersonic",         cruiseKts:1165, cruiseAlt:"FL550", minRwy:3600, surfaces:["paved"] },
 ];
 
-// ─── Airline Database ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Airline Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AIRLINES = [
   { icao:"RYR",  iata:"FR", name:"Ryanair" },
   { icao:"BAW",  iata:"BA", name:"British Airways" },
@@ -1709,7 +1722,7 @@ const RUNWAY_DB = {
   "ZUUU": [20,200],
 };
 
-// ─── Region map ───────────────────────────────────────────────────────────────
+// â”€â”€â”€ Region map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const REGION_PREFIXES = {
   "Europe":        ["EG","EI","LE","LF","ED","EH","LI","LS","LO","EB","ES","EK","EN","EF","LP","LG","LK","EP","LH","UU"],
   "North America": ["K","CY","MM"],
@@ -1719,7 +1732,7 @@ const REGION_PREFIXES = {
   "South America": ["SB","SA","SK","SP","SC"],
 };
 
-// ─── Route History Persistence ────────────────────────────────────────────────
+// â”€â”€â”€ Route History Persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const HISTORY_KEY = "rf_route_history";
 
 function loadRouteHistory() {
@@ -1737,7 +1750,7 @@ function saveRouteHistory() {
   } catch(e) {}
 }
 
-// ─── State ────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let state = {
   aircraft: AIRCRAFT.find(a => a.code === "B738"),
   durationMin: 120,
@@ -1756,7 +1769,7 @@ let state = {
   sent: false,
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function haversineNm(lat1, lon1, lat2, lon2) {
   const R = 3440.065;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1770,9 +1783,9 @@ function toHHMM(mins) {
 }
 
 function bearingDeg(lat1, lon1, lat2, lon2) {
-  const φ1=lat1*Math.PI/180, φ2=lat2*Math.PI/180, dλ=(lon2-lon1)*Math.PI/180;
-  const y=Math.sin(dλ)*Math.cos(φ2);
-  const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(dλ);
+  const Ï†1=lat1*Math.PI/180, Ï†2=lat2*Math.PI/180, dÎ»=(lon2-lon1)*Math.PI/180;
+  const y=Math.sin(dÎ»)*Math.cos(Ï†2);
+  const x=Math.cos(Ï†1)*Math.sin(Ï†2)-Math.sin(Ï†1)*Math.cos(Ï†2)*Math.cos(dÎ»);
   return ((Math.atan2(y,x)*180/Math.PI)+360)%360;
 }
 
@@ -1801,13 +1814,13 @@ function filteredAirports() {
   return pool;
 }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function init() {
   buildAircraftSelect();
   updateAircraftTags();
   updateDurationDisplay();
   updateNmHint();
-  document.getElementById("tol-display").textContent = `± ${state.tolerance}%`;
+  document.getElementById("tol-display").textContent = `Â± ${state.tolerance}%`;
 }
 
 function buildAircraftSelect() {
@@ -1816,11 +1829,11 @@ function buildAircraftSelect() {
   const types = [...new Set(AIRCRAFT.map(a => a.type))];
   types.forEach(type => {
     const grp = document.createElement("optgroup");
-    grp.label = "── " + type;
+    grp.label = "â”€â”€ " + type;
     AIRCRAFT.filter(a => a.type === type).forEach(ac => {
       const opt = document.createElement("option");
       opt.value = ac.code;
-      opt.textContent = `${ac.code} — ${ac.name}`;
+      opt.textContent = `${ac.code} â€” ${ac.name}`;
       if (ac.code === state.aircraft.code) opt.selected = true;
       grp.appendChild(opt);
     });
@@ -1845,10 +1858,10 @@ function updateDurationDisplay() {
 
 function updateNmHint() {
   const nm = Math.round((state.durationMin / 60) * state.aircraft.cruiseKts);
-  document.getElementById("nm-hint").textContent = `≈ ${nm.toLocaleString()} NM at cruise`;
+  document.getElementById("nm-hint").textContent = `â‰ˆ ${nm.toLocaleString()} NM at cruise`;
 }
 
-// ─── Event handlers ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Event handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function onAircraftChange() {
   const code = document.getElementById("aircraft-select").value;
   state.aircraft = AIRCRAFT.find(a => a.code === code) || state.aircraft;
@@ -1865,7 +1878,7 @@ function onDurationChange() {
 
 function onTolChange() {
   state.tolerance = Number(document.getElementById("tol-slider").value);
-  document.getElementById("tol-display").textContent = `± ${state.tolerance}%`;
+  document.getElementById("tol-display").textContent = `Â± ${state.tolerance}%`;
   updateSliderFill("tol-slider", (state.tolerance - 5) / (40 - 5) * 100);
 }
 
@@ -1959,7 +1972,7 @@ window.addEventListener("resize", () => {
   }
 });
 
-// ─── Generate ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Generate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function generate() {
   if (state.generating) return;
   state.generating = true;
@@ -1967,7 +1980,7 @@ function generate() {
 
   const btn = document.getElementById("gen-btn");
   btn.disabled = true;
-  btn.innerHTML = `<span class="blink">◈ COMPUTING ROUTE... ◈</span>`;
+  btn.innerHTML = `<span class="blink">â—ˆ COMPUTING ROUTE... â—ˆ</span>`;
   document.getElementById("result-area").innerHTML = "";
   document.getElementById("no-result").style.display = "none";
 
@@ -1981,7 +1994,7 @@ function generate() {
     let expandedToGlobal = false;
 
     if (mode === "manual") {
-      // Both fixed — just validate both are selected
+      // Both fixed â€” just validate both are selected
       if (!state.fixedDep || !state.fixedDest) {
         state.generating = false;
         btn.disabled = false;
@@ -2060,7 +2073,7 @@ function generate() {
       }
 
     } else {
-      // Full random — try region pool first, then fall back to global
+      // Full random â€” try region pool first, then fall back to global
       const tryPool = (searchPool) => {
         let attempts = 0, result = null;
         while (attempts < 2000 && !result) {
@@ -2116,7 +2129,7 @@ function generate() {
       if (mapInitialised) drawRoute(found);
     } else {
       document.getElementById("no-result").style.display = "block";
-      document.getElementById("no-result").textContent = "NO ROUTE FOUND — TRY WIDENING TOLERANCE OR REGION";
+      document.getElementById("no-result").textContent = "NO ROUTE FOUND â€” TRY WIDENING TOLERANCE OR REGION";
     }
   }, 500);
 }
@@ -2124,10 +2137,10 @@ function generate() {
 function renderResult(r) {
   const hdgStr = Math.round(r.hdg).toString().padStart(3,"0");
   const warnHtml = state.pilotId ? "" :
-    `<div class="warning">⚠ Add Pilot ID in Settings to auto-fill your account</div>`;
+    `<div class="warning">âš  Add Pilot ID in Settings to auto-fill your account</div>`;
   const expandedHtml = r.expandedToGlobal
     ? `<div style="font-size:12px;color:var(--accent);letter-spacing:1px;margin-bottom:12px;padding:8px 10px;background:rgba(0,232,122,0.07);border:1px solid var(--border)">
-        ⚠ No route found within <strong>${state.region}</strong> for this duration — expanded to global airports
+        âš  No route found within <strong>${state.region}</strong> for this duration â€” expanded to global airports
        </div>`
     : "";
 
@@ -2143,8 +2156,8 @@ function renderResult(r) {
           <div class="airport-city">${r.dep.city}</div>
         </div>
         <div class="arrow-block">
-          <div class="hdg-label">${hdgStr}° ${bearingLabel(r.hdg)}</div>
-          <div class="arrow-sym">──►</div>
+          <div class="hdg-label">${hdgStr}Â° ${bearingLabel(r.hdg)}</div>
+          <div class="arrow-sym">â”€â”€â–º</div>
           <div class="dist-label">${r.dist} NM</div>
         </div>
         <div class="airport-block right">
@@ -2169,15 +2182,15 @@ function renderResult(r) {
       </div>
 
       <div class="btn-row">
-        <button class="btn" style="flex:1;font-size:11px" onclick="generate()">↺ REROLL</button>
-        <button class="btn" style="flex:1;font-size:11px;border-color:var(--dim2);color:var(--accent3)" id="share-btn" onclick="shareRoute()">⇧ SHARE</button>
-        <button class="btn send" id="simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">→ SIMBRIEF</button>
+        <button class="btn" style="flex:1;font-size:11px" onclick="generate()">â†º REROLL</button>
+        <button class="btn" style="flex:1;font-size:11px;border-color:var(--dim2);color:var(--accent3)" id="share-btn" onclick="shareRoute()">â‡§ SHARE</button>
+        <button class="btn send" id="simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">â†’ SIMBRIEF</button>
       </div>
       <div id="share-panel" style="display:none;margin-top:10px;padding:12px;background:var(--input-bg);border:1px solid var(--border);animation:fadeIn 0.2s ease">
         <div style="font-size:9px;color:var(--dim3);letter-spacing:2px;margin-bottom:8px">SHARE THIS ROUTE</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button class="btn" style="flex:1;font-size:10px;padding:8px" onclick="copyRouteText()">📋 COPY TEXT</button>
-          <button class="btn" style="flex:1;font-size:10px;padding:8px" onclick="copyRouteLink()">🔗 COPY LINK</button>
+          <button class="btn" style="flex:1;font-size:10px;padding:8px" onclick="copyRouteText()">ðŸ“‹ COPY TEXT</button>
+          <button class="btn" style="flex:1;font-size:10px;padding:8px" onclick="copyRouteLink()">ðŸ”— COPY LINK</button>
         </div>
         <div id="share-preview" style="font-size:10px;color:var(--dim4);letter-spacing:1px;line-height:1.8;border-top:1px solid var(--border);padding-top:8px;margin-top:2px"></div>
         <div id="share-feedback" style="font-size:10px;color:var(--accent);letter-spacing:2px;margin-top:6px;min-height:14px;text-align:center"></div>
@@ -2186,7 +2199,7 @@ function renderResult(r) {
     </div>`;
 }
 
-// ─── Mode switching ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Mode switching â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function setMode(mode) {
   state.mode = mode;
   document.querySelectorAll(".mode-btn").forEach(b => {
@@ -2200,7 +2213,7 @@ function setMode(mode) {
   if (btn) btn.innerHTML = (mode === "manual") ? "&#x25C8; DISPATCH FLIGHT &#x25C8;" : "&#x25C8; RANDOMISE FLIGHT &#x25C8;";
 }
 
-// ─── Airport search dropdown ───────────────────────────────────────────────────
+// â”€â”€â”€ Airport search dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const airportSuppressBlur = { dep: false, dest: false };
 
 function onAirportSearch(side) {
@@ -2246,7 +2259,7 @@ function renderAirportDropdown(side, airports) {
 function selectAirport(side, a) {
   if (side === "dep") state.fixedDep = a;
   else state.fixedDest = a;
-  document.getElementById(side + "-search").value = a.icao + " — " + a.name;
+  document.getElementById(side + "-search").value = a.icao + " â€” " + a.name;
   document.getElementById(side + "-clear-x").style.display = "inline";
   document.getElementById(side + "-dropdown").style.display = "none";
 }
@@ -2269,7 +2282,7 @@ function clearAirport(side) {
   document.getElementById(side + "-clear-x").style.display = "none";
 }
 
-// ─── Airline search dropdown ──────────────────────────────────────────────────
+// â”€â”€â”€ Airline search dropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let airlineDropdownOpen = false;
 let filteredAirlines = [];
 let suppressBlur = false;
@@ -2293,7 +2306,7 @@ function renderAirlineDropdown() {
     dd.innerHTML = '<div style="padding:10px 12px;font-size:11px;color:var(--dim3);letter-spacing:1px">No airlines found</div>';
     return;
   }
-  // Build items using DOM — no inline event strings, no escaping issues
+  // Build items using DOM â€” no inline event strings, no escaping issues
   dd.innerHTML = "";
   filteredAirlines.forEach((a, idx) => {
     const item = document.createElement("div");
@@ -2306,7 +2319,7 @@ function renderAirlineDropdown() {
       (a.iata ? '<span style="font-size:10px;color:var(--dim);letter-spacing:1px">' + a.iata + '</span>' : '');
     item.addEventListener("mouseover",  () => item.style.background = "rgba(0,232,122,0.08)");
     item.addEventListener("mouseout",   () => item.style.background = "");
-    // mousedown fires BEFORE blur — set a flag so blur doesn't close the list before click registers
+    // mousedown fires BEFORE blur â€” set a flag so blur doesn't close the list before click registers
     item.addEventListener("mousedown",  (e) => { e.preventDefault(); suppressBlur = true; });
     item.addEventListener("click",      () => { selectAirline(a); suppressBlur = false; });
     dd.appendChild(item);
@@ -2315,7 +2328,7 @@ function renderAirlineDropdown() {
 
 function selectAirline(a) {
   state.airlineIcao = a.icao;
-  document.getElementById("airline-search").value = a.icao + " — " + a.name;
+  document.getElementById("airline-search").value = a.icao + " â€” " + a.name;
   document.getElementById("airline-clear-x").style.display = "inline";
   hideAirlineDropdown();
   updateCallsignPreview();
@@ -2387,7 +2400,7 @@ function viewOnMap() {
   // fitToRoute fires automatically inside switchTab once map is visible
 }
 
-// ─── Route History ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Route History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 function renderHistory() {
@@ -2398,10 +2411,10 @@ function renderHistory() {
     <div class="history-item" onclick="replayRoute(${i})">
       <div style="display:flex;align-items:center">
         <span class="history-icao">${r.dep.icao}</span>
-        <span class="history-arrow">──►</span>
+        <span class="history-arrow">â”€â”€â–º</span>
         <span class="history-icao">${r.dest.icao}</span>
       </div>
-      <div class="history-meta">${toHHMM(r.flightMins)} · ${r.dist} NM</div>
+      <div class="history-meta">${toHHMM(r.flightMins)} Â· ${r.dist} NM</div>
     </div>`).join('');
 
   area.innerHTML = `
@@ -2424,7 +2437,7 @@ function replayRoute(index) {
   if (mapInitialised) drawRoute(r);
 }
 
-// ─── METAR / Weather ───────────────────────────────────────────────────────────
+// â”€â”€â”€ METAR / Weather â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function fetchAndRenderWeather(depIcao, destIcao) {
   try {
@@ -2474,11 +2487,11 @@ function buildWxCard(icao, m, role) {
     </div>
 
     <div class="wx-row">
-      <div class="wx-icon">☁</div>
+      <div class="wx-icon">â˜</div>
       <div class="wx-text">${sky}</div>
     </div>
 
-    ${precip ? `<div class="wx-row"><div class="wx-icon">🌧</div><div class="wx-text">${precip}</div></div>` : ''}
+    ${precip ? `<div class="wx-row"><div class="wx-icon">ðŸŒ§</div><div class="wx-text">${precip}</div></div>` : ''}
 
     <div class="wx-rwy">ACTIVE RWY <span>${rwy}</span></div>
   </div>`;
@@ -2496,12 +2509,12 @@ function parseWind(m) {
   } else if (dir === 990) {
     text = `VRB / ${spd} KT`;
   } else {
-    text = `${String(dir).padStart(3,"0")}° / ${spd} KT`;
+    text = `${String(dir).padStart(3,"0")}Â° / ${spd} KT`;
     if (gust) text += ` G${gust}KT`;
   }
 
   if (m.wdirFrom && m.wdirTo) {
-    varText = `Variable ${m.wdirFrom}°–${m.wdirTo}°`;
+    varText = `Variable ${m.wdirFrom}Â°â€“${m.wdirTo}Â°`;
   }
 
   return { dir, spd, text, varText, calm: dir === 0 && calm, vrb: dir === 990 };
@@ -2566,7 +2579,7 @@ function parsePrecip(m) {
   return wx.length < 20 ? wx : "";
 }
 
-// ─── Runway Database (actual headings per airport) ───────────────────────────
+// â”€â”€â”€ Runway Database (actual headings per airport) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const RUNWAY_HEADINGS = {
   "EGLL": [{id:"09",hdg:91}, {id:"27",hdg:271}],
   "EGKK": [{id:"08",hdg:84}, {id:"26",hdg:264}],
@@ -2985,7 +2998,7 @@ function angleDiff(a, b) {
   return d;
 }
 
-// ─── Route Sharing ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Route Sharing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function shareRoute() {
   if (!state.result) return;
@@ -3003,15 +3016,15 @@ function updateSharePreview() {
   const url = buildShareUrl(r, state.aircraft);
   document.getElementById("share-preview").innerHTML =
     `<div style="margin-bottom:6px">${text.replace(/\n/g,"<br>")}</div>` +
-    `<div style="color:var(--accent2);margin-top:4px">🔗 Link: <a href="${url}" style="color:var(--accent2)">${r.dep.icao} to ${r.dest.icao}</a></div>`;
+    `<div style="color:var(--accent2);margin-top:4px">ðŸ”— Link: <a href="${url}" style="color:var(--accent2)">${r.dep.icao} to ${r.dest.icao}</a></div>`;
 }
 
 function buildShareText(r, ac) {
   const lines = [
-    `✈  ${r.dep.icao} → ${r.dest.icao}`,
-    `${r.dep.name} → ${r.dest.name}`,
-    `${ac.code} — ${ac.name}`,
-    `${toHHMM(r.flightMins)}  ·  ${r.dist} NM`,
+    `âœˆ  ${r.dep.icao} â†’ ${r.dest.icao}`,
+    `${r.dep.name} â†’ ${r.dest.name}`,
+    `${ac.code} â€” ${ac.name}`,
+    `${toHHMM(r.flightMins)}  Â·  ${r.dist} NM`,
   ];
   if (state.airlineIcao || state.flightNumber) {
     lines.push(`Callsign: ${state.airlineIcao || ""}${state.flightNumber || ""}`);
@@ -3037,7 +3050,7 @@ function copyRouteText() {
   if (!state.result) return;
   const text = buildShareText(state.result, state.aircraft);
   navigator.clipboard.writeText(text).then(() => {
-    showShareFeedback("✓ COPIED TO CLIPBOARD");
+    showShareFeedback("âœ“ COPIED TO CLIPBOARD");
   }).catch(() => {
     // Fallback for environments where clipboard API isn't available
     const ta = document.createElement("textarea");
@@ -3046,7 +3059,7 @@ function copyRouteText() {
     ta.select();
     document.execCommand("copy");
     document.body.removeChild(ta);
-    showShareFeedback("✓ COPIED TO CLIPBOARD");
+    showShareFeedback("âœ“ COPIED TO CLIPBOARD");
   });
 }
 
@@ -3056,8 +3069,8 @@ function copyRouteLink() {
   const url      = buildShareUrl(r, state.aircraft);
   const linkText = `${r.dep.icao} to ${r.dest.icao}`;
 
-  // Rich text: clickable hyperlink, URL hidden — e.g. email, Slack, Discord
-  // Plain text: "EIDW to EGLL: https://randomflight.net?..." — always clickable
+  // Rich text: clickable hyperlink, URL hidden â€” e.g. email, Slack, Discord
+  // Plain text: "EIDW to EGLL: https://randomflight.net?..." â€” always clickable
   const htmlLink  = `<a href="${url}">${linkText}</a>`;
   const plainLink = `${linkText}: ${url}`;
 
@@ -3066,7 +3079,7 @@ function copyRouteLink() {
     const plainBlob = new Blob([plainLink], { type: "text/plain" });
     const item = new ClipboardItem({ "text/html": htmlBlob, "text/plain": plainBlob });
     navigator.clipboard.write([item]).then(() => {
-      showShareFeedback("✓ LINK COPIED");
+      showShareFeedback("âœ“ LINK COPIED");
     });
   } catch(e) {
     navigator.clipboard.writeText(plainLink).catch(() => {
@@ -3077,7 +3090,7 @@ function copyRouteLink() {
       document.execCommand("copy");
       document.body.removeChild(ta);
     });
-    showShareFeedback("✓ LINK COPIED");
+    showShareFeedback("âœ“ LINK COPIED");
   }
 }
 
@@ -3088,7 +3101,7 @@ function showShareFeedback(msg) {
   setTimeout(() => { el.textContent = ""; }, 2500);
 }
 
-// ─── URL Route Loading (shared links) ────────────────────────────────────────
+// â”€â”€â”€ URL Route Loading (shared links) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function loadRouteFromUrl() {
   const params = new URLSearchParams(window.location.search);
@@ -3141,7 +3154,7 @@ function loadRouteFromUrl() {
   // Show a banner so the user knows this was a shared route
   const banner = document.createElement("div");
   banner.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--accent);color:var(--bg);font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:2px;text-align:center;padding:8px;";
-  banner.textContent = `✈ SHARED ROUTE LOADED: ${dep} → ${dest}`;
+  banner.textContent = `âœˆ SHARED ROUTE LOADED: ${dep} â†’ ${dest}`;
   document.body.appendChild(banner);
   setTimeout(() => banner.remove(), 3000);
 }
@@ -3165,11 +3178,11 @@ function sendToSimBrief() {
   // Update both SimBrief buttons (planner + map tab)
   ["simbrief-btn", "map-simbrief-btn"].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) { btn.textContent = "✓ SENT TO SIMBRIEF"; btn.classList.add("sent"); }
+    if (btn) { btn.textContent = "âœ“ SENT TO SIMBRIEF"; btn.classList.add("sent"); }
   });
 }
 
-// ─── Leaflet Map ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ Leaflet Map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let leafletMap = null;
 let mapInitialised = false;
 let routeLayer = null;
@@ -3193,7 +3206,7 @@ function initMap() {
     layers: [], // start empty, add below
   });
 
-  // ── Base layers ──────────────────────────────────────────────────────────────
+  // â”€â”€ Base layers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const darkLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
     subdomains: "abcd", maxZoom: 19,
@@ -3212,22 +3225,22 @@ function initMap() {
   // Start with dark layer
   darkLayer.addTo(leafletMap);
 
-  // ── Day/Night terminator ──────────────────────────────────────────────────────
+  // â”€â”€ Day/Night terminator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Use a simple calculated terminator overlay
   const terminatorLayer = L.layerGroup();
   drawTerminator(terminatorLayer);
   // Refresh terminator every 5 minutes
   setInterval(() => { terminatorLayer.clearLayers(); drawTerminator(terminatorLayer); }, 5 * 60 * 1000);
 
-  // ── Layer control ─────────────────────────────────────────────────────────────
+  // â”€â”€ Layer control â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const baseLayers = {
-    "🌑 Dark":      darkLayer,
-    "🗺 Street":    streetLayer,
-    "🛰 Satellite": satelliteLayer,
+    "ðŸŒ‘ Dark":      darkLayer,
+    "ðŸ—º Street":    streetLayer,
+    "ðŸ›° Satellite": satelliteLayer,
   };
 
   const overlays = {
-    "🌙 Day / Night": terminatorLayer,
+    "ðŸŒ™ Day / Night": terminatorLayer,
   };
 
   layerControl = L.control.layers(baseLayers, overlays, {
@@ -3247,7 +3260,7 @@ function initMap() {
 function drawTerminator(group) {
   const now = new Date();
 
-  // ── Solar declination ──────────────────────────────────────────────────────
+  // â”€â”€ Solar declination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const jd  = now.getTime() / 86400000 + 2440587.5;
   const n   = jd - 2451545.0;
   const L0  = (280.46 + 0.9856474 * n) % 360;
@@ -3256,21 +3269,21 @@ function drawTerminator(group) {
   const eps = 23.439 * Math.PI / 180;
   const dec = Math.asin(Math.sin(eps) * Math.sin(lam)); // radians
 
-  // ── Sub-solar longitude (sun is directly overhead here) ───────────────────
-  // UTC fractional hours → sun moves 15°/hour westward from 0° at noon
+  // â”€â”€ Sub-solar longitude (sun is directly overhead here) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // UTC fractional hours â†’ sun moves 15Â°/hour westward from 0Â° at noon
   const utcH  = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
   const sunLon = ((12 - utcH) * 15 + 360) % 360;
   // Convert to -180..180
   const sunLonSigned = sunLon > 180 ? sunLon - 360 : sunLon;
 
-  // ── Build terminator line ─────────────────────────────────────────────────
+  // â”€â”€ Build terminator line â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // For each longitude, find the latitude where the sun is on the horizon
   // Formula: tan(lat) = -cos(lon - sunLon) / tan(dec)
   const pts = [];
   for (let lon = -180; lon <= 180; lon++) {
     const dlon = (lon - sunLonSigned) * Math.PI / 180;
     if (Math.abs(dec) < 1e-10) {
-      // Equinox: terminator is the prime meridian ± 90°
+      // Equinox: terminator is the prime meridian Â± 90Â°
       pts.push([lon === 0 ? 90 : (lon < 0 ? -90 : 90), lon]);
     } else {
       const lat = Math.atan(-Math.cos(dlon) / Math.tan(dec)) * 180 / Math.PI;
@@ -3278,10 +3291,10 @@ function drawTerminator(group) {
     }
   }
 
-  // ── Night polygon ─────────────────────────────────────────────────────────
+  // â”€â”€ Night polygon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // The night side is the pole OPPOSITE to where the sun's declination points
-  // If dec > 0 (sun in northern hemisphere) → south pole is in night
-  // If dec < 0 → north pole is in night
+  // If dec > 0 (sun in northern hemisphere) â†’ south pole is in night
+  // If dec < 0 â†’ north pole is in night
   const decDeg  = dec * 180 / Math.PI;
   const nightPole = decDeg >= 0 ? -90 : 90;
   const dayPole   = decDeg >= 0 ?  90 : -90;
@@ -3317,7 +3330,7 @@ function drawTerminator(group) {
     fillColor: "#ffff00",
     fillOpacity: 0.9,
     weight: 1,
-  }).bindTooltip(`☀ Sun · ${now.toUTCString().slice(17,22)} UTC`, {
+  }).bindTooltip(`â˜€ Sun Â· ${now.toUTCString().slice(17,22)} UTC`, {
     permanent: false, direction: "top",
     className: "wx-tooltip",
   }).addTo(group);
@@ -3349,7 +3362,7 @@ function drawRoute(r) {
   const makeDepIcon = (label) => L.divIcon({
     className: "",
     html: `<div style="text-align:center;line-height:1">
-      <div style="font-size:28px;filter:drop-shadow(0 0 4px var(--glow2))">🛫</div>
+      <div style="font-size:28px;filter:drop-shadow(0 0 4px var(--glow2))">ðŸ›«</div>
       <div style="background:rgba(5,13,14,0.85);border:1px solid #00e87a;color:var(--accent2);
         font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;
         padding:2px 6px;letter-spacing:1px;white-space:nowrap;margin-top:2px;
@@ -3361,7 +3374,7 @@ function drawRoute(r) {
   const makeDestIcon = (label) => L.divIcon({
     className: "",
     html: `<div style="text-align:center;line-height:1">
-      <div style="font-size:28px;filter:drop-shadow(0 0 4px var(--glow2))">🛬</div>
+      <div style="font-size:28px;filter:drop-shadow(0 0 4px var(--glow2))">ðŸ›¬</div>
       <div style="background:rgba(5,13,14,0.85);border:1px solid #00e87a;color:var(--accent2);
         font-family:Orbitron,sans-serif;font-size:10px;font-weight:700;
         padding:2px 6px;letter-spacing:1px;white-space:nowrap;margin-top:2px;
@@ -3398,14 +3411,14 @@ function drawRoute(r) {
   // Update summary bar
   document.getElementById("map-dep-code").textContent  = r.dep.icao;
   document.getElementById("map-dest-code").textContent = r.dest.icao;
-  document.getElementById("map-stats").textContent     = toHHMM(r.flightMins) + "  ·  " + r.dist + " NM";
+  document.getElementById("map-stats").textContent     = toHHMM(r.flightMins) + "  Â·  " + r.dist + " NM";
   document.getElementById("map-no-route").style.display  = "none";
   document.getElementById("map-container").style.display = "block";
 
   const bounds  = L.latLngBounds(arcPoints);
   const fitOpts = { padding: [50, 50], animate: false, maxZoom: 12 };
 
-  // Strict sequence: resize container → invalidateSize → fitBounds
+  // Strict sequence: resize container â†’ invalidateSize â†’ fitBounds
   // Each step waits for the previous to fully paint before running
   // Store bounds for use when tab becomes visible
   lastBounds = L.latLngBounds(arcPoints);
@@ -3421,7 +3434,7 @@ function fitToRoute() {
   if (!leafletMap || !lastBounds) return;
   const fitOpts = { padding: [50, 50], animate: false, maxZoom: 12 };
   resizeMap();
-  // Chain: resize → wait for paint → invalidate → wait → fitBounds → verify
+  // Chain: resize â†’ wait for paint â†’ invalidate â†’ wait â†’ fitBounds â†’ verify
   requestAnimationFrame(() => {
     leafletMap.invalidateSize();
     requestAnimationFrame(() => {
@@ -3457,11 +3470,16 @@ function geodesicArc(p1, p2, steps) {
   return pts;
 }
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Boot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 window.addEventListener("DOMContentLoaded", () => {
   init();
   updateSliderFill("duration-slider", (120 - 30) / (840 - 30) * 100);
   updateSliderFill("tol-slider", (20 - 5) / (40 - 5) * 100);
+  // Hide download button when running inside Electron
+  if (navigator.userAgent.includes("Electron")) {
+    const dlBtn = document.getElementById("download-btn");
+    if (dlBtn) dlBtn.style.display = "none";
+  }
   renderHistory();
   // Restore saved theme
   const savedTheme = localStorage.getItem("rf_theme") || "";
@@ -3472,3 +3490,5 @@ window.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
+
