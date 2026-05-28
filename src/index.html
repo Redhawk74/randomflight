@@ -3014,7 +3014,7 @@ function buildShareText(r, ac) {
 
 function buildShareUrl(r, ac) {
   // Use GitHub Pages URL when available, fall back to current location
-  const base = "https://redhawk74.github.io/randomflight";
+  const base = "https://randomflight.net";
   const p = new URLSearchParams({
     dep:  r.dep.icao,
     dest: r.dest.icao,
@@ -3044,32 +3044,32 @@ function copyRouteText() {
 
 function copyRouteLink() {
   if (!state.result) return;
-  const r   = state.result;
-  const url = buildShareUrl(r, state.aircraft);
-  // Build a clickable hyperlink: "EIDW to EGLL"
+  const r        = state.result;
+  const url      = buildShareUrl(r, state.aircraft);
   const linkText = `${r.dep.icao} to ${r.dest.icao}`;
-  const htmlLink = `<a href="${url}">${linkText}</a>`;
 
-  // Try to copy as rich HTML (works in most email clients, Discord, Slack etc.)
+  // Rich text: clickable hyperlink, URL hidden — e.g. email, Slack, Discord
+  // Plain text: "EIDW to EGLL: https://randomflight.net?..." — always clickable
+  const htmlLink  = `<a href="${url}">${linkText}</a>`;
+  const plainLink = `${linkText}: ${url}`;
+
   try {
-    const blob = new Blob([htmlLink], { type: "text/html" });
-    const plainBlob = new Blob([`${linkText}: ${url}`], { type: "text/plain" });
-    const item = new ClipboardItem({ "text/html": blob, "text/plain": plainBlob });
+    const htmlBlob  = new Blob([htmlLink],  { type: "text/html" });
+    const plainBlob = new Blob([plainLink], { type: "text/plain" });
+    const item = new ClipboardItem({ "text/html": htmlBlob, "text/plain": plainBlob });
     navigator.clipboard.write([item]).then(() => {
-      showShareFeedback("✓ LINK COPIED — PASTE ANYWHERE");
+      showShareFeedback("✓ LINK COPIED");
     });
   } catch(e) {
-    // Fallback: plain text with label
-    const plain = `${linkText}: ${url}`;
-    navigator.clipboard.writeText(plain).catch(() => {
+    navigator.clipboard.writeText(plainLink).catch(() => {
       const ta = document.createElement("textarea");
-      ta.value = plain;
+      ta.value = plainLink;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
     });
-    showShareFeedback("✓ LINK COPIED — PASTE ANYWHERE");
+    showShareFeedback("✓ LINK COPIED");
   }
 }
 
