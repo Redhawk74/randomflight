@@ -1833,7 +1833,7 @@ function buildAircraftSelect() {
     AIRCRAFT.filter(a => a.type === type).forEach(ac => {
       const opt = document.createElement("option");
       opt.value = ac.code;
-      opt.textContent = `${ac.code} &mdash; ${ac.name}`;
+      opt.textContent = `${ac.code} — ${ac.name}`;
       if (ac.code === state.aircraft.code) opt.selected = true;
       grp.appendChild(opt);
     });
@@ -3023,7 +3023,7 @@ function buildShareText(r, ac) {
   const lines = [
     `&#x2708;  ${r.dep.icao} &#x2192; ${r.dest.icao}`,
     `${r.dep.name} &#x2192; ${r.dest.name}`,
-    `${ac.code} &mdash; ${ac.name}`,
+    `${ac.code} — ${ac.name}`,
     `${toHHMM(r.flightMins)}  &middot;  ${r.dist} NM`,
   ];
   if (state.airlineIcao || state.flightNumber) {
