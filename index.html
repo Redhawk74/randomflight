@@ -1109,130 +1109,130 @@ const AIRPORTS = [
 // ─── Aircraft Database ─────────────────────────────────────────────────────────
 const AIRCRAFT = [
   // GA Piston
-  { code:"C172",  name:"Cessna 172 Skyhawk",           type:"GA Piston",          cruiseKts:122,  cruiseAlt:"FL065", minRwy:400, surfaces:["paved","grass","unpaved"] },
-  { code:"C182",  name:"Cessna 182 Skylane",            type:"GA Piston",          cruiseKts:145,  cruiseAlt:"FL075", minRwy:450, surfaces:["paved","grass","unpaved"] },
-  { code:"C210",  name:"Cessna 210 Centurion",          type:"GA Piston",          cruiseKts:170,  cruiseAlt:"FL095", minRwy:500, surfaces:["paved","grass","unpaved"] },
-  { code:"PA28",  name:"Piper PA-28 Cherokee",          type:"GA Piston",          cruiseKts:117,  cruiseAlt:"FL060", minRwy:400, surfaces:["paved","grass","unpaved"] },
-  { code:"PA46",  name:"Piper PA-46 Malibu",            type:"GA Piston",          cruiseKts:200,  cruiseAlt:"FL180", minRwy:600, surfaces:["paved","grass"] },
-  { code:"BE36",  name:"Beechcraft Bonanza G36",        type:"GA Piston",          cruiseKts:162,  cruiseAlt:"FL100", minRwy:500, surfaces:["paved","grass","unpaved"] },
-  { code:"SR22",  name:"Cirrus SR22",                   type:"GA Piston",          cruiseKts:185,  cruiseAlt:"FL170", minRwy:600, surfaces:["paved","grass"] },
-  { code:"DA42",  name:"Diamond DA42 Twin Star",        type:"GA Piston",          cruiseKts:178,  cruiseAlt:"FL160", minRwy:600, surfaces:["paved","grass"] },
+  { code:"C172",  name:"Cessna 172 Skyhawk",           type:"GA Piston",          cruiseKts:122,  cruiseAlt:"FL065", minRwy:400, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"C182",  name:"Cessna 182 Skylane",            type:"GA Piston",          cruiseKts:145,  cruiseAlt:"FL075", minRwy:450, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"C210",  name:"Cessna 210 Centurion",          type:"GA Piston",          cruiseKts:170,  cruiseAlt:"FL095", minRwy:500, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"PA28",  name:"Piper PA-28 Cherokee",          type:"GA Piston",          cruiseKts:117,  cruiseAlt:"FL060", minRwy:400, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"PA46",  name:"Piper PA-46 Malibu",            type:"GA Piston",          cruiseKts:200,  cruiseAlt:"FL180", minRwy:600, surfaces:["paved","grass"], groundMin:8 },
+  { code:"BE36",  name:"Beechcraft Bonanza G36",        type:"GA Piston",          cruiseKts:162,  cruiseAlt:"FL100", minRwy:500, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"SR22",  name:"Cirrus SR22",                   type:"GA Piston",          cruiseKts:185,  cruiseAlt:"FL170", minRwy:600, surfaces:["paved","grass"], groundMin:8 },
+  { code:"DA42",  name:"Diamond DA42 Twin Star",        type:"GA Piston",          cruiseKts:178,  cruiseAlt:"FL160", minRwy:600, surfaces:["paved","grass"], groundMin:8 },
   // Single Turboprop
-  { code:"KODI",  name:"Daher Kodiak 100",              type:"Single Turboprop",   cruiseKts:175,  cruiseAlt:"FL120", minRwy:300, surfaces:["paved","grass","unpaved"] },
-  { code:"TBM9",  name:"Daher TBM 930",                 type:"Single Turboprop",   cruiseKts:300,  cruiseAlt:"FL310", minRwy:800, surfaces:["paved"] },
-  { code:"TBM7",  name:"Daher TBM 700",                 type:"Single Turboprop",   cruiseKts:285,  cruiseAlt:"FL290", minRwy:800, surfaces:["paved"] },
-  { code:"C208",  name:"Cessna 208 Caravan",            type:"Single Turboprop",   cruiseKts:180,  cruiseAlt:"FL120", minRwy:400, surfaces:["paved","grass","unpaved"] },
-  { code:"C28A",  name:"Cessna 208B Grand Caravan EX",  type:"Single Turboprop",   cruiseKts:175,  cruiseAlt:"FL110", minRwy:450, surfaces:["paved","grass","unpaved"] },
-  { code:"PC6T",  name:"Pilatus PC-6 Turbo Porter",     type:"Single Turboprop",   cruiseKts:120,  cruiseAlt:"FL100", minRwy:200, surfaces:["paved","grass","unpaved"] },
-  { code:"PC12",  name:"Pilatus PC-12 NGX",             type:"Single Turboprop",   cruiseKts:270,  cruiseAlt:"FL250", minRwy:700, surfaces:["paved","grass"] },
-  { code:"M600",  name:"Piper M600 SLS",                type:"Single Turboprop",   cruiseKts:260,  cruiseAlt:"FL280", minRwy:800, surfaces:["paved"] },
+  { code:"KODI",  name:"Daher Kodiak 100",              type:"Single Turboprop",   cruiseKts:175,  cruiseAlt:"FL120", minRwy:300, surfaces:["paved","grass","unpaved"], groundMin:10 },
+  { code:"TBM9",  name:"Daher TBM 930",                 type:"Single Turboprop",   cruiseKts:300,  cruiseAlt:"FL310", minRwy:800, surfaces:["paved"], groundMin:10 },
+  { code:"TBM7",  name:"Daher TBM 700",                 type:"Single Turboprop",   cruiseKts:285,  cruiseAlt:"FL290", minRwy:800, surfaces:["paved"], groundMin:10 },
+  { code:"C208",  name:"Cessna 208 Caravan",            type:"Single Turboprop",   cruiseKts:180,  cruiseAlt:"FL120", minRwy:400, surfaces:["paved","grass","unpaved"], groundMin:10 },
+  { code:"C28A",  name:"Cessna 208B Grand Caravan EX",  type:"Single Turboprop",   cruiseKts:175,  cruiseAlt:"FL110", minRwy:450, surfaces:["paved","grass","unpaved"], groundMin:10 },
+  { code:"PC6T",  name:"Pilatus PC-6 Turbo Porter",     type:"Single Turboprop",   cruiseKts:120,  cruiseAlt:"FL100", minRwy:200, surfaces:["paved","grass","unpaved"], groundMin:10 },
+  { code:"PC12",  name:"Pilatus PC-12 NGX",             type:"Single Turboprop",   cruiseKts:270,  cruiseAlt:"FL250", minRwy:700, surfaces:["paved","grass"], groundMin:10 },
+  { code:"M600",  name:"Piper M600 SLS",                type:"Single Turboprop",   cruiseKts:260,  cruiseAlt:"FL280", minRwy:800, surfaces:["paved"], groundMin:10 },
   // Twin Turboprop
-  { code:"BE9L",  name:"Beechcraft King Air C90",       type:"Twin Turboprop",     cruiseKts:226,  cruiseAlt:"FL230", minRwy:700, surfaces:["paved","grass"] },
-  { code:"BE20",  name:"Beechcraft King Air 200",       type:"Twin Turboprop",     cruiseKts:272,  cruiseAlt:"FL280", minRwy:800, surfaces:["paved"] },
-  { code:"B350",  name:"Beechcraft King Air 350",       type:"Twin Turboprop",     cruiseKts:295,  cruiseAlt:"FL300", minRwy:1000, surfaces:["paved"] },
-  { code:"B190",  name:"Beechcraft 1900D",              type:"Twin Turboprop",     cruiseKts:280,  cruiseAlt:"FL250", minRwy:1200, surfaces:["paved"] },
-  { code:"SW4",   name:"Swearingen Metroliner SA227",   type:"Twin Turboprop",     cruiseKts:260,  cruiseAlt:"FL250", minRwy:1100, surfaces:["paved"] },
-  { code:"PAY3",  name:"Piper PA-42 Cheyenne III",      type:"Twin Turboprop",     cruiseKts:280,  cruiseAlt:"FL270", minRwy:900, surfaces:["paved"] },
-  { code:"DHC6",  name:"de Havilland Canada Twin Otter",type:"Twin Turboprop",     cruiseKts:170,  cruiseAlt:"FL100", minRwy:400, surfaces:["paved","grass","unpaved"] },
-  { code:"BN2P",  name:"Britten-Norman Islander",       type:"Twin Turboprop",     cruiseKts:140,  cruiseAlt:"FL080", minRwy:350, surfaces:["paved","grass","unpaved"] },
+  { code:"BE9L",  name:"Beechcraft King Air C90",       type:"Twin Turboprop",     cruiseKts:226,  cruiseAlt:"FL230", minRwy:700, surfaces:["paved","grass"], groundMin:12 },
+  { code:"BE20",  name:"Beechcraft King Air 200",       type:"Twin Turboprop",     cruiseKts:272,  cruiseAlt:"FL280", minRwy:800, surfaces:["paved"], groundMin:12 },
+  { code:"B350",  name:"Beechcraft King Air 350",       type:"Twin Turboprop",     cruiseKts:295,  cruiseAlt:"FL300", minRwy:1000, surfaces:["paved"], groundMin:12 },
+  { code:"B190",  name:"Beechcraft 1900D",              type:"Twin Turboprop",     cruiseKts:280,  cruiseAlt:"FL250", minRwy:1200, surfaces:["paved"], groundMin:12 },
+  { code:"SW4",   name:"Swearingen Metroliner SA227",   type:"Twin Turboprop",     cruiseKts:260,  cruiseAlt:"FL250", minRwy:1100, surfaces:["paved"], groundMin:12 },
+  { code:"PAY3",  name:"Piper PA-42 Cheyenne III",      type:"Twin Turboprop",     cruiseKts:280,  cruiseAlt:"FL270", minRwy:900, surfaces:["paved"], groundMin:12 },
+  { code:"DHC6",  name:"de Havilland Canada Twin Otter",type:"Twin Turboprop",     cruiseKts:170,  cruiseAlt:"FL100", minRwy:400, surfaces:["paved","grass","unpaved"], groundMin:12 },
+  { code:"BN2P",  name:"Britten-Norman Islander",       type:"Twin Turboprop",     cruiseKts:140,  cruiseAlt:"FL080", minRwy:350, surfaces:["paved","grass","unpaved"], groundMin:12 },
   // Regional Turboprop
-  { code:"AT42",  name:"ATR 42-500",                    type:"Regional Turboprop", cruiseKts:265,  cruiseAlt:"FL170", minRwy:1290, surfaces:["paved"] },
-  { code:"AT75",  name:"ATR 72-500",                    type:"Regional Turboprop", cruiseKts:270,  cruiseAlt:"FL180", minRwy:1290, surfaces:["paved"] },
-  { code:"AT76",  name:"ATR 72-600",                    type:"Regional Turboprop", cruiseKts:275,  cruiseAlt:"FL180", minRwy:1290, surfaces:["paved"] },
-  { code:"DH8A",  name:"Dash 8 Q100",                   type:"Regional Turboprop", cruiseKts:265,  cruiseAlt:"FL200", minRwy:1000, surfaces:["paved"] },
-  { code:"DH8D",  name:"Dash 8 Q400",                   type:"Regional Turboprop", cruiseKts:360,  cruiseAlt:"FL250", minRwy:1400, surfaces:["paved"] },
-  { code:"SF34",  name:"Saab 340B",                     type:"Regional Turboprop", cruiseKts:250,  cruiseAlt:"FL200", minRwy:1200, surfaces:["paved"] },
-  { code:"JS41",  name:"BAe Jetstream 41",              type:"Regional Turboprop", cruiseKts:250,  cruiseAlt:"FL200", minRwy:1100, surfaces:["paved"] },
+  { code:"AT42",  name:"ATR 42-500",                    type:"Regional Turboprop", cruiseKts:265,  cruiseAlt:"FL170", minRwy:1290, surfaces:["paved"], groundMin:15 },
+  { code:"AT75",  name:"ATR 72-500",                    type:"Regional Turboprop", cruiseKts:270,  cruiseAlt:"FL180", minRwy:1290, surfaces:["paved"], groundMin:15 },
+  { code:"AT76",  name:"ATR 72-600",                    type:"Regional Turboprop", cruiseKts:275,  cruiseAlt:"FL180", minRwy:1290, surfaces:["paved"], groundMin:15 },
+  { code:"DH8A",  name:"Dash 8 Q100",                   type:"Regional Turboprop", cruiseKts:265,  cruiseAlt:"FL200", minRwy:1000, surfaces:["paved"], groundMin:15 },
+  { code:"DH8D",  name:"Dash 8 Q400",                   type:"Regional Turboprop", cruiseKts:360,  cruiseAlt:"FL250", minRwy:1400, surfaces:["paved"], groundMin:15 },
+  { code:"SF34",  name:"Saab 340B",                     type:"Regional Turboprop", cruiseKts:250,  cruiseAlt:"FL200", minRwy:1200, surfaces:["paved"], groundMin:15 },
+  { code:"JS41",  name:"BAe Jetstream 41",              type:"Regional Turboprop", cruiseKts:250,  cruiseAlt:"FL200", minRwy:1100, surfaces:["paved"], groundMin:15 },
   // Business Jet
-  { code:"C25A",  name:"Cessna Citation CJ2",           type:"Business Jet",       cruiseKts:380,  cruiseAlt:"FL410", minRwy:1000, surfaces:["paved"] },
-  { code:"C25C",  name:"Cessna Citation CJ4",           type:"Business Jet",       cruiseKts:402,  cruiseAlt:"FL450", minRwy:1100, surfaces:["paved"] },
-  { code:"C56X",  name:"Cessna Citation XLS+",          type:"Business Jet",       cruiseKts:415,  cruiseAlt:"FL450", minRwy:1500, surfaces:["paved"] },
-  { code:"C68A",  name:"Cessna Citation Sovereign",     type:"Business Jet",       cruiseKts:430,  cruiseAlt:"FL470", minRwy:1600, surfaces:["paved"] },
-  { code:"C750",  name:"Cessna Citation X",             type:"Business Jet",       cruiseKts:525,  cruiseAlt:"FL510", minRwy:1700, surfaces:["paved"] },
-  { code:"LJ45",  name:"Learjet 45XR",                  type:"Business Jet",       cruiseKts:440,  cruiseAlt:"FL510", minRwy:1300, surfaces:["paved"] },
-  { code:"LJ60",  name:"Learjet 60XR",                  type:"Business Jet",       cruiseKts:464,  cruiseAlt:"FL510", minRwy:1500, surfaces:["paved"] },
-  { code:"H25B",  name:"Hawker 800XP",                  type:"Business Jet",       cruiseKts:445,  cruiseAlt:"FL410", minRwy:1600, surfaces:["paved"] },
-  { code:"BE40",  name:"Beechcraft Premier I",          type:"Business Jet",       cruiseKts:430,  cruiseAlt:"FL410", minRwy:1100, surfaces:["paved"] },
-  { code:"GL5T",  name:"Bombardier Global 5000",        type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"] },
-  { code:"GLEX",  name:"Bombardier Global Express XRS", type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"] },
-  { code:"CL60",  name:"Bombardier Challenger 601",     type:"Business Jet",       cruiseKts:459,  cruiseAlt:"FL430", minRwy:1700, surfaces:["paved"] },
-  { code:"CL65",  name:"Bombardier Challenger 650",     type:"Business Jet",       cruiseKts:470,  cruiseAlt:"FL410", minRwy:1800, surfaces:["paved"] },
-  { code:"F2TH",  name:"Dassault Falcon 2000",          type:"Business Jet",       cruiseKts:460,  cruiseAlt:"FL470", minRwy:1700, surfaces:["paved"] },
-  { code:"F900",  name:"Dassault Falcon 900EX",         type:"Business Jet",       cruiseKts:480,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"] },
-  { code:"E50P",  name:"Embraer Phenom 100",            type:"Business Jet",       cruiseKts:380,  cruiseAlt:"FL410", minRwy:1000, surfaces:["paved"] },
-  { code:"E55P",  name:"Embraer Phenom 300",            type:"Business Jet",       cruiseKts:420,  cruiseAlt:"FL450", minRwy:1200, surfaces:["paved"] },
-  { code:"E545",  name:"Embraer Legacy 500",            type:"Business Jet",       cruiseKts:466,  cruiseAlt:"FL450", minRwy:1600, surfaces:["paved"] },
-  { code:"GALX",  name:"IAI Gulfstream G200",           type:"Business Jet",       cruiseKts:459,  cruiseAlt:"FL450", minRwy:1700, surfaces:["paved"] },
-  { code:"GLF5",  name:"Gulfstream G550",               type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1900, surfaces:["paved"] },
-  { code:"GLF6",  name:"Gulfstream G650ER",             type:"Business Jet",       cruiseKts:516,  cruiseAlt:"FL510", minRwy:1900, surfaces:["paved"] },
+  { code:"C25A",  name:"Cessna Citation CJ2",           type:"Business Jet",       cruiseKts:380,  cruiseAlt:"FL410", minRwy:1000, surfaces:["paved"], groundMin:18 },
+  { code:"C25C",  name:"Cessna Citation CJ4",           type:"Business Jet",       cruiseKts:402,  cruiseAlt:"FL450", minRwy:1100, surfaces:["paved"], groundMin:18 },
+  { code:"C56X",  name:"Cessna Citation XLS+",          type:"Business Jet",       cruiseKts:415,  cruiseAlt:"FL450", minRwy:1500, surfaces:["paved"], groundMin:18 },
+  { code:"C68A",  name:"Cessna Citation Sovereign",     type:"Business Jet",       cruiseKts:430,  cruiseAlt:"FL470", minRwy:1600, surfaces:["paved"], groundMin:18 },
+  { code:"C750",  name:"Cessna Citation X",             type:"Business Jet",       cruiseKts:525,  cruiseAlt:"FL510", minRwy:1700, surfaces:["paved"], groundMin:18 },
+  { code:"LJ45",  name:"Learjet 45XR",                  type:"Business Jet",       cruiseKts:440,  cruiseAlt:"FL510", minRwy:1300, surfaces:["paved"], groundMin:18 },
+  { code:"LJ60",  name:"Learjet 60XR",                  type:"Business Jet",       cruiseKts:464,  cruiseAlt:"FL510", minRwy:1500, surfaces:["paved"], groundMin:18 },
+  { code:"H25B",  name:"Hawker 800XP",                  type:"Business Jet",       cruiseKts:445,  cruiseAlt:"FL410", minRwy:1600, surfaces:["paved"], groundMin:18 },
+  { code:"BE40",  name:"Beechcraft Premier I",          type:"Business Jet",       cruiseKts:430,  cruiseAlt:"FL410", minRwy:1100, surfaces:["paved"], groundMin:18 },
+  { code:"GL5T",  name:"Bombardier Global 5000",        type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"], groundMin:18 },
+  { code:"GLEX",  name:"Bombardier Global Express XRS", type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"], groundMin:18 },
+  { code:"CL60",  name:"Bombardier Challenger 601",     type:"Business Jet",       cruiseKts:459,  cruiseAlt:"FL430", minRwy:1700, surfaces:["paved"], groundMin:18 },
+  { code:"CL65",  name:"Bombardier Challenger 650",     type:"Business Jet",       cruiseKts:470,  cruiseAlt:"FL410", minRwy:1800, surfaces:["paved"], groundMin:18 },
+  { code:"F2TH",  name:"Dassault Falcon 2000",          type:"Business Jet",       cruiseKts:460,  cruiseAlt:"FL470", minRwy:1700, surfaces:["paved"], groundMin:18 },
+  { code:"F900",  name:"Dassault Falcon 900EX",         type:"Business Jet",       cruiseKts:480,  cruiseAlt:"FL510", minRwy:1800, surfaces:["paved"], groundMin:18 },
+  { code:"E50P",  name:"Embraer Phenom 100",            type:"Business Jet",       cruiseKts:380,  cruiseAlt:"FL410", minRwy:1000, surfaces:["paved"], groundMin:18 },
+  { code:"E55P",  name:"Embraer Phenom 300",            type:"Business Jet",       cruiseKts:420,  cruiseAlt:"FL450", minRwy:1200, surfaces:["paved"], groundMin:18 },
+  { code:"E545",  name:"Embraer Legacy 500",            type:"Business Jet",       cruiseKts:466,  cruiseAlt:"FL450", minRwy:1600, surfaces:["paved"], groundMin:18 },
+  { code:"GALX",  name:"IAI Gulfstream G200",           type:"Business Jet",       cruiseKts:459,  cruiseAlt:"FL450", minRwy:1700, surfaces:["paved"], groundMin:18 },
+  { code:"GLF5",  name:"Gulfstream G550",               type:"Business Jet",       cruiseKts:488,  cruiseAlt:"FL510", minRwy:1900, surfaces:["paved"], groundMin:18 },
+  { code:"GLF6",  name:"Gulfstream G650ER",             type:"Business Jet",       cruiseKts:516,  cruiseAlt:"FL510", minRwy:1900, surfaces:["paved"], groundMin:18 },
   // Regional Jet
-  { code:"CRJ2",  name:"Bombardier CRJ-200",            type:"Regional Jet",       cruiseKts:430,  cruiseAlt:"FL350", minRwy:1600, surfaces:["paved"] },
-  { code:"CRJ7",  name:"Bombardier CRJ-700",            type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1700, surfaces:["paved"] },
-  { code:"CRJ9",  name:"Bombardier CRJ-900",            type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"] },
-  { code:"E135",  name:"Embraer ERJ-135",               type:"Regional Jet",       cruiseKts:440,  cruiseAlt:"FL370", minRwy:1600, surfaces:["paved"] },
-  { code:"E145",  name:"Embraer ERJ-145",               type:"Regional Jet",       cruiseKts:440,  cruiseAlt:"FL370", minRwy:1700, surfaces:["paved"] },
-  { code:"E170",  name:"Embraer E170",                  type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"] },
-  { code:"E175",  name:"Embraer E175",                  type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL390", minRwy:1800, surfaces:["paved"] },
-  { code:"E190",  name:"Embraer E190",                  type:"Regional Jet",       cruiseKts:450,  cruiseAlt:"FL390", minRwy:1900, surfaces:["paved"] },
-  { code:"E195",  name:"Embraer E195-E2",               type:"Regional Jet",       cruiseKts:450,  cruiseAlt:"FL410", minRwy:2000, surfaces:["paved"] },
-  { code:"SU95",  name:"Sukhoi Superjet 100",           type:"Regional Jet",       cruiseKts:460,  cruiseAlt:"FL390", minRwy:1800, surfaces:["paved"] },
+  { code:"CRJ2",  name:"Bombardier CRJ-200",            type:"Regional Jet",       cruiseKts:430,  cruiseAlt:"FL350", minRwy:1600, surfaces:["paved"], groundMin:20 },
+  { code:"CRJ7",  name:"Bombardier CRJ-700",            type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1700, surfaces:["paved"], groundMin:20 },
+  { code:"CRJ9",  name:"Bombardier CRJ-900",            type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"], groundMin:20 },
+  { code:"E135",  name:"Embraer ERJ-135",               type:"Regional Jet",       cruiseKts:440,  cruiseAlt:"FL370", minRwy:1600, surfaces:["paved"], groundMin:20 },
+  { code:"E145",  name:"Embraer ERJ-145",               type:"Regional Jet",       cruiseKts:440,  cruiseAlt:"FL370", minRwy:1700, surfaces:["paved"], groundMin:20 },
+  { code:"E170",  name:"Embraer E170",                  type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"], groundMin:20 },
+  { code:"E175",  name:"Embraer E175",                  type:"Regional Jet",       cruiseKts:447,  cruiseAlt:"FL390", minRwy:1800, surfaces:["paved"], groundMin:20 },
+  { code:"E190",  name:"Embraer E190",                  type:"Regional Jet",       cruiseKts:450,  cruiseAlt:"FL390", minRwy:1900, surfaces:["paved"], groundMin:20 },
+  { code:"E195",  name:"Embraer E195-E2",               type:"Regional Jet",       cruiseKts:450,  cruiseAlt:"FL410", minRwy:2000, surfaces:["paved"], groundMin:20 },
+  { code:"SU95",  name:"Sukhoi Superjet 100",           type:"Regional Jet",       cruiseKts:460,  cruiseAlt:"FL390", minRwy:1800, surfaces:["paved"], groundMin:20 },
   // Narrow-body
-  { code:"A318",  name:"Airbus A318",                   type:"Narrow-body",        cruiseKts:450,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"] },
-  { code:"A319",  name:"Airbus A319",                   type:"Narrow-body",        cruiseKts:450,  cruiseAlt:"FL380", minRwy:1900, surfaces:["paved"] },
-  { code:"A320",  name:"Airbus A320",                   type:"Narrow-body",        cruiseKts:451,  cruiseAlt:"FL390", minRwy:2100, surfaces:["paved"] },
-  { code:"A321",  name:"Airbus A321",                   type:"Narrow-body",        cruiseKts:451,  cruiseAlt:"FL390", minRwy:2200, surfaces:["paved"] },
-  { code:"A21N",  name:"Airbus A321neo",                type:"Narrow-body",        cruiseKts:452,  cruiseAlt:"FL410", minRwy:2200, surfaces:["paved"] },
-  { code:"A20N",  name:"Airbus A320neo",                type:"Narrow-body",        cruiseKts:452,  cruiseAlt:"FL410", minRwy:2100, surfaces:["paved"] },
-  { code:"B732",  name:"Boeing 737-200",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"] },
-  { code:"B733",  name:"Boeing 737-300",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:2000, surfaces:["paved"] },
-  { code:"B735",  name:"Boeing 737-500",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:1900, surfaces:["paved"] },
-  { code:"B736",  name:"Boeing 737-600",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2000, surfaces:["paved"] },
-  { code:"B738",  name:"Boeing 737-800",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2090, surfaces:["paved"] },
-  { code:"B739",  name:"Boeing 737-900",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2200, surfaces:["paved"] },
-  { code:"B737",  name:"Boeing 737 MAX 8",              type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL410", minRwy:2100, surfaces:["paved"] },
-  { code:"B73J",  name:"Boeing 737 MAX 10",             type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL410", minRwy:2300, surfaces:["paved"] },
-  { code:"B752",  name:"Boeing 757-200",                type:"Narrow-body",        cruiseKts:458,  cruiseAlt:"FL370", minRwy:2200, surfaces:["paved"] },
-  { code:"B753",  name:"Boeing 757-300",                type:"Narrow-body",        cruiseKts:458,  cruiseAlt:"FL370", minRwy:2300, surfaces:["paved"] },
-  { code:"MD80",  name:"McDonnell Douglas MD-80",       type:"Narrow-body",        cruiseKts:440,  cruiseAlt:"FL370", minRwy:2100, surfaces:["paved"] },
-  { code:"MD90",  name:"McDonnell Douglas MD-90",       type:"Narrow-body",        cruiseKts:440,  cruiseAlt:"FL370", minRwy:2100, surfaces:["paved"] },
-  { code:"B717",  name:"Boeing 717-200",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:1900, surfaces:["paved"] },
-  { code:"F100",  name:"Fokker 100",                    type:"Narrow-body",        cruiseKts:432,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"] },
-  { code:"F70",   name:"Fokker 70",                     type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1800, surfaces:["paved"] },
-  { code:"DC93",  name:"McDonnell Douglas DC-9-30",     type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"] },
+  { code:"A318",  name:"Airbus A318",                   type:"Narrow-body",        cruiseKts:450,  cruiseAlt:"FL370", minRwy:1800, surfaces:["paved"], groundMin:25 },
+  { code:"A319",  name:"Airbus A319",                   type:"Narrow-body",        cruiseKts:450,  cruiseAlt:"FL380", minRwy:1900, surfaces:["paved"], groundMin:25 },
+  { code:"A320",  name:"Airbus A320",                   type:"Narrow-body",        cruiseKts:451,  cruiseAlt:"FL390", minRwy:2100, surfaces:["paved"], groundMin:25 },
+  { code:"A321",  name:"Airbus A321",                   type:"Narrow-body",        cruiseKts:451,  cruiseAlt:"FL390", minRwy:2200, surfaces:["paved"], groundMin:25 },
+  { code:"A21N",  name:"Airbus A321neo",                type:"Narrow-body",        cruiseKts:452,  cruiseAlt:"FL410", minRwy:2200, surfaces:["paved"], groundMin:25 },
+  { code:"A20N",  name:"Airbus A320neo",                type:"Narrow-body",        cruiseKts:452,  cruiseAlt:"FL410", minRwy:2100, surfaces:["paved"], groundMin:25 },
+  { code:"B732",  name:"Boeing 737-200",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"], groundMin:25 },
+  { code:"B733",  name:"Boeing 737-300",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:2000, surfaces:["paved"], groundMin:25 },
+  { code:"B735",  name:"Boeing 737-500",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:1900, surfaces:["paved"], groundMin:25 },
+  { code:"B736",  name:"Boeing 737-600",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2000, surfaces:["paved"], groundMin:25 },
+  { code:"B738",  name:"Boeing 737-800",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2090, surfaces:["paved"], groundMin:25 },
+  { code:"B739",  name:"Boeing 737-900",                type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL390", minRwy:2200, surfaces:["paved"], groundMin:25 },
+  { code:"B737",  name:"Boeing 737 MAX 8",              type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL410", minRwy:2100, surfaces:["paved"], groundMin:25 },
+  { code:"B73J",  name:"Boeing 737 MAX 10",             type:"Narrow-body",        cruiseKts:453,  cruiseAlt:"FL410", minRwy:2300, surfaces:["paved"], groundMin:25 },
+  { code:"B752",  name:"Boeing 757-200",                type:"Narrow-body",        cruiseKts:458,  cruiseAlt:"FL370", minRwy:2200, surfaces:["paved"], groundMin:25 },
+  { code:"B753",  name:"Boeing 757-300",                type:"Narrow-body",        cruiseKts:458,  cruiseAlt:"FL370", minRwy:2300, surfaces:["paved"], groundMin:25 },
+  { code:"MD80",  name:"McDonnell Douglas MD-80",       type:"Narrow-body",        cruiseKts:440,  cruiseAlt:"FL370", minRwy:2100, surfaces:["paved"], groundMin:25 },
+  { code:"MD90",  name:"McDonnell Douglas MD-90",       type:"Narrow-body",        cruiseKts:440,  cruiseAlt:"FL370", minRwy:2100, surfaces:["paved"], groundMin:25 },
+  { code:"B717",  name:"Boeing 717-200",                type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL370", minRwy:1900, surfaces:["paved"], groundMin:25 },
+  { code:"F100",  name:"Fokker 100",                    type:"Narrow-body",        cruiseKts:432,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"], groundMin:25 },
+  { code:"F70",   name:"Fokker 70",                     type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1800, surfaces:["paved"], groundMin:25 },
+  { code:"DC93",  name:"McDonnell Douglas DC-9-30",     type:"Narrow-body",        cruiseKts:430,  cruiseAlt:"FL350", minRwy:1900, surfaces:["paved"], groundMin:25 },
   // Wide-body
-  { code:"A332",  name:"Airbus A330-200",               type:"Wide-body",          cruiseKts:470,  cruiseAlt:"FL380", minRwy:2500, surfaces:["paved"] },
-  { code:"A333",  name:"Airbus A330-300",               type:"Wide-body",          cruiseKts:470,  cruiseAlt:"FL380", minRwy:2500, surfaces:["paved"] },
-  { code:"A338",  name:"Airbus A330-800neo",            type:"Wide-body",          cruiseKts:472,  cruiseAlt:"FL410", minRwy:2600, surfaces:["paved"] },
-  { code:"A339",  name:"Airbus A330-900neo",            type:"Wide-body",          cruiseKts:472,  cruiseAlt:"FL410", minRwy:2600, surfaces:["paved"] },
-  { code:"A342",  name:"Airbus A340-200",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:2900, surfaces:["paved"] },
-  { code:"A345",  name:"Airbus A340-500",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:3050, surfaces:["paved"] },
-  { code:"A346",  name:"Airbus A340-600",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"] },
-  { code:"A359",  name:"Airbus A350-900",               type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2600, surfaces:["paved"] },
-  { code:"A35K",  name:"Airbus A350-1000",              type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"] },
-  { code:"B762",  name:"Boeing 767-200ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2500, surfaces:["paved"] },
-  { code:"B763",  name:"Boeing 767-300ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2600, surfaces:["paved"] },
-  { code:"B764",  name:"Boeing 767-400ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2700, surfaces:["paved"] },
-  { code:"B772",  name:"Boeing 777-200ER",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:2900, surfaces:["paved"] },
-  { code:"B773",  name:"Boeing 777-300",                type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"] },
-  { code:"B77W",  name:"Boeing 777-300ER",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3050, surfaces:["paved"] },
-  { code:"B77L",  name:"Boeing 777-200LR",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"] },
-  { code:"B778",  name:"Boeing 777X-8",                 type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL430", minRwy:3000, surfaces:["paved"] },
-  { code:"B779",  name:"Boeing 777X-9",                 type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL430", minRwy:3100, surfaces:["paved"] },
-  { code:"B787",  name:"Boeing 787-8",                  type:"Wide-body",          cruiseKts:487,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"] },
-  { code:"B789",  name:"Boeing 787-9",                  type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"] },
-  { code:"B78X",  name:"Boeing 787-10",                 type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2900, surfaces:["paved"] },
-  { code:"DC10",  name:"McDonnell Douglas DC-10",       type:"Wide-body",          cruiseKts:460,  cruiseAlt:"FL350", minRwy:3000, surfaces:["paved"] },
-  { code:"MD11",  name:"McDonnell Douglas MD-11",       type:"Wide-body",          cruiseKts:473,  cruiseAlt:"FL370", minRwy:3000, surfaces:["paved"] },
-  { code:"L101",  name:"Lockheed L-1011 TriStar",       type:"Wide-body",          cruiseKts:460,  cruiseAlt:"FL350", minRwy:3000, surfaces:["paved"] },
+  { code:"A332",  name:"Airbus A330-200",               type:"Wide-body",          cruiseKts:470,  cruiseAlt:"FL380", minRwy:2500, surfaces:["paved"], groundMin:32 },
+  { code:"A333",  name:"Airbus A330-300",               type:"Wide-body",          cruiseKts:470,  cruiseAlt:"FL380", minRwy:2500, surfaces:["paved"], groundMin:32 },
+  { code:"A338",  name:"Airbus A330-800neo",            type:"Wide-body",          cruiseKts:472,  cruiseAlt:"FL410", minRwy:2600, surfaces:["paved"], groundMin:32 },
+  { code:"A339",  name:"Airbus A330-900neo",            type:"Wide-body",          cruiseKts:472,  cruiseAlt:"FL410", minRwy:2600, surfaces:["paved"], groundMin:32 },
+  { code:"A342",  name:"Airbus A340-200",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:2900, surfaces:["paved"], groundMin:32 },
+  { code:"A345",  name:"Airbus A340-500",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:3050, surfaces:["paved"], groundMin:32 },
+  { code:"A346",  name:"Airbus A340-600",               type:"Wide-body",          cruiseKts:475,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"], groundMin:32 },
+  { code:"A359",  name:"Airbus A350-900",               type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2600, surfaces:["paved"], groundMin:32 },
+  { code:"A35K",  name:"Airbus A350-1000",              type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"], groundMin:32 },
+  { code:"B762",  name:"Boeing 767-200ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2500, surfaces:["paved"], groundMin:32 },
+  { code:"B763",  name:"Boeing 767-300ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2600, surfaces:["paved"], groundMin:32 },
+  { code:"B764",  name:"Boeing 767-400ER",              type:"Wide-body",          cruiseKts:459,  cruiseAlt:"FL390", minRwy:2700, surfaces:["paved"], groundMin:32 },
+  { code:"B772",  name:"Boeing 777-200ER",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:2900, surfaces:["paved"], groundMin:32 },
+  { code:"B773",  name:"Boeing 777-300",                type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"], groundMin:32 },
+  { code:"B77W",  name:"Boeing 777-300ER",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3050, surfaces:["paved"], groundMin:32 },
+  { code:"B77L",  name:"Boeing 777-200LR",              type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL370", minRwy:3100, surfaces:["paved"], groundMin:32 },
+  { code:"B778",  name:"Boeing 777X-8",                 type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL430", minRwy:3000, surfaces:["paved"], groundMin:32 },
+  { code:"B779",  name:"Boeing 777X-9",                 type:"Wide-body",          cruiseKts:490,  cruiseAlt:"FL430", minRwy:3100, surfaces:["paved"], groundMin:32 },
+  { code:"B787",  name:"Boeing 787-8",                  type:"Wide-body",          cruiseKts:487,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"], groundMin:32 },
+  { code:"B789",  name:"Boeing 787-9",                  type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2800, surfaces:["paved"], groundMin:32 },
+  { code:"B78X",  name:"Boeing 787-10",                 type:"Wide-body",          cruiseKts:488,  cruiseAlt:"FL430", minRwy:2900, surfaces:["paved"], groundMin:32 },
+  { code:"DC10",  name:"McDonnell Douglas DC-10",       type:"Wide-body",          cruiseKts:460,  cruiseAlt:"FL350", minRwy:3000, surfaces:["paved"], groundMin:32 },
+  { code:"MD11",  name:"McDonnell Douglas MD-11",       type:"Wide-body",          cruiseKts:473,  cruiseAlt:"FL370", minRwy:3000, surfaces:["paved"], groundMin:32 },
+  { code:"L101",  name:"Lockheed L-1011 TriStar",       type:"Wide-body",          cruiseKts:460,  cruiseAlt:"FL350", minRwy:3000, surfaces:["paved"], groundMin:32 },
   // Super Wide-body
-  { code:"B741",  name:"Boeing 747-100",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL350", minRwy:3200, surfaces:["paved"] },
-  { code:"B742",  name:"Boeing 747-200",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL360", minRwy:3200, surfaces:["paved"] },
-  { code:"B743",  name:"Boeing 747-300",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL370", minRwy:3200, surfaces:["paved"] },
-  { code:"B744",  name:"Boeing 747-400",                type:"Super Wide-body",    cruiseKts:490,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"] },
-  { code:"B748",  name:"Boeing 747-8I",                 type:"Super Wide-body",    cruiseKts:490,  cruiseAlt:"FL400", minRwy:3100, surfaces:["paved"] },
-  { code:"A388",  name:"Airbus A380-800",               type:"Super Wide-body",    cruiseKts:488,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"] },
+  { code:"B741",  name:"Boeing 747-100",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL350", minRwy:3200, surfaces:["paved"], groundMin:38 },
+  { code:"B742",  name:"Boeing 747-200",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL360", minRwy:3200, surfaces:["paved"], groundMin:38 },
+  { code:"B743",  name:"Boeing 747-300",                type:"Super Wide-body",    cruiseKts:480,  cruiseAlt:"FL370", minRwy:3200, surfaces:["paved"], groundMin:38 },
+  { code:"B744",  name:"Boeing 747-400",                type:"Super Wide-body",    cruiseKts:490,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"], groundMin:38 },
+  { code:"B748",  name:"Boeing 747-8I",                 type:"Super Wide-body",    cruiseKts:490,  cruiseAlt:"FL400", minRwy:3100, surfaces:["paved"], groundMin:38 },
+  { code:"A388",  name:"Airbus A380-800",               type:"Super Wide-body",    cruiseKts:488,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"], groundMin:38 },
   // Supersonic
-  { code:"CONC",  name:"Concorde",                      type:"Supersonic",         cruiseKts:1165, cruiseAlt:"FL550", minRwy:3600, surfaces:["paved"] },
+  { code:"CONC",  name:"Concorde",                      type:"Supersonic",         cruiseKts:1165, cruiseAlt:"FL550", minRwy:3600, surfaces:["paved"], groundMin:25 },
 ];
 
 // ─── Airline Database ─────────────────────────────────────────────────────────
@@ -1791,6 +1791,20 @@ function haversineNm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// Realistic block time: ground/climb/descent allowance + cruise time
+function calcBlockMins(distNm, aircraft) {
+  const groundMin = aircraft.groundMin || 15;
+  const cruiseMin = (distNm / aircraft.cruiseKts) * 60;
+  return Math.round(groundMin + cruiseMin);
+}
+
+// Target cruise distance for a desired TOTAL block time
+function targetCruiseNm(targetBlockMin, aircraft) {
+  const groundMin = aircraft.groundMin || 15;
+  const cruiseMin = Math.max(1, targetBlockMin - groundMin);
+  return (cruiseMin / 60) * aircraft.cruiseKts;
+}
+
 function toHHMM(mins) {
   return String(Math.floor(mins/60)).padStart(2,"0") + ":" + String(mins%60).padStart(2,"0");
 }
@@ -1915,8 +1929,8 @@ function updateDurationDisplay() {
 }
 
 function updateNmHint() {
-  const nm = Math.round((state.durationMin / 60) * state.aircraft.cruiseKts);
-  document.getElementById("nm-hint").textContent = `≈ ${nm.toLocaleString()} NM at cruise`;
+  const nm = Math.round(targetCruiseNm(state.durationMin, state.aircraft));
+  document.getElementById("nm-hint").textContent = `\u2248 ${nm.toLocaleString()} NM cruise (+${state.aircraft.groundMin || 15}min taxi/climb/descent)`;
 }
 
 // ─── Event handlers ───────────────────────────────────────────────────────────
@@ -2102,7 +2116,7 @@ function generate() {
   setTimeout(() => {
     let pool = filteredAirports();
     const tol = state.tolerance / 100;
-    const targetNm = (state.durationMin / 60) * state.aircraft.cruiseKts;
+    const targetNm = targetCruiseNm(state.durationMin, state.aircraft);
     const minNm = targetNm * (1 - tol), maxNm = targetNm * (1 + tol);
     const mode = state.mode;
     let found = null;
@@ -2120,7 +2134,7 @@ function generate() {
       }
       const dep = state.fixedDep, dest = state.fixedDest;
       const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-      const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+      const flightMins = calcBlockMins(dist, state.aircraft);
       const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
       found = { dep, dest, dist, flightMins, hdg };
 
@@ -2143,7 +2157,7 @@ function generate() {
       if (candidates.length > 0) {
         const dest = candidates[Math.floor(Math.random() * candidates.length)];
         const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-        const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+        const flightMins = calcBlockMins(dist, state.aircraft);
         const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
         found = { dep, dest, dist, flightMins, hdg };
       }
@@ -2182,7 +2196,7 @@ function generate() {
       if (candidates.length > 0) {
         const dep = candidates[Math.floor(Math.random() * candidates.length)];
         const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-        const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+        const flightMins = calcBlockMins(dist, state.aircraft);
         const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
         found = { dep, dest, dist, flightMins, hdg };
       }
@@ -2202,7 +2216,7 @@ function generate() {
           if (candidates.length > 0) {
             const dest = candidates[Math.floor(Math.random() * candidates.length)];
             const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-            const flightMins = Math.round((dist / state.aircraft.cruiseKts) * 60);
+            const flightMins = calcBlockMins(dist, state.aircraft);
             const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
             result = { dep, dest, dist, flightMins, hdg };
           }
@@ -3316,6 +3330,10 @@ function initMap() {
   leafletMap = L.map("leaflet-map", {
     center: [30, 10],
     zoom: 2,
+    minZoom: 2,
+    maxZoom: 18,
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0,
     zoomControl: true,
     attributionControl: true,
     layers: [], // start empty, add below
