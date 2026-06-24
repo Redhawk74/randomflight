@@ -464,7 +464,7 @@
     font-size: 12px; color: var(--accent4); letter-spacing: 0.5px;
     padding: 3px 0 3px 14px; line-height: 1.6; position: relative;
   }
-  .cl-item::before { content: "&#x25B8;"; position: absolute; left: 0; color: var(--accent); }
+  .cl-item::before { content: "\25B8"; position: absolute; left: 0; color: var(--accent); }
   #app-version-btn {
     cursor: pointer; text-decoration: none; color: inherit;
     border-bottom: 1px dashed var(--dim2); transition: color 0.2s;
@@ -503,7 +503,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.3.9/RandomFlight-Setup-1.3.9.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.0/RandomFlight-Setup-1.4.0.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.3.9</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.0</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -758,6 +758,90 @@
       <div class="hint">Higher tolerance = more airport variety</div>
     </div>
 
+  </div>
+</div>
+
+<!-- Changelog Modal -->
+<div class="cl-overlay" id="cl-overlay" onclick="closeChangelog(event)">
+  <div class="cl-modal">
+    <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
+    <div class="cl-title">&#x25C8; CHANGELOG</div>
+
+    <div class="cl-version">v1.3.9 &mdash; Current</div>
+    <div class="cl-item">Changelog popup fixed &mdash; works in both app and website</div>
+    <div class="cl-item">Dawn/Dusk filter correctly distinguished using solar hour angle</div>
+    <div class="cl-item">Air Time label replaces Block Time throughout</div>
+    <div class="cl-item">Realistic air time calculation includes climb, descent and taxi</div>
+    <div class="cl-item">App icon displayed in browser tab (favicon)</div>
+    <div class="cl-item">Map zoom capped to prevent world repetition</div>
+
+    <div class="cl-version">v1.3.1</div>
+    <div class="cl-item">Day, Night, Dawn and Dusk airport time-of-day filter added</div>
+    <div class="cl-item">Smart mutual constraints between region and time-of-day filters</div>
+    <div class="cl-item">Region and Time of Day filters displayed side by side</div>
+
+    <div class="cl-version">v1.3.0</div>
+    <div class="cl-item">Aircraft dropdown dash rendering fixed</div>
+    <div class="cl-item">Direct download button added to website</div>
+    <div class="cl-item">Special character encoding fixed throughout</div>
+
+    <div class="cl-version">v1.2.5</div>
+    <div class="cl-item">Share route via clipboard text or hyperlink</div>
+    <div class="cl-item">Shared links load route automatically on open</div>
+    <div class="cl-item">Share URL points to randomflight.net</div>
+    <div class="cl-item">Region overflow to global airports when no route found in region</div>
+
+    <div class="cl-version">v1.2.2</div>
+    <div class="cl-item">Google Analytics integrated</div>
+    <div class="cl-item">randomflight.net domain live</div>
+    <div class="cl-item">Font sizes increased throughout for readability</div>
+    <div class="cl-item">5 aviation colour themes added</div>
+
+    <div class="cl-version">v1.2.1</div>
+    <div class="cl-item">Previous 5 routes saved and restored between sessions</div>
+    <div class="cl-item">Click a previous route to replay it instantly</div>
+
+    <div class="cl-version">v1.1.9</div>
+    <div class="cl-item">5 aviation colour themes: FMS Green, EFIS Amber, ECAM Blue, Radar Red, Night Vision</div>
+
+    <div class="cl-version">v1.1.8</div>
+    <div class="cl-item">METAR live weather added to result card</div>
+    <div class="cl-item">Wind compass with direction arrow</div>
+    <div class="cl-item">Active runway suggestion using real runway headings database</div>
+
+    <div class="cl-version">v1.1.6</div>
+    <div class="cl-item">Map layer control: Dark, Street, Satellite base layers</div>
+    <div class="cl-item">Day/Night terminator overlay with live solar position</div>
+
+    <div class="cl-version">v1.1.2</div>
+    <div class="cl-item">Planner and Settings expand to two-column layout on wide screens</div>
+    <div class="cl-item">Map fills full screen width when maximised</div>
+
+    <div class="cl-version">v1.1.0</div>
+    <div class="cl-item">Interactive map tab with geodesic great-circle routing</div>
+    <div class="cl-item">Departure and arrival plane icons on map</div>
+
+    <div class="cl-version">v1.0.9</div>
+    <div class="cl-item">495 airports with real runway length and surface data</div>
+    <div class="cl-item">Aircraft filtered by minimum runway and surface type</div>
+    <div class="cl-item">100 aircraft with correct SimBrief type codes</div>
+
+    <div class="cl-version">v1.0.7</div>
+    <div class="cl-item">4 route modes: Full Random, Fix Departure, Fix Arrival, Manual Both</div>
+    <div class="cl-item">Searchable airport picker for departure and arrival</div>
+
+    <div class="cl-version">v1.0.6</div>
+    <div class="cl-item">Searchable airline dropdown with 125 airlines</div>
+    <div class="cl-item">Flight number and ATC callsign fields</div>
+
+    <div class="cl-version">v1.0.2</div>
+    <div class="cl-item">Auto-update via GitHub Releases</div>
+    <div class="cl-item">Custom app icon and Windows installer</div>
+
+    <div class="cl-version">v1.0.0</div>
+    <div class="cl-item">Initial release</div>
+    <div class="cl-item">Random route generation based on aircraft and duration</div>
+    <div class="cl-item">Direct SimBrief dispatch integration</div>
   </div>
 </div>
 
