@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" onclick="openChangelog()" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.2.2</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.2.2</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -3693,6 +3693,10 @@ window.addEventListener("DOMContentLoaded", () => {
       dlBtn.style.display = "inline-flex";
     }
   }
+  // Changelog — attach click listener to version span
+  const verSpan = document.getElementById("app-version");
+  if (verSpan) verSpan.addEventListener("click", openChangelog);
+
   renderHistory();
   // Restore saved theme
   const savedTheme = localStorage.getItem("rf_theme") || "";
