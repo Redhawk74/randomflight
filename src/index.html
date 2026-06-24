@@ -1853,6 +1853,29 @@ function solarElevation(lat, lon) {
   return Math.asin(sinEl) * 180 / Math.PI; // degrees
 }
 
+// Returns true if location is in civil twilight AND on the morning (dawn) side
+function isDawn(lat, lon) {
+  const { dec, sunLonSigned } = getSolarData();
+  const ha  = (lon - sunLonSigned) * Math.PI / 180;
+  const latR = lat * Math.PI / 180;
+  const sinEl = Math.sin(latR) * Math.sin(dec) + Math.cos(latR) * Math.cos(dec) * Math.cos(ha);
+  const el = Math.asin(sinEl) * 180 / Math.PI;
+  // Normalise hour angle to -180..180
+  const haDeg = ((lon - sunLonSigned) + 540) % 360 - 180;
+  return el >= -6 && el <= 6 && haDeg < 0; // sun east of meridian = morning
+}
+
+// Returns true if location is in civil twilight AND on the evening (dusk) side
+function isDusk(lat, lon) {
+  const { dec, sunLonSigned } = getSolarData();
+  const ha  = (lon - sunLonSigned) * Math.PI / 180;
+  const latR = lat * Math.PI / 180;
+  const sinEl = Math.sin(latR) * Math.sin(dec) + Math.cos(latR) * Math.cos(dec) * Math.cos(ha);
+  const el = Math.asin(sinEl) * 180 / Math.PI;
+  const haDeg = ((lon - sunLonSigned) + 540) % 360 - 180;
+  return el >= -6 && el <= 6 && haDeg > 0; // sun west of meridian = evening
+}
+
 function filteredAirports() {
   let pool = AIRPORTS;
 
@@ -1876,12 +1899,10 @@ function filteredAirports() {
     pool = pool.filter(a => solarElevation(a.lat, a.lon) > 6);
   } else if (state.dayNight === "NIGHT") {
     pool = pool.filter(a => solarElevation(a.lat, a.lon) < -6);
-  } else if (state.dayNight === "DAWN" || state.dayNight === "DUSK") {
-    // Within 6° either side of the horizon — the golden hour zone
-    pool = pool.filter(a => {
-      const el = solarElevation(a.lat, a.lon);
-      return el >= -6 && el <= 6;
-    });
+  } else if (state.dayNight === "DAWN") {
+    pool = pool.filter(a => isDawn(a.lat, a.lon));
+  } else if (state.dayNight === "DUSK") {
+    pool = pool.filter(a => isDusk(a.lat, a.lon));
   }
 
   return pool;
@@ -2028,7 +2049,8 @@ function saveDayNight() {
       const el = solarElevation(a.lat, a.lon);
       if (state.dayNight === "DAY")   return el > 6;
       if (state.dayNight === "NIGHT") return el < -6;
-      if (state.dayNight === "DAWN" || state.dayNight === "DUSK") return el >= -6 && el <= 6;
+      if (state.dayNight === "DAWN")  return isDawn(a.lat, a.lon);
+      if (state.dayNight === "DUSK")  return isDusk(a.lat, a.lon);
       return true;
     });
     opt.disabled = !hasMatch;
