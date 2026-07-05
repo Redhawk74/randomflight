@@ -503,7 +503,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.1/RandomFlight-Setup-1.4.1.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.2/RandomFlight-Setup-1.4.2.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.1</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.2</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -766,6 +766,18 @@
   <div class="cl-modal">
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
+
+    <div class="cl-version">v1.4.2 &mdash; Current</div>
+    <div class="cl-item">Airport weighting added &mdash; smaller aircraft now prefer smaller fields</div>
+    <div class="cl-item">Gmdash rendering fixed in airport and airline dropdowns</div>
+    <div class="cl-item">Dawn/Dusk zone widened to astronomical twilight for more results</div>
+
+    <div class="cl-version">v1.4.1</div>
+    <div class="cl-item">Changelog popup added &mdash; click version number in header</div>
+    <div class="cl-item">Map zoom capped to prevent world repetition</div>
+    <div class="cl-item">App icon displayed in browser tab</div>
+    <div class="cl-item">Air Time label replaces Block Time throughout</div>
+    <div class="cl-item">Dawn and Dusk correctly distinguished using solar hour angle</div>
 
     <div class="cl-version">v1.3.9 &mdash; Current</div>
     <div class="cl-item">Changelog popup fixed &mdash; works in both app and website</div>
