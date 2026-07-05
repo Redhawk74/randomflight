@@ -503,7 +503,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.0/RandomFlight-Setup-1.4.0.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.1/RandomFlight-Setup-1.4.1.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.0</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.1</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -1912,6 +1912,49 @@ let state = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Weighted airport selection ───────────────────────────────────────────────
+// Returns a weight (0-1) for how suitable this airport is for the aircraft type
+function airportWeight(airport, aircraft) {
+  const rwy = airport.rwy || 1500;
+  const type = aircraft ? aircraft.type : "Narrow-body";
+
+  // Small GA / bush aircraft — strongly prefer small fields
+  if (["GA Piston","Single Turboprop","Twin Turboprop"].includes(type)) {
+    if (rwy < 800)  return 5.0;  // bush strips
+    if (rwy < 1500) return 3.0;  // small GA fields
+    if (rwy < 2500) return 1.0;  // regional
+    return 0.3;                   // large hubs (rare but possible)
+  }
+  // Regional aircraft — prefer regional airports
+  if (["Regional Turboprop","Regional Jet","Business Jet"].includes(type)) {
+    if (rwy < 800)  return 0.5;
+    if (rwy < 1500) return 1.5;
+    if (rwy < 2500) return 3.0;
+    return 1.0;
+  }
+  // Narrow/wide body jets — prefer large airports
+  if (["Narrow-body","Wide-body","Super Wide-body","Supersonic"].includes(type)) {
+    if (rwy < 1500) return 0.1;
+    if (rwy < 2500) return 0.5;
+    if (rwy < 3000) return 1.5;
+    return 3.0;                   // big international hubs
+  }
+  return 1.0; // default equal weight
+}
+
+// Weighted random pick from an array using airportWeight
+function weightedRandomAirport(candidates, aircraft) {
+  if (!candidates.length) return null;
+  const weights = candidates.map(a => airportWeight(a, aircraft));
+  const total   = weights.reduce((s, w) => s + w, 0);
+  let rand = Math.random() * total;
+  for (let i = 0; i < candidates.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return candidates[i];
+  }
+  return candidates[candidates.length - 1];
+}
+
 function haversineNm(lat1, lon1, lat2, lon2) {
   const R = 3440.065;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1990,7 +2033,7 @@ function isDawn(lat, lon) {
   const el = Math.asin(sinEl) * 180 / Math.PI;
   // Normalise hour angle to -180..180
   const haDeg = ((lon - sunLonSigned) + 540) % 360 - 180;
-  return el >= -6 && el <= 6 && haDeg < 0; // sun east of meridian = morning
+  return el >= -18 && el <= 18 && haDeg < 0; // sun east of meridian = morning (astronomical twilight)
 }
 
 // Returns true if location is in civil twilight AND on the evening (dusk) side
@@ -2001,7 +2044,7 @@ function isDusk(lat, lon) {
   const sinEl = Math.sin(latR) * Math.sin(dec) + Math.cos(latR) * Math.cos(dec) * Math.cos(ha);
   const el = Math.asin(sinEl) * 180 / Math.PI;
   const haDeg = ((lon - sunLonSigned) + 540) % 360 - 180;
-  return el >= -6 && el <= 6 && haDeg > 0; // sun west of meridian = evening
+  return el >= -18 && el <= 18 && haDeg > 0; // sun west of meridian = evening (astronomical twilight)
 }
 
 function filteredAirports() {
@@ -2321,7 +2364,7 @@ function generate() {
           (!state.aircraft.minRwy || (a.rwy >= state.aircraft.minRwy && state.aircraft.surfaces.includes(a.sfc)))
         );
         if (globalCandidates.length > 0) {
-          const dest = globalCandidates[Math.floor(Math.random() * globalCandidates.length)];
+          const dest = weightedRandomAirport(globalCandidates, state.aircraft);
           const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
           found = { dep, dest, dist, flightMins: Math.round((dist / state.aircraft.cruiseKts) * 60), hdg: bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon) };
           expandedToGlobal = true;
@@ -2357,15 +2400,17 @@ function generate() {
       const tryPool = (searchPool) => {
         let attempts = 0, result = null;
         while (attempts < 2000 && !result) {
-          const depIdx = Math.floor(Math.random() * searchPool.length);
-          const dep = searchPool[depIdx];
-          const candidates = searchPool.filter((a, i) => {
-            if (i === depIdx) return false;
+          // Weighted departure pick
+          const dep = weightedRandomAirport(searchPool, state.aircraft);
+          if (!dep) break;
+          const candidates = searchPool.filter(a => {
+            if (a.icao === dep.icao) return false;
             const d = haversineNm(dep.lat, dep.lon, a.lat, a.lon);
             return d >= minNm && d <= maxNm;
           });
           if (candidates.length > 0) {
-            const dest = candidates[Math.floor(Math.random() * candidates.length)];
+            // Weighted destination pick
+            const dest = weightedRandomAirport(candidates, state.aircraft);
             const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
             const flightMins = calcBlockMins(dist, state.aircraft);
             const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
@@ -2409,7 +2454,7 @@ function generate() {
       if (mapInitialised) drawRoute(found);
     } else {
       document.getElementById("no-result").style.display = "block";
-      document.getElementById("no-result").textContent = "NO ROUTE FOUND &mdash; TRY WIDENING TOLERANCE OR REGION";
+      document.getElementById("no-result").textContent = "NO ROUTE FOUND — TRY WIDENING TOLERANCE OR REGION";
     }
   }, 500);
 }
@@ -2420,7 +2465,7 @@ function renderResult(r) {
     `<div class="warning">&#x26A0; Add Pilot ID in Settings to auto-fill your account</div>`;
   const expandedHtml = r.expandedToGlobal
     ? `<div style="font-size:12px;color:var(--accent);letter-spacing:1px;margin-bottom:12px;padding:8px 10px;background:rgba(0,232,122,0.07);border:1px solid var(--border)">
-        &#x26A0; No route found within <strong>${state.region}</strong> for this duration &mdash; expanded to global airports
+        &#x26A0; No route found within <strong>${state.region}</strong> for this duration — expanded to global airports
        </div>`
     : "";
 
@@ -2539,7 +2584,7 @@ function renderAirportDropdown(side, airports) {
 function selectAirport(side, a) {
   if (side === "dep") state.fixedDep = a;
   else state.fixedDest = a;
-  document.getElementById(side + "-search").value = a.icao + " &mdash; " + a.name;
+  document.getElementById(side + "-search").value = a.icao + " — " + a.name;
   document.getElementById(side + "-clear-x").style.display = "inline";
   document.getElementById(side + "-dropdown").style.display = "none";
 }
@@ -2608,7 +2653,7 @@ function renderAirlineDropdown() {
 
 function selectAirline(a) {
   state.airlineIcao = a.icao;
-  document.getElementById("airline-search").value = a.icao + " &mdash; " + a.name;
+  document.getElementById("airline-search").value = a.icao + " — " + a.name;
   document.getElementById("airline-clear-x").style.display = "inline";
   hideAirlineDropdown();
   updateCallsignPreview();
