@@ -503,7 +503,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.5/RandomFlight-Setup-1.4.5.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.6/RandomFlight-Setup-1.4.6.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.5</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.6</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -2777,11 +2777,10 @@ function replayRoute(index) {
 // ─── METAR / Weather ───────────────────────────────────────────────────────────
 
 async function fetchAndRenderWeather(depIcao, destIcao) {
-  const headers = { "User-Agent": "RandomFlight/1.4 (randomflight.net)" };
   try {
     // Fetch current METAR for both airports
     const url = `https://aviationweather.gov/api/data/metar?ids=${depIcao},${destIcao}&format=json`;
-    const resp = await fetch(url, { headers });
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error("HTTP " + resp.status);
     const data = await resp.json();
 
@@ -2791,7 +2790,7 @@ async function fetchAndRenderWeather(depIcao, destIcao) {
     // For missing METARs, try last 24 hours separately
     if (!depMetar) {
       try {
-        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${depIcao}&format=json&hoursBeforeNow=24`, { headers });
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${depIcao}&format=json&hoursBeforeNow=24`);
         if (r.ok) {
           const d = await r.json();
           if (d.length > 0) { depMetar = d[0]; depMetar._historical = true; }
@@ -2800,7 +2799,7 @@ async function fetchAndRenderWeather(depIcao, destIcao) {
     }
     if (!destMetar) {
       try {
-        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${destIcao}&format=json&hoursBeforeNow=24`, { headers });
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${destIcao}&format=json&hoursBeforeNow=24`);
         if (r.ok) {
           const d = await r.json();
           if (d.length > 0) { destMetar = d[0]; destMetar._historical = true; }

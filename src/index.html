@@ -2777,11 +2777,10 @@ function replayRoute(index) {
 // ─── METAR / Weather ───────────────────────────────────────────────────────────
 
 async function fetchAndRenderWeather(depIcao, destIcao) {
-  const headers = { "User-Agent": "RandomFlight/1.4 (randomflight.net)" };
   try {
     // Fetch current METAR for both airports
     const url = `https://aviationweather.gov/api/data/metar?ids=${depIcao},${destIcao}&format=json`;
-    const resp = await fetch(url, { headers });
+    const resp = await fetch(url);
     if (!resp.ok) throw new Error("HTTP " + resp.status);
     const data = await resp.json();
 
@@ -2791,7 +2790,7 @@ async function fetchAndRenderWeather(depIcao, destIcao) {
     // For missing METARs, try last 24 hours separately
     if (!depMetar) {
       try {
-        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${depIcao}&format=json&hoursBeforeNow=24`, { headers });
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${depIcao}&format=json&hoursBeforeNow=24`);
         if (r.ok) {
           const d = await r.json();
           if (d.length > 0) { depMetar = d[0]; depMetar._historical = true; }
@@ -2800,7 +2799,7 @@ async function fetchAndRenderWeather(depIcao, destIcao) {
     }
     if (!destMetar) {
       try {
-        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${destIcao}&format=json&hoursBeforeNow=24`, { headers });
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${destIcao}&format=json&hoursBeforeNow=24`);
         if (r.ok) {
           const d = await r.json();
           if (d.length > 0) { destMetar = d[0]; destMetar._historical = true; }
