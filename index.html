@@ -503,7 +503,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.3/RandomFlight-Setup-1.4.3.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.4/RandomFlight-Setup-1.4.4.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.3</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.4</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -2778,7 +2778,7 @@ function replayRoute(index) {
 
 async function fetchAndRenderWeather(depIcao, destIcao) {
   try {
-    // First try current METAR
+    // Fetch current METAR for both airports
     const url = `https://aviationweather.gov/api/data/metar?ids=${depIcao},${destIcao}&format=json`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error("HTTP " + resp.status);
@@ -2787,27 +2787,24 @@ async function fetchAndRenderWeather(depIcao, destIcao) {
     let depMetar  = data.find(m => m.icaoId === depIcao)  || null;
     let destMetar = data.find(m => m.icaoId === destIcao) || null;
 
-    // For any missing METAR, try fetching historical (last 24 hours)
-    const missingIcaos = [];
-    if (!depMetar)  missingIcaos.push(depIcao);
-    if (!destMetar) missingIcaos.push(destIcao);
-
-    if (missingIcaos.length > 0) {
+    // For missing METARs, try last 24 hours separately
+    if (!depMetar) {
       try {
-        const histUrl = `https://aviationweather.gov/api/data/metar?ids=${missingIcaos.join(",")}&format=json&hours=24`;
-        const histResp = await fetch(histUrl);
-        if (histResp.ok) {
-          const histData = await histResp.json();
-          if (!depMetar) {
-            const hist = histData.filter(m => m.icaoId === depIcao);
-            if (hist.length > 0) { depMetar = hist[0]; depMetar._historical = true; }
-          }
-          if (!destMetar) {
-            const hist = histData.filter(m => m.icaoId === destIcao);
-            if (hist.length > 0) { destMetar = hist[0]; destMetar._historical = true; }
-          }
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${depIcao}&format=json&hoursBeforeNow=24`);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.length > 0) { depMetar = d[0]; depMetar._historical = true; }
         }
-      } catch(e) { /* silently ignore historical fetch failure */ }
+      } catch(e) {}
+    }
+    if (!destMetar) {
+      try {
+        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${destIcao}&format=json&hoursBeforeNow=24`);
+        if (r.ok) {
+          const d = await r.json();
+          if (d.length > 0) { destMetar = d[0]; destMetar._historical = true; }
+        }
+      } catch(e) {}
     }
 
     const container = document.getElementById("wx-panel-container");
