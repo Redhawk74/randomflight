@@ -679,7 +679,7 @@
   <!-- Map Tab -->
   <div id="tab-map" class="tab-content hidden">
     <div id="map-no-route" style="text-align:center;padding:60px 0;color:var(--border);font-size:11px;letter-spacing:2px">
-      NO ROUTE GENERATED YET &mdash; USE THE PLANNER
+      NO ROUTE GENERATED YET — USE THE PLANNER
     </div>
     <div id="map-container" style="display:none">
       <!-- Route summary bar -->
@@ -2477,7 +2477,7 @@ function renderResult(r) {
     `<div class="warning">&#x26A0; Add Pilot ID in Settings to auto-fill your account</div>`;
   const expandedHtml = r.expandedToGlobal
     ? `<div style="font-size:12px;color:var(--accent);letter-spacing:1px;margin-bottom:12px;padding:8px 10px;background:rgba(0,232,122,0.07);border:1px solid var(--border)">
-        &#x26A0; No route found within <strong>${state.region}</strong> for this duration — expanded to global airports
+        ⚠ No route found within <strong>${state.region}</strong> for this duration — expanded to global airports
        </div>`
     : "";
 
@@ -2778,13 +2778,37 @@ function replayRoute(index) {
 
 async function fetchAndRenderWeather(depIcao, destIcao) {
   try {
+    // First try current METAR
     const url = `https://aviationweather.gov/api/data/metar?ids=${depIcao},${destIcao}&format=json`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error("HTTP " + resp.status);
     const data = await resp.json();
 
-    const depMetar  = data.find(m => m.icaoId === depIcao)  || null;
-    const destMetar = data.find(m => m.icaoId === destIcao) || null;
+    let depMetar  = data.find(m => m.icaoId === depIcao)  || null;
+    let destMetar = data.find(m => m.icaoId === destIcao) || null;
+
+    // For any missing METAR, try fetching historical (last 24 hours)
+    const missingIcaos = [];
+    if (!depMetar)  missingIcaos.push(depIcao);
+    if (!destMetar) missingIcaos.push(destIcao);
+
+    if (missingIcaos.length > 0) {
+      try {
+        const histUrl = `https://aviationweather.gov/api/data/metar?ids=${missingIcaos.join(",")}&format=json&hours=24`;
+        const histResp = await fetch(histUrl);
+        if (histResp.ok) {
+          const histData = await histResp.json();
+          if (!depMetar) {
+            const hist = histData.filter(m => m.icaoId === depIcao);
+            if (hist.length > 0) { depMetar = hist[0]; depMetar._historical = true; }
+          }
+          if (!destMetar) {
+            const hist = histData.filter(m => m.icaoId === destIcao);
+            if (hist.length > 0) { destMetar = hist[0]; destMetar._historical = true; }
+          }
+        }
+      } catch(e) { /* silently ignore historical fetch failure */ }
+    }
 
     const container = document.getElementById("wx-panel-container");
     if (!container) return;
@@ -2812,9 +2836,20 @@ function buildWxCard(icao, m, role) {
   const rwy     = suggestRunway(m, icao);
   const compass = windCompass(wind.dir);
 
+  // Calculate age of observation
+  let ageWarning = "";
+  if (m._historical && m.reportTime) {
+    const obsTime = new Date(m.reportTime.replace(" ", "T") + "Z");
+    const ageMin  = Math.round((Date.now() - obsTime.getTime()) / 60000);
+    const ageStr  = ageMin < 60 ? `${ageMin} min ago` : `${Math.round(ageMin/60)}h ago`;
+    ageWarning = `<div style="font-size:10px;color:#ffaa00;letter-spacing:1px;margin-bottom:6px;padding:3px 6px;background:rgba(255,170,0,0.08);border:1px solid rgba(255,170,0,0.3)">
+      \u26a0 LAST RECORDED OBS \u2014 ${ageStr}
+    </div>`;
+  }
+
   return `<div class="wx-card">
     <div class="wx-airport-label">${icao} ${role === "DEP" ? "DEPARTURE" : "ARRIVAL"}</div>
-
+    ${ageWarning}
     <div class="wx-row">
       ${compass}
       <div>
@@ -3358,10 +3393,10 @@ function updateSharePreview() {
 
 function buildShareText(r, ac) {
   const lines = [
-    `&#x2708;  ${r.dep.icao} &#x2192; ${r.dest.icao}`,
-    `${r.dep.name} &#x2192; ${r.dest.name}`,
+    `✈  ${r.dep.icao} → ${r.dest.icao}`,
+    `${r.dep.name} → ${r.dest.name}`,
     `${ac.code} — ${ac.name}`,
-    `${toHHMM(r.flightMins)}  &middot;  ${r.dist} NM`,
+    `${toHHMM(r.flightMins)}  ·  ${r.dist} NM`,
   ];
   if (state.airlineIcao || state.flightNumber) {
     lines.push(`Callsign: ${state.airlineIcao || ""}${state.flightNumber || ""}`);
@@ -3387,7 +3422,7 @@ function copyRouteText() {
   if (!state.result) return;
   const text = buildShareText(state.result, state.aircraft);
   navigator.clipboard.writeText(text).then(() => {
-    showShareFeedback("&#x2713; COPIED TO CLIPBOARD");
+    showShareFeedback("✓ COPIED TO CLIPBOARD");
   }).catch(() => {
     // Fallback for environments where clipboard API isn't available
     const ta = document.createElement("textarea");
@@ -3396,7 +3431,7 @@ function copyRouteText() {
     ta.select();
     document.execCommand("copy");
     document.body.removeChild(ta);
-    showShareFeedback("&#x2713; COPIED TO CLIPBOARD");
+    showShareFeedback("✓ COPIED TO CLIPBOARD");
   });
 }
 
@@ -3416,7 +3451,7 @@ function copyRouteLink() {
     const plainBlob = new Blob([plainLink], { type: "text/plain" });
     const item = new ClipboardItem({ "text/html": htmlBlob, "text/plain": plainBlob });
     navigator.clipboard.write([item]).then(() => {
-      showShareFeedback("&#x2713; LINK COPIED");
+      showShareFeedback("✓ LINK COPIED");
     });
   } catch(e) {
     navigator.clipboard.writeText(plainLink).catch(() => {
@@ -3427,7 +3462,7 @@ function copyRouteLink() {
       document.execCommand("copy");
       document.body.removeChild(ta);
     });
-    showShareFeedback("&#x2713; LINK COPIED");
+    showShareFeedback("✓ LINK COPIED");
   }
 }
 
@@ -3491,7 +3526,7 @@ function loadRouteFromUrl() {
   // Show a banner so the user knows this was a shared route
   const banner = document.createElement("div");
   banner.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--accent);color:var(--bg);font-family:Orbitron,sans-serif;font-size:11px;letter-spacing:2px;text-align:center;padding:8px;";
-  banner.textContent = `&#x2708; SHARED ROUTE LOADED: ${dep} &#x2192; ${dest}`;
+  banner.textContent = `✈ SHARED ROUTE LOADED: ${dep} → ${dest}`;
   document.body.appendChild(banner);
   setTimeout(() => banner.remove(), 3000);
 }
@@ -3515,7 +3550,7 @@ function sendToSimBrief() {
   // Update both SimBrief buttons (planner + map tab)
   ["simbrief-btn", "map-simbrief-btn"].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) { btn.textContent = "&#x2713; SENT TO SIMBRIEF"; btn.classList.add("sent"); }
+    if (btn) { btn.textContent = "✓ SENT TO SIMBRIEF"; btn.classList.add("sent"); }
   });
 }
 
@@ -3576,12 +3611,12 @@ function initMap() {
   // ── Layer control ─────────────────────────────────────────────────────────────
   const baseLayers = {
     "🌑 Dark":      darkLayer,
-    "&#128506; Street":    streetLayer,
-    "&#128752; Satellite": satelliteLayer,
+    "🗺 Street":    streetLayer,
+    "🛰 Satellite": satelliteLayer,
   };
 
   const overlays = {
-    "&#127769; Day / Night": terminatorLayer,
+    "🌙 Day / Night": terminatorLayer,
   };
 
   layerControl = L.control.layers(baseLayers, overlays, {
@@ -3671,7 +3706,7 @@ function drawTerminator(group) {
     fillColor: "#ffff00",
     fillOpacity: 0.9,
     weight: 1,
-  }).bindTooltip(`&#9728; Sun &middot; ${now.toUTCString().slice(17,22)} UTC`, {
+  }).bindTooltip(`☀ Sun · ${now.toUTCString().slice(17,22)} UTC`, {
     permanent: false, direction: "top",
     className: "wx-tooltip",
   }).addTo(group);
@@ -3752,7 +3787,7 @@ function drawRoute(r) {
   // Update summary bar
   document.getElementById("map-dep-code").textContent  = r.dep.icao;
   document.getElementById("map-dest-code").textContent = r.dest.icao;
-  document.getElementById("map-stats").textContent     = toHHMM(r.flightMins) + "  &middot;  " + r.dist + " NM";
+  document.getElementById("map-stats").textContent     = toHHMM(r.flightMins) + "  ·  " + r.dist + " NM";
   document.getElementById("map-no-route").style.display  = "none";
   document.getElementById("map-container").style.display = "block";
 
