@@ -503,7 +503,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.6/RandomFlight-Setup-1.4.6.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.4.7/RandomFlight-Setup-1.4.7.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -518,7 +518,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.6</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.4.7</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -2521,6 +2521,7 @@ function renderResult(r) {
       <div class="btn-row">
         <button class="btn" style="flex:1;font-size:11px" onclick="generate()">&#x21BA; REROLL</button>
         <button class="btn" style="flex:1;font-size:11px;border-color:var(--dim2);color:var(--accent3)" id="share-btn" onclick="shareRoute()">&#x21E7; SHARE</button>
+        <button class="btn" style="flex:1;font-size:11px;border-color:#00b8d4;color:#00b8d4" onclick="followOnFlight()" title="Generate next flight from current destination">&#x21AA; FOLLOW ON</button>
         <button class="btn send" id="simbrief-btn" style="flex:2;font-size:11px" onclick="sendToSimBrief()">&#x2192; SIMBRIEF</button>
       </div>
       <div id="share-panel" style="display:none;margin-top:10px;padding:12px;background:var(--input-bg);border:1px solid var(--border);animation:fadeIn 0.2s ease">
@@ -2778,11 +2779,12 @@ function replayRoute(index) {
 
 async function fetchAndRenderWeather(depIcao, destIcao) {
   try {
-    // Fetch current METAR for both airports
-    const url = `https://aviationweather.gov/api/data/metar?ids=${depIcao},${destIcao}&format=json`;
+    // Use HawgOps as CORS proxy for AWC METAR API
+    const url = `https://api.hawg-ops.com/v2/wx/metar/${depIcao},${destIcao}`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error("HTTP " + resp.status);
-    const data = await resp.json();
+    const json = await resp.json();
+    const data = json.data || json;
 
     let depMetar  = data.find(m => m.icaoId === depIcao)  || null;
     let destMetar = data.find(m => m.icaoId === destIcao) || null;
@@ -2790,19 +2792,21 @@ async function fetchAndRenderWeather(depIcao, destIcao) {
     // For missing METARs, try last 24 hours separately
     if (!depMetar) {
       try {
-        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${depIcao}&format=json&hoursBeforeNow=24`);
+        const r = await fetch(`https://api.hawg-ops.com/v2/wx/metar/${depIcao}?hours=24`);
         if (r.ok) {
           const d = await r.json();
-          if (d.length > 0) { depMetar = d[0]; depMetar._historical = true; }
+          const arr = d.data || d;
+          if (arr.length > 0) { depMetar = arr[0]; depMetar._historical = true; }
         }
       } catch(e) {}
     }
     if (!destMetar) {
       try {
-        const r = await fetch(`https://aviationweather.gov/api/data/metar?ids=${destIcao}&format=json&hoursBeforeNow=24`);
+        const r = await fetch(`https://api.hawg-ops.com/v2/wx/metar/${destIcao}?hours=24`);
         if (r.ok) {
           const d = await r.json();
-          if (d.length > 0) { destMetar = d[0]; destMetar._historical = true; }
+          const arr = d.data || d;
+          if (arr.length > 0) { destMetar = arr[0]; destMetar._historical = true; }
         }
       } catch(e) {}
     }
@@ -3526,6 +3530,28 @@ function loadRouteFromUrl() {
   banner.textContent = `✈ SHARED ROUTE LOADED: ${dep} → ${dest}`;
   document.body.appendChild(banner);
   setTimeout(() => banner.remove(), 3000);
+}
+
+function followOnFlight() {
+  if (!state.result) return;
+
+  // Fix the departure to the current destination
+  const newDep = state.result.dest;
+  state.fixedDep = newDep;
+
+  // Switch to fixed-dep mode
+  state.mode = "fixed-dep";
+  setMode("fixed-dep");
+
+  // Update the departure search field to show the new dep
+  const depSearch = document.getElementById("dep-search");
+  if (depSearch) {
+    depSearch.value = newDep.icao + " \u2014 " + newDep.name;
+    document.getElementById("dep-clear-x").style.display = "inline";
+  }
+
+  // Generate the follow on flight
+  generate();
 }
 
 function sendToSimBrief() {
