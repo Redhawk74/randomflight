@@ -16,8 +16,9 @@
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-  /* Dark CartoDB tiles &mdash; no filter needed */
+  /* Dark filter applied to OSM tiles via className */
   #leaflet-map .leaflet-tile-pane { filter: none; }
+  #leaflet-map .map-dark-filter { filter: invert(1) hue-rotate(200deg) brightness(0.75) contrast(0.85) saturate(0.4); }
   #leaflet-map .leaflet-control-attribution {
     background: rgba(5,13,14,0.8) !important;
     color: var(--dim) !important;
@@ -51,137 +52,88 @@
   html, body { height: 100%; }
 
   /* ── Theme: FMS Green (default) ─────────────────────────────────────── */
+  /* ── Theme: Brief Amber (default) ───────────────────────────────────── */
   :root {
-    --bg:         #050d0e;
-    --bg2:        #071012;
-    --bg3:        #0d1a14;
-    --border:     #1a4a3a;
-    --border2:    #1a5040;
-    --accent:     #00e87a;
-    --accent2:    #3df0a0;
-    --accent3:    #7fffc4;
-    --accent4:    #b0e8c8;
-    --dim:        #2a5a3a;
-    --dim2:       #2a6a4a;
-    --dim3:       #4a6a5a;
-    --dim4:       #4a8a6a;
-    --grid-color: rgba(0,180,100,0.04);
-    --scan-color: rgba(0,255,140,0.12);
-    --glow:       rgba(61,240,160,0.35);
-    --glow2:      rgba(0,232,122,0.4);
-    --tag-bg:     rgba(0,232,122,0.07);
-    --result-bg:  rgba(0,15,10,0.85);
-    --input-bg:   rgba(0,20,14,0.85);
-    --card-bg:    rgba(0,20,14,0.6);
-    --wx-bg:      rgba(0,15,10,0.8);
-    --send-color: #00b8d4;
+    --bg:         #0f1623;
+    --bg2:        #131e2e;
+    --bg3:        #1a2535;
+    --border:     #2a3a50;
+    --border2:    #3a4a60;
+    --accent:     #f5a623;
+    --accent2:    #fbbf24;
+    --accent3:    #fcd34d;
+    --accent4:    #e8f0fe;
+    --dim:        #2a3a50;
+    --dim2:       #3a4a60;
+    --dim3:       #8a9bb5;
+    --dim4:       #b0c0d8;
+    --grid-color: rgba(245,166,35,0.02);
+    --scan-color: rgba(245,166,35,0.06);
+    --glow:       rgba(245,166,35,0.25);
+    --glow2:      rgba(245,166,35,0.3);
+    --tag-bg:     rgba(245,166,35,0.08);
+    --result-bg:  rgba(26,37,53,0.95);
+    --input-bg:   rgba(19,30,46,0.95);
+    --card-bg:    rgba(26,37,53,0.8);
+    --wx-bg:      rgba(26,37,53,0.9);
+    --send-color: #f5a623;
+    --radius:     8px;
+    --font-body:  -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
-  /* ── Theme: EFIS Amber ───────────────────────────────────────────────── */
-  body.theme-amber {
-    --bg:         #0e0a00;
-    --bg2:        #120d00;
-    --bg3:        #1a1200;
-    --border:     #4a3200;
-    --border2:    #5a3e00;
-    --accent:     #ffaa00;
-    --accent2:    #ffcc44;
-    --accent3:    #ffd966;
-    --accent4:    #ffe8a0;
-    --dim:        #5a3e00;
-    --dim2:       #7a5200;
-    --dim3:       #8a6a20;
-    --dim4:       #aa8840;
-    --grid-color: rgba(200,120,0,0.04);
-    --scan-color: rgba(255,160,0,0.10);
-    --glow:       rgba(255,180,0,0.35);
-    --glow2:      rgba(255,160,0,0.4);
-    --tag-bg:     rgba(255,160,0,0.08);
-    --result-bg:  rgba(14,10,0,0.9);
-    --input-bg:   rgba(20,14,0,0.9);
-    --card-bg:    rgba(20,14,0,0.6);
-    --wx-bg:      rgba(14,10,0,0.8);
-    --send-color: #ff8c00;
+  /* ── Theme: FMS Green — navy base, green accents ────────────────────── */
+  body.theme-green {
+    --bg:         #0d1a14; --bg2: #111f18; --bg3: #172a20;
+    --border:     #1e4030; --border2: #2a5040;
+    --accent:     #00e87a; --accent2: #3df0a0; --accent3: #7fffc4; --accent4: #e0f5ec;
+    --dim:        #1e4030; --dim2: #2a5040; --dim3: #4a8a6a; --dim4: #6aaa8a;
+    --grid-color: rgba(0,180,100,0.03); --scan-color: rgba(0,232,122,0.05);
+    --glow: rgba(0,232,122,0.25); --glow2: rgba(0,232,122,0.3);
+    --tag-bg: rgba(0,232,122,0.08);
+    --result-bg: rgba(17,31,24,0.95); --input-bg: rgba(13,26,20,0.95);
+    --card-bg: rgba(23,42,32,0.8); --wx-bg: rgba(23,42,32,0.9);
+    --send-color: #00e87a; --radius: 8px;
   }
-  /* ── Theme: ECAM Blue ────────────────────────────────────────────────── */
+  /* ── Theme: ECAM Blue — navy base, blue accents ──────────────────────── */
   body.theme-blue {
-    --bg:         #00060f;
-    --bg2:        #000a18;
-    --bg3:        #001020;
-    --border:     #0a2a50;
-    --border2:    #0e3a6a;
-    --accent:     #00aaff;
-    --accent2:    #40c4ff;
-    --accent3:    #80d8ff;
-    --accent4:    #b3e8ff;
-    --dim:        #0a2a50;
-    --dim2:       #0a3a6a;
-    --dim3:       #1a4a7a;
-    --dim4:       #2a6a9a;
-    --grid-color: rgba(0,100,200,0.04);
-    --scan-color: rgba(0,150,255,0.10);
-    --glow:       rgba(0,180,255,0.35);
-    --glow2:      rgba(0,160,255,0.4);
-    --tag-bg:     rgba(0,160,255,0.08);
-    --result-bg:  rgba(0,6,15,0.9);
-    --input-bg:   rgba(0,10,20,0.9);
-    --card-bg:    rgba(0,10,20,0.6);
-    --wx-bg:      rgba(0,6,15,0.8);
-    --send-color: #00e5ff;
+    --bg:         #0a1220; --bg2: #0e1828; --bg3: #152030;
+    --border:     #1e3050; --border2: #2a4060;
+    --accent:     #4db8ff; --accent2: #80ccff; --accent3: #aadeff; --accent4: #e0f0ff;
+    --dim:        #1e3050; --dim2: #2a4060; --dim3: #4a70a0; --dim4: #6a90c0;
+    --grid-color: rgba(0,120,255,0.03); --scan-color: rgba(77,184,255,0.05);
+    --glow: rgba(77,184,255,0.25); --glow2: rgba(77,184,255,0.3);
+    --tag-bg: rgba(77,184,255,0.08);
+    --result-bg: rgba(14,24,40,0.95); --input-bg: rgba(10,18,32,0.95);
+    --card-bg: rgba(21,32,48,0.8); --wx-bg: rgba(21,32,48,0.9);
+    --send-color: #4db8ff; --radius: 8px;
   }
-  /* ── Theme: Radar Red ────────────────────────────────────────────────── */
+  /* ── Theme: Radar Red — dark red base, red accents ───────────────────── */
   body.theme-red {
-    --bg:         #0f0000;
-    --bg2:        #180000;
-    --bg3:        #200505;
-    --border:     #4a0a0a;
-    --border2:    #5a1010;
-    --accent:     #ff3030;
-    --accent2:    #ff6060;
-    --accent3:    #ff9090;
-    --accent4:    #ffb8b8;
-    --dim:        #4a0a0a;
-    --dim2:       #6a1010;
-    --dim3:       #7a2020;
-    --dim4:       #9a4040;
-    --grid-color: rgba(200,0,0,0.04);
-    --scan-color: rgba(255,0,0,0.10);
-    --glow:       rgba(255,50,50,0.35);
-    --glow2:      rgba(255,30,30,0.4);
-    --tag-bg:     rgba(255,30,30,0.08);
-    --result-bg:  rgba(15,0,0,0.9);
-    --input-bg:   rgba(20,0,0,0.9);
-    --card-bg:    rgba(20,5,5,0.6);
-    --wx-bg:      rgba(15,0,0,0.8);
-    --send-color: #ff6600;
+    --bg:         #180a0a; --bg2: #200e0e; --bg3: #2a1414;
+    --border:     #4a1818; --border2: #5a2020;
+    --accent:     #ff5555; --accent2: #ff8080; --accent3: #ffaaaa; --accent4: #ffe0e0;
+    --dim:        #4a1818; --dim2: #5a2020; --dim3: #8a4040; --dim4: #aa6060;
+    --grid-color: rgba(255,60,60,0.03); --scan-color: rgba(255,60,60,0.05);
+    --glow: rgba(255,60,60,0.25); --glow2: rgba(255,60,60,0.3);
+    --tag-bg: rgba(255,60,60,0.08);
+    --result-bg: rgba(32,20,20,0.95); --input-bg: rgba(26,14,14,0.95);
+    --card-bg: rgba(42,20,20,0.8); --wx-bg: rgba(42,20,20,0.9);
+    --send-color: #ff5555; --radius: 8px;
   }
-  /* ── Theme: Night Vision ─────────────────────────────────────────────── */
+  /* ── Theme: Night Vision — deep black, bright green ─────────────────── */
   body.theme-nvg {
-    --bg:         #000800;
-    --bg2:        #001000;
-    --bg3:        #001500;
-    --border:     #003a00;
-    --border2:    #004a00;
-    --accent:     #00ff00;
-    --accent2:    #44ff44;
-    --accent3:    #88ff88;
-    --accent4:    #aaffaa;
-    --dim:        #003a00;
-    --dim2:       #005000;
-    --dim3:       #206020;
-    --dim4:       #408040;
-    --grid-color: rgba(0,200,0,0.05);
-    --scan-color: rgba(0,255,0,0.12);
-    --glow:       rgba(0,255,0,0.35);
-    --glow2:      rgba(0,255,0,0.4);
-    --tag-bg:     rgba(0,255,0,0.07);
-    --result-bg:  rgba(0,8,0,0.9);
-    --input-bg:   rgba(0,12,0,0.9);
-    --card-bg:    rgba(0,12,0,0.6);
-    --wx-bg:      rgba(0,8,0,0.8);
-    --send-color: #00cc88;
+    --bg:         #050805; --bg2: #080d08; --bg3: #0d140d;
+    --border:     #1a2e1a; --border2: #204020;
+    --accent:     #39ff14; --accent2: #7fff50; --accent3: #aaffaa; --accent4: #d0ffd0;
+    --dim:        #1a2e1a; --dim2: #204020; --dim3: #306030; --dim4: #508050;
+    --grid-color: rgba(57,255,20,0.03); --scan-color: rgba(57,255,20,0.05);
+    --glow: rgba(57,255,20,0.25); --glow2: rgba(57,255,20,0.3);
+    --tag-bg: rgba(57,255,20,0.07);
+    --result-bg: rgba(8,13,8,0.95); --input-bg: rgba(5,8,5,0.95);
+    --card-bg: rgba(13,20,13,0.8); --wx-bg: rgba(13,20,13,0.9);
+    --send-color: #39ff14; --radius: 8px;
   }
 
-  /* ── Theme swatches in settings ─────────────────────────────────────── */
+    /* ── Theme swatches in settings ─────────────────────────────────────── */
   .theme-grid {
     display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
     margin-top: 8px;
@@ -196,12 +148,17 @@
   .theme-swatch:hover { opacity: 0.85; }
 
   body {
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-body, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
     background: var(--bg);
     color: var(--accent4);
     min-height: 100vh;
     overflow-x: hidden;
     transition: background 0.3s, color 0.3s;
+  }
+  /* Keep monospace for data/codes */
+  .mono, input[type="text"], select, .stat-value, .result-icao,
+  .history-icao, .wx-text, .brief-reg, .brief-icao {
+    font-family: "Share Tech Mono", monospace;
   }
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: var(--bg2); }
@@ -221,7 +178,10 @@
     background: linear-gradient(90deg, transparent, var(--scan-color), transparent);
     animation: scan 5s linear infinite;
     pointer-events: none; z-index: 1;
+    display: none; /* Hidden by default in new theme */
   }
+  body.theme-green .scan-line,
+  body.theme-nvg .scan-line { display: block; }
   @keyframes scan { 0% { top: -2px; } 100% { top: 100vh; } }
 
   /* Layout */
@@ -238,6 +198,172 @@
   }
   body.map-active .tabs  { max-width: 900px; margin: 0 auto 0; }
   body.map-active .header { max-width: 900px; margin: 0 auto 28px; }
+
+  /* ═══════════════════════════════════════════════════════════
+     COMPREHENSIVE VISUAL REFRESH — Brief Amber aesthetic
+     Forces clean sans-serif, navy/amber palette everywhere
+     ═══════════════════════════════════════════════════════════ */
+
+  /* Body and base */
+  body {
+    background: var(--bg) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    color: var(--accent4) !important;
+  }
+
+
+  /* Header */
+  .header-eyebrow {
+    color: var(--accent) !important;
+    font-family: "Share Tech Mono", monospace !important;
+    letter-spacing: 2px !important;
+    font-size: 11px !important;
+  }
+  .header-title {
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    color: #ffffff !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    letter-spacing: 1px !important;
+  }
+
+  .header-sub {
+    color: var(--dim3) !important;
+    letter-spacing: 1px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  }
+
+  /* Tabs */
+  .tabs { border-bottom: 1px solid var(--border) !important; }
+  .tab-btn {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    color: var(--dim3) !important;
+    font-size: 13px !important;
+  }
+
+  .tab-btn.active { color: var(--accent) !important; border-bottom-color: var(--accent) !important; }
+
+  /* Fields and labels */
+  label.field-label {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    letter-spacing: 0px !important;
+    color: #ffffff !important;
+    text-transform: none !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+  }
+
+
+  /* Inputs and selects */
+  input[type="text"], select {
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius, 8px) !important;
+    color: var(--accent4) !important;
+    font-size: 14px !important;
+    padding: 10px 14px !important;
+  }
+
+  input[type="text"]:focus, select:focus {
+    border-color: var(--accent) !important;
+    outline: none !important;
+  }
+
+  /* Mode buttons */
+  .mode-btn {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius, 8px) !important;
+    color: var(--dim3) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 12px !important;
+    letter-spacing: 0 !important;
+  }
+
+  .mode-btn.active {
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+    background: var(--tag-bg) !important;
+  }
+
+  /* Buttons */
+  .btn {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border2) !important;
+    border-radius: var(--radius, 8px) !important;
+    color: var(--accent4) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.3px !important;
+  }
+
+  .btn:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+  .btn.send {
+    background: var(--accent) !important;
+    border-color: var(--accent) !important;
+    color: #0f1623 !important;
+    font-weight: 700 !important;
+  }
+  .btn.send:hover { opacity: 0.9 !important; }
+
+  /* Generate button */
+  #gen-btn {
+    background: var(--accent) !important;
+    color: #0f1623 !important;
+    border: none !important;
+    border-radius: var(--radius, 8px) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 15px !important;
+    letter-spacing: 0.5px !important;
+    padding: 16px !important;
+  }
+
+
+  /* Cards */
+  .result-card, .wx-card, .stat-card, .history-item {
+    background: var(--bg3) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius, 8px) !important;
+  }
+
+
+  /* Hints */
+  .hint { color: var(--dim3) !important; font-size: 11px !important; }
+  .warning { font-size: 12px !important; }
+
+  /* Stat values */
+  .stat-label { color: var(--dim3) !important; font-size: 10px !important; }
+  .stat-value { color: #ffffff !important; font-size: 17px !important; }
+
+  /* Aircraft tags */
+  .ac-tag {
+    background: var(--tag-bg) !important;
+    border: 1px solid var(--border2) !important;
+    border-radius: 4px !important;
+    color: var(--accent) !important;
+    font-size: 11px !important;
+  }
+
+  /* Route ICAO codes */
+  .result-icao {
+    font-family: "Share Tech Mono", monospace !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+  }
+
+  /* Grid background — very subtle in amber theme */
+  .grid-bg {
+    background-image:
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px) !important;
+  }
 
   /* Two-column layout for planner + settings on wide screens */
   @media (min-width: 800px) {
@@ -264,14 +390,14 @@
 
   /* Header */
   .header { text-align: center; margin-bottom: 32px; }
-  .header-eyebrow { font-size: 12px; letter-spacing: 4px; color: var(--dim2); margin-bottom: 8px; }
+  .header-eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--accent); margin-bottom: 8px; font-family: "Share Tech Mono", monospace; }
   .header-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 28px; font-weight: 900;
+    font-family: var(--font-body, -apple-system, sans-serif);
+    font-size: 32px; font-weight: 900;
     color: var(--accent2); letter-spacing: 8px;
     text-shadow: 0 0 30px var(--glow);
   }
-  .header-sub { font-size: 12px; color: var(--dim); letter-spacing: 3px; margin-top: 6px; }
+  .header-sub { font-size: 12px; color: var(--dim3); letter-spacing: 2px; margin-top: 6px; font-family: var(--font-body, sans-serif); }
 
   /* Tabs */
   .tabs { display: flex; border-bottom: 1px solid #1a4a3a; margin-bottom: 28px; }
@@ -287,8 +413,9 @@
 
   /* Form elements */
   label.field-label {
-    display: block; font-size: 13px; color: var(--dim3);
-    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+    display: block; font-size: 11px; color: var(--dim3);
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;
+    font-family: var(--font-body, sans-serif); font-weight: 600;
   }
   .field { margin-bottom: 22px; }
   input[type="text"], select {
@@ -336,7 +463,7 @@
     display: inline-block;
     background: var(--tag-bg);
     border: 1px solid var(--border2);
-    color: #4aaa7a; font-size: 13px; letter-spacing: 1px; padding: 4px 10px;
+    color: var(--accent); font-size: 11px; letter-spacing: 0.5px; padding: 4px 10px;
   }
 
   /* Buttons */
@@ -471,6 +598,114 @@
   }
   #app-version-btn:hover { color: var(--accent2); }
 
+  /* Flight Brief tab */
+  .brief-wrap {
+    background: #0f1623;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #ffffff;
+    padding: 0 0 40px;
+  }
+  .brief-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .brief-header {
+    background: #f5a623;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .brief-header-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #0f1623;
+    text-transform: uppercase;
+  }
+  .brief-header-date {
+    font-size: 11px;
+    font-weight: 600;
+    color: #0f1623;
+    letter-spacing: 1px;
+  }
+  .brief-body { padding: 24px 20px 0; }
+  .brief-subtitle { font-size: 12px; color: #8a9bb5; letter-spacing: 1px; margin-bottom: 4px; }
+  .brief-title { font-size: 32px; font-weight: 800; color: #ffffff; margin-bottom: 20px; line-height: 1.1; }
+  .brief-aircraft-img {
+    width: 100%; border-radius: 12px; height: 220px;
+    background: #1a2535; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .brief-aircraft-img img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: center 60%;
+    border-radius: 12px;
+    display: block;
+  }
+  .brief-aircraft-img .brief-img-placeholder {
+    font-size: 64px; opacity: 0.3;
+  }
+  .brief-reg-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 16px;
+  }
+  .brief-reg { font-family: "Share Tech Mono", monospace; font-size: 22px; font-weight: 700; color: #fff; }
+  .brief-ac-type { font-size: 13px; color: #8a9bb5; }
+  .brief-divider { border: none; border-top: 1px dashed #2a3a50; margin: 16px 0; }
+  .brief-route-row {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  }
+  .brief-icao { font-family: "Share Tech Mono", monospace; font-size: 42px; font-weight: 900; color: #ffffff; letter-spacing: 2px; }
+  .brief-city { font-size: 11px; color: #8a9bb5; margin-top: 2px; }
+  .brief-arrow { color: #f5a623; font-size: 22px; letter-spacing: -2px; flex: 0 0 auto; padding: 0 8px; }
+  .brief-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+  }
+  .brief-info-cell { }
+  .brief-info-label { font-size: 10px; color: #8a9bb5; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px; }
+  .brief-info-value { font-size: 15px; font-weight: 600; color: #ffffff; }
+  .brief-stats-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;
+  }
+  .brief-stat-card {
+    background: #1a2535; border-radius: 8px; padding: 10px 12px;
+  }
+  .brief-stat-label { font-size: 9px; color: #8a9bb5; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .brief-stat-value { font-size: 16px; font-weight: 700; color: #ffffff; }
+  .brief-wx-title { font-size: 18px; font-weight: 700; margin: 20px 0 12px; }
+  .brief-wx-card {
+    background: #1a2535; border-radius: 10px; padding: 14px; margin-bottom: 10px;
+  }
+  .brief-wx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .brief-wx-airport { font-size: 14px; font-weight: 700; color: #fff; }
+  .brief-wx-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .brief-wx-badge.vmc { background: #1a4a2a; color: #4ade80; }
+  .brief-wx-badge.imc { background: #4a1a1a; color: #f87171; }
+  .brief-wx-badge.marginal { background: #4a3a1a; color: #fbbf24; }
+  .brief-wx-badge.hist { background: #2a2a4a; color: #818cf8; }
+  .brief-wx-metar { font-family: "Share Tech Mono", monospace; font-size: 11px; color: #f5a623; margin-bottom: 8px; background: #0f1623; padding: 6px 8px; border-radius: 4px; }
+  .brief-wx-desc { font-size: 12px; color: #8a9bb5; line-height: 1.5; }
+  .brief-wx-wind { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .brief-no-route {
+    text-align: center; padding: 80px 20px; color: #2a3a50;
+    font-size: 14px; letter-spacing: 1px;
+  }
+  .brief-footer {
+    margin-top: 24px; padding: 16px 20px 0;
+    border-top: 1px dashed #2a3a50;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .brief-footer-route { font-family: "Share Tech Mono", monospace; font-size: 14px; font-weight: 700; color: #fff; }
+  .brief-footer-note { font-size: 11px; color: #8a9bb5; }
+  .brief-dispatch-row { display: flex; gap: 10px; margin-top: 16px; }
+
   /* Weather panel */
   .wx-panel {
     display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -526,6 +761,7 @@
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('planner')">Planner</button>
+    <button class="tab-btn" onclick="switchTab('brief')" id="brief-tab-btn">Brief</button>
     <button class="tab-btn" onclick="switchTab('map')" id="map-tab-btn">Map</button>
     <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
     </div><!-- end settings-grid -->
@@ -705,29 +941,36 @@
     </div>
   </div>
 
+  <!-- Brief Tab -->
+  <div id="tab-brief" class="tab-content hidden">
+    <div class="brief-wrap" id="brief-content">
+      <div class="brief-no-route">NO ROUTE GENERATED YET<br>USE THE PLANNER</div>
+    </div>
+  </div>
+
   <div id="tab-settings" class="tab-content hidden">
     <div class="settings-grid">
     <div class="field" style="grid-column:1/-1">
       <label class="field-label">Display Theme</label>
       <div class="theme-grid" id="theme-grid">
         <div class="theme-swatch active" data-theme="" onclick="setTheme('')"
-          style="background:#050d0e;border-color:#1a4a3a;color:#3df0a0">
+          style="background:#0f1623;border-color:#f5a623;color:#f5a623;border-radius:8px">
+          <div style="font-size:16px;margin-bottom:4px">&#x1F7E1;</div>Brief Amber
+        </div>
+        <div class="theme-swatch" data-theme="green" onclick="setTheme('green')"
+          style="background:#0d1a14;border-color:#00e87a;color:#00e87a;border-radius:8px">
           <div style="font-size:16px;margin-bottom:4px">&#x1F7E2;</div>FMS Green
         </div>
-        <div class="theme-swatch" data-theme="amber" onclick="setTheme('amber')"
-          style="background:#0e0a00;border-color:#4a3200;color:#ffcc44">
-          <div style="font-size:16px;margin-bottom:4px">&#x1F7E1;</div>EFIS Amber
-        </div>
         <div class="theme-swatch" data-theme="blue" onclick="setTheme('blue')"
-          style="background:#00060f;border-color:#0a2a50;color:#40c4ff">
+          style="background:#0a1220;border-color:#4db8ff;color:#4db8ff;border-radius:8px">
           <div style="font-size:16px;margin-bottom:4px">&#x1F535;</div>ECAM Blue
         </div>
         <div class="theme-swatch" data-theme="red" onclick="setTheme('red')"
-          style="background:#0f0000;border-color:#4a0a0a;color:#ff6060">
+          style="background:#180a0a;border-color:#ff5555;color:#ff5555;border-radius:8px">
           <div style="font-size:16px;margin-bottom:4px">&#x1F534;</div>Radar Red
         </div>
         <div class="theme-swatch" data-theme="nvg" onclick="setTheme('nvg')"
-          style="background:#000800;border-color:#003a00;color:#44ff44">
+          style="background:#050805;border-color:#39ff14;color:#39ff14;border-radius:8px">
           <div style="font-size:16px;margin-bottom:4px">&#x1F33F;</div>Night Vision
         </div>
       </div>
@@ -2168,7 +2411,7 @@ function updateSliderFill(id, pct) {
 
 function setTheme(theme) {
   // Remove all theme classes
-  document.body.classList.remove("theme-amber","theme-blue","theme-red","theme-nvg");
+  document.body.classList.remove("theme-green","theme-blue","theme-red","theme-nvg","theme-amber");
   if (theme) document.body.classList.add("theme-" + theme);
   // Update active swatch
   document.querySelectorAll(".theme-swatch").forEach(s => {
@@ -2258,6 +2501,7 @@ function switchTab(tab) {
     b.classList.toggle("active", bTab === tab);
   });
   document.getElementById("tab-planner").classList.toggle("hidden", tab !== "planner");
+  document.getElementById("tab-brief").classList.toggle("hidden", tab !== "brief");
   document.getElementById("tab-map").classList.toggle("hidden", tab !== "map");
   document.getElementById("tab-settings").classList.toggle("hidden", tab !== "settings");
 
@@ -2462,10 +2706,12 @@ function generate() {
       saveRouteHistory();
       renderResult(found);
       renderHistory();
-      // Fetch weather for both airports
-      fetchAndRenderWeather(found.dep.icao, found.dest.icao);
+      // Fetch weather and render brief
+      fetchWeatherAndBrief(found);
       // Update map if already initialised
       if (mapInitialised) drawRoute(found);
+      // Auto-switch to Brief tab
+      switchTab("brief");
     } else {
       document.getElementById("no-result").style.display = "block";
       document.getElementById("no-result").textContent = "NO ROUTE FOUND — TRY WIDENING TOLERANCE OR REGION";
@@ -2779,43 +3025,106 @@ function replayRoute(index) {
 
 // ─── METAR / Weather ───────────────────────────────────────────────────────────
 
+const AWC_BASE = "https://aviationweather.gov/api/data/metar";
+
+// Parse a raw METAR string into an object compatible with our buildWxCard function
+function parseRawMetar(raw, icao) {
+  if (!raw || raw.trim() === "" || raw.includes("No METAR") || raw.includes("No data")) return null;
+  const m = { icaoId: icao, rawOb: raw.trim() };
+  // Wind: e.g. 27015KT or 27015G25KT or VRB05KT
+  const windM = raw.match(/(VRB|\d{3})(\d{2,3})(G(\d{2,3}))?KT/);
+  if (windM) {
+    m.wdir = windM[1] === "VRB" ? null : parseInt(windM[1]);
+    m.wspd = parseInt(windM[2]);
+    m.wgst = windM[4] ? parseInt(windM[4]) : 0;
+  }
+  // Visibility (SM for US, metres for ICAO)
+  const visM = raw.match(/(\d+(?:\/\d+)?|\d+\s+\d+\/\d+)SM/);
+  if (visM) m.visib = eval(visM[1].replace(' ', '+'));
+  else {
+    const visKm = raw.match(/(\d{4})/);
+    if (visKm) m.visib = parseInt(visKm[1]) / 1609;
+  }
+  // Sky: FEW/SCT/BKN/OVC + height
+  m.clouds = [];
+  const skyRe = /(FEW|SCT|BKN|OVC|SKC|CLR|NSC|CAVOK)(\d{3})?/g;
+  let skyM;
+  while ((skyM = skyRe.exec(raw)) !== null) {
+    m.clouds.push({ cover: skyM[1], base: skyM[2] ? parseInt(skyM[2]) * 100 : null });
+  }
+  // Temp/dew  e.g. 18/10 or M02/M05
+  const tdM = raw.match(/(M?\d{2})\/(M?\d{2})/);
+  if (tdM) {
+    m.temp = parseInt(tdM[1].replace('M','-'));
+    m.dewp = parseInt(tdM[2].replace('M','-'));
+  }
+  // Altimeter  Q1013 or A2992
+  const altQ = raw.match(/Q(\d{4})/);
+  const altA = raw.match(/A(\d{4})/);
+  if (altQ) m.altim = parseInt(altQ[1]);
+  else if (altA) m.altim = Math.round(parseInt(altA[1]) / 100 * 33.8639);
+  return m;
+}
+
+async function fetchMetarSingle(icao) {
+  // Try AWC directly (works in Electron, may fail on website due to CORS)
+  try {
+    const resp = await fetch(`${AWC_BASE}?ids=${icao}&format=json`);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (Array.isArray(data) && data.length > 0) return data[0];
+    }
+  } catch(e) {}
+
+  // VATSIM METAR service — CORS-enabled, no key needed, works in browser
+  try {
+    const resp = await fetch(`https://metar.vatsim.net/metar.php?id=${icao}`);
+    if (resp.ok) {
+      const text = (await resp.text()).trim();
+      const m = parseRawMetar(text, icao);
+      if (m) return m;
+    }
+  } catch(e) {}
+
+  // Historical fallback via AWC (Electron only)
+  try {
+    const resp = await fetch(`${AWC_BASE}?ids=${icao}&format=json&hoursBeforeNow=24`);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const m = data[0]; m._historical = true; return m;
+      }
+    }
+  } catch(e) {}
+
+  return null;
+}
+
+async function fetchWeatherAndBrief(r) {
+  document.getElementById("brief-content").innerHTML = `
+    <div class="brief-no-route" style="color:#8a9bb5">
+      <div style="font-size:32px;margin-bottom:12px">\u231b</div>
+      LOADING BRIEF...
+    </div>`;
+
+  const [depMetar, destMetar] = await Promise.all([
+    fetchMetarSingle(r.dep.icao),
+    fetchMetarSingle(r.dest.icao),
+  ]);
+
+  fetchAndRenderWeather(r.dep.icao, r.dest.icao);
+  await renderBrief(r, depMetar, destMetar);
+}
+
 async function fetchAndRenderWeather(depIcao, destIcao) {
   try {
-    // Use HawgOps as CORS proxy for AWC METAR API
-    const url = `https://api.hawg-ops.com/v2/wx/metar/${depIcao},${destIcao}`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error("HTTP " + resp.status);
-    const json = await resp.json();
-    const data = json.data || json;
-
-    let depMetar  = data.find(m => m.icaoId === depIcao)  || null;
-    let destMetar = data.find(m => m.icaoId === destIcao) || null;
-
-    // For missing METARs, try last 24 hours separately
-    if (!depMetar) {
-      try {
-        const r = await fetch(`https://api.hawg-ops.com/v2/wx/metar/${depIcao}?hours=24`);
-        if (r.ok) {
-          const d = await r.json();
-          const arr = d.data || d;
-          if (arr.length > 0) { depMetar = arr[0]; depMetar._historical = true; }
-        }
-      } catch(e) {}
-    }
-    if (!destMetar) {
-      try {
-        const r = await fetch(`https://api.hawg-ops.com/v2/wx/metar/${destIcao}?hours=24`);
-        if (r.ok) {
-          const d = await r.json();
-          const arr = d.data || d;
-          if (arr.length > 0) { destMetar = arr[0]; destMetar._historical = true; }
-        }
-      } catch(e) {}
-    }
+    const [depMetar, destMetar] = await Promise.all([
+      fetchMetarSingle(depIcao),
+      fetchMetarSingle(destIcao),
+    ]);
 
     const container = document.getElementById("wx-panel-container");
     if (!container) return;
-
     container.innerHTML = `<div class="wx-panel">
       ${buildWxCard(depIcao,  depMetar,  "DEP")}
       ${buildWxCard(destIcao, destMetar, "ARR")}
@@ -3373,6 +3682,336 @@ function angleDiff(a, b) {
   return d;
 }
 
+
+const COUNTRY_REG = {
+  "EG":"G","EI":"EI","ED":"D","EH":"PH","LE":"EC","LF":"F","LI":"I",
+  "LS":"HB","LO":"OE","EB":"OO","ES":"SE","EK":"OY","EN":"LN","EF":"OH",
+  "LP":"CS","LG":"SX","LK":"OK","EP":"SP","LH":"HA","UU":"RA","UK":"UR",
+  "RJ":"JA","ZB":"B","ZS":"B","VH":"B9","WS":"9V","OM":"A6","OI":"EP",
+  "VI":"VT","VT":"HS","WI":"PK","RP":"RP","RC":"B","OE":"JY","OK":"YK",
+  "OT":"A7","K":"N","CY":"C","MM":"XA","SB":"PP","SA":"LV","SK":"HK",
+  "SP":"CC","FA":"ZS","HA":"ET","HE":"SU","YS":"VH","YM":"VH","NZ":"ZK",
+};
+function getRegistration(depIcao, destIcao) {
+  const prefix = Object.keys(COUNTRY_REG).find(p => depIcao.startsWith(p)) || "";
+  const reg    = COUNTRY_REG[prefix] || "N";
+  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const rand3 = () => Array.from({length:3}, () => letters[Math.floor(Math.random()*letters.length)]).join('');
+  if (reg === "N") return "N" + Math.floor(100+Math.random()*900) + letters[Math.floor(Math.random()*letters.length)] + letters[Math.floor(Math.random()*letters.length)];
+  return reg + "-" + rand3();
+}
+
+// Maps aircraft code to a Wikipedia search query for image lookup
+const AC_IMG_QUERY = {
+  // GA
+  "C172": "Cessna 172", "C182": "Cessna 182", "PA28": "Piper Cherokee",
+  "SR22": "Cirrus SR22", "DA40": "Diamond DA40", "DA42": "Diamond DA42",
+  // Turboprop
+  "TBM9": "TBM 900", "TBM7": "TBM 700", "PC12": "Pilatus PC-12",
+  "C208": "Cessna Caravan", "P46T": "Piper M500", "M20P": "Mooney M20",
+  "DH8A": "Bombardier Dash 8", "DH8D": "Bombardier Q400",
+  "AT72": "ATR 72", "AT75": "ATR 72", "AT76": "ATR 72",
+  // Business jets
+  "C25A": "Cessna Citation CJ2", "C25B": "Cessna Citation CJ3",
+  "C56X": "Cessna Citation Excel", "C68A": "Cessna Citation Latitude",
+  "GALX": "Gulfstream G200", "GLEX": "Bombardier Global Express",
+  "G280": "Gulfstream G280", "G550": "Gulfstream G550", "G650": "Gulfstream G650",
+  "F2TH": "Dassault Falcon 2000", "F7X":  "Dassault Falcon 7X",
+  "E50P": "Embraer Phenom 100", "E55P": "Embraer Phenom 300",
+  "LJ45": "Learjet 45", "LJ75": "Learjet 75",
+  // Regional jets
+  "E135": "Embraer ERJ 135", "E145": "Embraer ERJ 145",
+  "E170": "Embraer E170", "E175": "Embraer E175",
+  "E190": "Embraer E190", "E195": "Embraer E195",
+  "CRJ2": "Bombardier CRJ200", "CRJ7": "Bombardier CRJ700",
+  "CRJ9": "Bombardier CRJ900",
+  // Narrow body
+  "B737": "Boeing 737", "B738": "Boeing 737-800", "B739": "Boeing 737-900",
+  "B38M": "Boeing 737 MAX 8", "B39M": "Boeing 737 MAX 9",
+  "A319": "Airbus A319", "A320": "Airbus A320", "A321": "Airbus A321",
+  "A20N": "Airbus A320neo", "A21N": "Airbus A321neo",
+  "B752": "Boeing 757-200", "B753": "Boeing 757-300",
+  // Wide body
+  "B763": "Boeing 767-300", "B764": "Boeing 767-400",
+  "B772": "Boeing 777-200", "B773": "Boeing 777-300",
+  "B77L": "Boeing 777-200LR", "B77W": "Boeing 777-300ER",
+  "B778": "Boeing 777X", "B787": "Boeing 787 Dreamliner",
+  "A332": "Airbus A330-200", "A333": "Airbus A330-300",
+  "A339": "Airbus A330-900neo", "A342": "Airbus A340",
+  "A359": "Airbus A350-900", "A35K": "Airbus A350-1000",
+  // Super wide body
+  "B741": "Boeing 747-100", "B742": "Boeing 747-200",
+  "B743": "Boeing 747-300", "B744": "Boeing 747-400",
+  "B748": "Boeing 747-8", "A388": "Airbus A380",
+  // Supersonic
+  "CONC": "Concorde",
+};
+
+async function renderBrief(r, depMetar, destMetar) {
+  const ac   = state.aircraft;
+  const now  = new Date();
+  const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+  const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const dateStr = days[now.getUTCDay()] + " " +
+    String(now.getUTCDate()).padStart(2,"0") + " " +
+    months[now.getUTCMonth()] + " " + now.getUTCFullYear();
+
+  const reg     = getRegistration(r.dep.icao, r.dest.icao);
+  const hdgStr  = Math.round(r.hdg).toString().padStart(3,"0") + "°T";
+  const imgQuery = ac.code; // claudeImageSearch uses AC_WIKI_ARTICLE map keyed by code
+
+  // Fetch aircraft image
+  let imgHtml = `<div class="brief-img-placeholder">✈</div>`;
+  try {
+    const searchResults = await claudeImageSearch(imgQuery);
+    if (searchResults && searchResults.length > 0) {
+      imgHtml = `<img src="${searchResults[0].url}" alt="${ac.name}" loading="lazy"
+        onerror="this.parentElement.innerHTML='<div class=\'brief-img-placeholder\'>✈</div>'">`;
+    }
+  } catch(e) {}
+
+  // Build METAR cards
+  const depWx  = buildBriefWxCard(r.dep,  depMetar);
+  const destWx = buildBriefWxCard(r.dest, destMetar);
+
+  // Route description
+  const routeDesc = `${r.dep.city} to ${r.dest.city} — ${r.dist} NM, ${toHHMM(r.flightMins)} estimated.`;
+
+  document.getElementById("brief-content").innerHTML = `
+    <div class="brief-inner">
+    <div class="brief-header">
+      <span class="brief-header-label">Flight Brief</span>
+      <span class="brief-header-date">${dateStr}</span>
+    </div>
+    <div class="brief-body">
+      <div class="brief-subtitle">The flight</div>
+      <div class="brief-title">${r.dep.city} to ${r.dest.city}.</div>
+
+      <div class="brief-aircraft-img">${imgHtml}</div>
+
+      <div class="brief-reg-row">
+        <span class="brief-reg">${reg}</span>
+        <span class="brief-ac-type">${ac.name} &middot; ${ac.code}</span>
+      </div>
+
+      <hr class="brief-divider">
+
+      <div class="brief-route-row">
+        <div>
+          <div class="brief-icao">${r.dep.icao}</div>
+          <div class="brief-city">${r.dep.name}</div>
+        </div>
+        <div class="brief-arrow">- - - - - &rarr;</div>
+        <div style="text-align:right">
+          <div class="brief-icao">${r.dest.icao}</div>
+          <div class="brief-city">${r.dest.name}</div>
+        </div>
+      </div>
+
+      <div class="brief-info-grid">
+        <div class="brief-info-cell">
+          <div class="brief-info-label">Aircraft</div>
+          <div class="brief-info-value">${ac.name}</div>
+        </div>
+        <div class="brief-info-cell">
+          <div class="brief-info-label">Cruise Level</div>
+          <div class="brief-info-value">${ac.cruiseAlt}</div>
+        </div>
+      </div>
+
+      <hr class="brief-divider">
+
+      <div class="brief-stats-row">
+        <div class="brief-stat-card">
+          <div class="brief-stat-label">Distance</div>
+          <div class="brief-stat-value">${r.dist} NM</div>
+        </div>
+        <div class="brief-stat-card">
+          <div class="brief-stat-label">GC Track</div>
+          <div class="brief-stat-value">${hdgStr}</div>
+        </div>
+        <div class="brief-stat-card">
+          <div class="brief-stat-label">ETE est.</div>
+          <div class="brief-stat-value">${toHHMM(r.flightMins)}</div>
+        </div>
+        <div class="brief-stat-card">
+          <div class="brief-stat-label">Cruise</div>
+          <div class="brief-stat-value">${ac.cruiseKts} KT</div>
+        </div>
+      </div>
+
+      <div class="brief-wx-title">Weather</div>
+      ${depWx}
+      ${destWx}
+
+      <div class="brief-dispatch-row">
+        <button class="btn" style="flex:1;font-size:12px" onclick="switchTab('planner')">&#x2190; PLANNER</button>
+        <button class="btn send" style="flex:2;font-size:12px" onclick="sendToSimBrief()">&#x2192; OPEN IN SIMBRIEF</button>
+      </div>
+    </div>
+
+    <div class="brief-footer">
+      <div class="brief-footer-route">${r.dep.icao} - - &rarr; ${r.dest.icao}</div>
+      <div class="brief-footer-note">Generated by RandomFlight &middot; randomflight.net</div>
+    </div>
+    </div>
+  `;
+}
+
+function buildBriefWxCard(airport, m) {
+  const label = airport.icao + " · " + airport.name;
+  if (!m) return `
+    <div class="brief-wx-card">
+      <div class="brief-wx-header">
+        <div class="brief-wx-airport">${label}</div>
+        <span class="brief-wx-badge marginal">NO METAR</span>
+      </div>
+      <div class="brief-wx-desc">No current observation available for this field.</div>
+    </div>`;
+
+  const wind   = parseWind(m);
+  const sky    = parseSky(m);
+  const precip = parsePrecip(m);
+  const vis    = m.visib || m.visibility || "?";
+  const raw    = m.rawOb || m.raw || "";
+
+  // Determine flight conditions
+  const isVMC = !precip && (typeof vis === "number" ? vis >= 5 : true);
+  const badgeClass = m._historical ? "hist" : (isVMC ? "vmc" : precip ? "imc" : "marginal");
+  const badgeText  = m._historical ? "HIST OBS" : (isVMC ? "VMC" : precip ? "IMC" : "MARGINAL");
+
+  return `
+    <div class="brief-wx-card">
+      <div class="brief-wx-header">
+        <div class="brief-wx-airport">${label}</div>
+        <span class="brief-wx-badge ${badgeClass}">${badgeText}</span>
+      </div>
+      ${raw ? `<div class="brief-wx-metar">${raw}</div>` : ""}
+      <div class="brief-wx-wind">
+        ${windCompass(wind.dir)}
+        <span style="font-size:13px;color:#fff;font-weight:600">${wind.text}</span>
+      </div>
+      <div class="brief-wx-desc">${sky}${precip ? " &middot; " + precip : ""}</div>
+    </div>`;
+}
+
+// Aircraft image lookup — Wikipedia REST API with specific article mapping
+// No AI generation — wrong aircraft is worse than no aircraft
+
+// Maps aircraft code to exact Wikipedia article title for reliable image lookup
+const AC_WIKI_ARTICLE = {
+  // GA Piston
+  "C172":"Cessna_172", "C182":"Cessna_182", "PA28":"Piper_Cherokee",
+  "SR22":"Cirrus_SR22", "DA40":"Diamond_DA40", "DA42":"Diamond_DA42",
+  "M20P":"Mooney_M20", "C210":"Cessna_210", "P28A":"Piper_Cherokee",
+  "P28B":"Piper_Cherokee", "DR40":"Robin_DR_400",
+  // Single Turboprop
+  "TBM9":"TBM_900", "TBM7":"TBM_700", "TBM8":"TBM_850",
+  "PC12":"Pilatus_PC-12",
+  "C208":"Cessna_208_Caravan",
+  "P46T":"Piper_M-class", "M500":"Piper_M-class",
+  "KODI":"Daher_Kodiak",   // KODI = Kodiak 100, NOT the media player!
+  // Twin Turboprop
+  "BE20":"Beechcraft_Super_King_Air", "BE99":"Beechcraft_99",
+  "C402":"Cessna_402",
+  // Regional Turboprop
+  "AT72":"ATR_72", "AT75":"ATR_72", "AT76":"ATR_72",
+  "DH8A":"Bombardier_Dash_8", "DH8D":"Bombardier_Q400",
+  "SF34":"Saab_340",
+  // Business Jets
+  "C25A":"Cessna_Citation_CJ2", "C25B":"Cessna_Citation_CJ3",
+  "C25C":"Cessna_Citation_CJ4",
+  "C56X":"Cessna_Citation_Excel", "C68A":"Cessna_Citation_Latitude",
+  "C700":"Cessna_Citation_Longitude",
+  "GALX":"IAI_Galaxy", "GLEX":"Bombardier_Global_Express",
+  "G280":"Gulfstream_G280", "G550":"Gulfstream_G550", "G650":"Gulfstream_G650",
+  "F2TH":"Dassault_Falcon_2000", "F7X":"Dassault_Falcon_7X",
+  "E50P":"Embraer_Phenom_100", "E55P":"Embraer_Phenom_300",
+  "LJ45":"Learjet_45", "LJ75":"Learjet_75",
+  "CL30":"Bombardier_Challenger_300", "CL60":"Bombardier_Challenger_600",
+  // Regional Jets
+  "E135":"Embraer_ERJ_135", "E145":"Embraer_ERJ_145",
+  "E170":"Embraer_E-Jet_family", "E175":"Embraer_E-Jet_family",
+  "E190":"Embraer_E-Jet_E2_family", "E195":"Embraer_E-Jet_E2_family",
+  "CRJ2":"Bombardier_CRJ200", "CRJ7":"Bombardier_CRJ700",
+  "CRJ9":"Bombardier_CRJ900",
+  // Narrow Body
+  "B735":"Boeing_737_Classic", "B736":"Boeing_737_Classic",
+  "B737":"Boeing_737_Classic", "B738":"Boeing_737_Next_Generation",
+  "B739":"Boeing_737_Next_Generation",
+  "B38M":"Boeing_737_MAX", "B39M":"Boeing_737_MAX",
+  "A318":"Airbus_A318", "A319":"Airbus_A319",
+  "A320":"Airbus_A320", "A321":"Airbus_A321",
+  "A20N":"Airbus_A320neo_family", "A21N":"Airbus_A321neo",
+  "B752":"Boeing_757-200", "B753":"Boeing_757-300",
+  "B72Q":"Boeing_727", "B712":"Boeing_717",
+  "MD82":"McDonnell_Douglas_MD-80",
+  // Wide Body
+  "B762":"Boeing_767", "B763":"Boeing_767", "B764":"Boeing_767",
+  "B772":"Boeing_777", "B773":"Boeing_777",
+  "B77L":"Boeing_777", "B77W":"Boeing_777",
+  "B778":"Boeing_777X", "B779":"Boeing_777X",
+  "B787":"Boeing_787_Dreamliner",
+  "A330":"Airbus_A330", "A332":"Airbus_A330",
+  "A333":"Airbus_A330", "A339":"Airbus_A330neo",
+  "A342":"Airbus_A340", "A343":"Airbus_A340",
+  "A345":"Airbus_A340", "A346":"Airbus_A340",
+  "A359":"Airbus_A350", "A35K":"Airbus_A350",
+  "DC10":"McDonnell_Douglas_DC-10",
+  "MD11":"McDonnell_Douglas_MD-11",
+  "L101":"Lockheed_L-1011_TriStar",
+  // Super Wide Body
+  "B741":"Boeing_747", "B742":"Boeing_747", "B743":"Boeing_747",
+  "B744":"Boeing_747-400", "B748":"Boeing_747-8",
+  "A388":"Airbus_A380",
+  // Supersonic
+  "CONC":"Concorde",
+};
+
+// Only show image if article is confirmed aviation-related
+function isAviationArticle(data) {
+  if (!data) return false;
+  const text = ((data.description || "") + " " + (data.extract || "")).toLowerCase();
+  const aviationTerms = ["aircraft","airplane","airliner","helicopter","turboprop",
+    "jet","aviation","flight","wingspan","cockpit","fuselage","cargo","airline"];
+  return aviationTerms.some(t => text.includes(t));
+}
+
+async function claudeImageSearch(query) {
+  // query is aircraft code — look up Wikipedia article title
+  const article = AC_WIKI_ARTICLE[query];
+
+  // Only search if we have a known mapping — avoids wrong results for unknown codes
+  if (!article) return null;
+
+  // Wikipedia REST summary API
+  try {
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article)}`;
+    const resp = await fetch(url, { headers: { Accept: "application/json" } });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (!isAviationArticle(data)) return null; // Reject non-aviation pages
+      const src = data.originalimage?.source || data.thumbnail?.source;
+      if (src) return [{ url: src }];
+    }
+  } catch(e) {}
+
+  // MediaWiki pageimages fallback
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(article)}&prop=pageimages&format=json&origin=*&pithumbsize=1000`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      const pages = data.query?.pages || {};
+      for (const page of Object.values(pages)) {
+        if (page.thumbnail?.source) return [{ url: page.thumbnail.source }];
+      }
+    }
+  } catch(e) {}
+
+  return null;
+}
+
 // ─── Route Sharing ───────────────────────────────────────────────────────────
 
 function shareRoute() {
@@ -3608,13 +4247,13 @@ function initMap() {
   });
 
   // ── Base layers ──────────────────────────────────────────────────────────────
-  const darkLayer = L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: "abcd", maxZoom: 19,
+  const darkLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>',
+    maxZoom: 16,
   });
 
-  const streetLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+  const streetLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+    attribution: 'Tiles &copy; <a href="https://www.esri.com/">Esri</a>',
     maxZoom: 19,
   });
 
