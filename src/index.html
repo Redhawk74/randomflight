@@ -827,7 +827,11 @@
     <div class="planner-col-left">
     <div class="field">
       <label class="field-label">Aircraft Type</label>
-      <select id="aircraft-select" onchange="onAircraftChange()"></select>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="aircraft-select" onchange="onAircraftChange()" style="flex:1"></select>
+        <button id="fav-btn" onclick="toggleFavourite()" title="Add to favourites"
+          style="background:none;border:none;cursor:pointer;font-size:20px;padding:0 4px;color:var(--dim2);line-height:1;flex-shrink:0">&#9734;</button>
+      </div>
       <div class="tags" id="aircraft-tags"></div>
     </div>
 
@@ -1006,7 +1010,10 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.2 &mdash; Current</div>
+    <div class="cl-version">v1.5.3 &mdash; Current</div>
+    <div class="cl-item">Favourite aircraft &mdash; star any aircraft to pin it to the top of the dropdown, persists across sessions</div>
+
+    <div class="cl-version">v1.5.2</div>
     <div class="cl-item">App window now opens maximised so recent flights are visible without scrolling</div>
 
     <div class="cl-version">v1.5.1</div>
@@ -2096,6 +2103,7 @@ let state = {
   tolerance: 20,
   region: "ANY",
   pilotId: "",
+  favourites: JSON.parse(localStorage.getItem("rf_favourites") || "[]"),
   mode: "full-random",
   dayNight: "ANY",
   fixedDep: null,
@@ -2290,12 +2298,29 @@ function init() {
   updateAircraftTags();
   updateDurationDisplay();
   updateNmHint();
+  updateFavBtn();
   document.getElementById("tol-display").textContent = `± ${state.tolerance}%`;
 }
 
 function buildAircraftSelect() {
   const sel = document.getElementById("aircraft-select");
   sel.innerHTML = "";
+
+  if (state.favourites.length > 0) {
+    const favGrp = document.createElement("optgroup");
+    favGrp.label = "── Favourites";
+    state.favourites.forEach(code => {
+      const ac = AIRCRAFT.find(a => a.code === code);
+      if (!ac) return;
+      const opt = document.createElement("option");
+      opt.value = ac.code;
+      opt.textContent = `★ ${ac.code} — ${ac.name}`;
+      if (ac.code === state.aircraft.code) opt.selected = true;
+      favGrp.appendChild(opt);
+    });
+    sel.appendChild(favGrp);
+  }
+
   const types = [...new Set(AIRCRAFT.map(a => a.type))];
   types.forEach(type => {
     const grp = document.createElement("optgroup");
@@ -2338,6 +2363,29 @@ function onAircraftChange() {
   localStorage.setItem("rf_aircraft", state.aircraft.code);
   updateAircraftTags();
   updateNmHint();
+  updateFavBtn();
+}
+
+function toggleFavourite() {
+  const code = state.aircraft.code;
+  const idx = state.favourites.indexOf(code);
+  if (idx === -1) {
+    state.favourites.push(code);
+  } else {
+    state.favourites.splice(idx, 1);
+  }
+  localStorage.setItem("rf_favourites", JSON.stringify(state.favourites));
+  buildAircraftSelect();
+  updateFavBtn();
+}
+
+function updateFavBtn() {
+  const btn = document.getElementById("fav-btn");
+  if (!btn) return;
+  const isFav = state.favourites.includes(state.aircraft.code);
+  btn.innerHTML = isFav ? "&#9733;" : "&#9734;";
+  btn.title = isFav ? "Remove from favourites" : "Add to favourites";
+  btn.style.color = isFav ? "var(--accent)" : "var(--dim2)";
 }
 
 function onDurationChange() {
