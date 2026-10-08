@@ -989,18 +989,6 @@
       <div class="hint">Find yours at simbrief.com &#x2192; Account &#x2192; Pilot ID</div>
     </div>
     <div class="field">
-      <label class="field-label">Region Filter</label>
-      <select id="region-select" onchange="saveRegion()">
-        <option value="ANY">Any Region</option>
-        <option value="Europe">Europe</option>
-        <option value="North America">North America</option>
-        <option value="Asia">Asia</option>
-        <option value="Oceania">Oceania</option>
-        <option value="Africa">Africa</option>
-        <option value="South America">South America</option>
-      </select>
-    </div>
-    <div class="field">
       <div class="slider-row">
         <label class="field-label" style="margin:0">Air Time Tolerance</label>
         <span class="slider-val" id="tol-display" style="font-size:16px">± 20%</span>
@@ -1018,7 +1006,13 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.0 &mdash; Current</div>
+    <div class="cl-version">v1.5.1 &mdash; Current</div>
+    <div class="cl-item">11 helicopters added across all categories (Robinson R22/R44/R66, Bell 206/407/429, Airbus H125/H145, Leonardo AW139, Sikorsky S-76/S-92)</div>
+    <div class="cl-item">Wind display fixed &mdash; variable winds now show correctly instead of &ldquo;undefined&rdquo;</div>
+    <div class="cl-item">SimBrief Pilot ID, aircraft selection, and flight duration now persist across sessions</div>
+    <div class="cl-item">Duplicate region filter removed from Settings tab</div>
+
+    <div class="cl-version">v1.5.0</div>
     <div class="cl-item">Fixed 84 duplicate hub airports that were over-weighting major airports in random selection</div>
     <div class="cl-item">Flight Brief and METAR now update correctly when replaying history or loading shared links</div>
     <div class="cl-item">Aircraft images added for 37 more aircraft types in the Flight Brief</div>
@@ -1551,6 +1545,18 @@ const AIRCRAFT = [
   { code:"A388",  name:"Airbus A380-800",               type:"Super Wide-body",    cruiseKts:488,  cruiseAlt:"FL380", minRwy:3100, surfaces:["paved"], groundMin:38 },
   // Supersonic
   { code:"CONC",  name:"Concorde",                      type:"Supersonic",         cruiseKts:1165, cruiseAlt:"FL550", minRwy:3600, surfaces:["paved"], groundMin:25 },
+  // Helicopter — minRwy:0 allows any airport in the database
+  { code:"R22",  name:"Robinson R22 Beta II",            type:"Helicopter",         cruiseKts:90,   cruiseAlt:"FL020", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:5 },
+  { code:"R44",  name:"Robinson R44 Raven II",           type:"Helicopter",         cruiseKts:110,  cruiseAlt:"FL025", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:5 },
+  { code:"R66",  name:"Robinson R66 Turbine",            type:"Helicopter",         cruiseKts:130,  cruiseAlt:"FL030", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:5 },
+  { code:"B06",  name:"Bell 206B JetRanger III",         type:"Helicopter",         cruiseKts:115,  cruiseAlt:"FL025", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:5 },
+  { code:"B407", name:"Bell 407",                        type:"Helicopter",         cruiseKts:133,  cruiseAlt:"FL035", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:5 },
+  { code:"B429", name:"Bell 429 GlobalRanger",           type:"Helicopter",         cruiseKts:150,  cruiseAlt:"FL050", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:6 },
+  { code:"AS3B", name:"Airbus H125 Ecureuil",            type:"Helicopter",         cruiseKts:125,  cruiseAlt:"FL035", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:5 },
+  { code:"EC45", name:"Airbus H145",                     type:"Helicopter",         cruiseKts:135,  cruiseAlt:"FL050", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:6 },
+  { code:"AW39", name:"Leonardo AW139",                  type:"Helicopter",         cruiseKts:160,  cruiseAlt:"FL060", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"S76",  name:"Sikorsky S-76D",                  type:"Helicopter",         cruiseKts:155,  cruiseAlt:"FL060", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:8 },
+  { code:"S92",  name:"Sikorsky S-92A",                  type:"Helicopter",         cruiseKts:151,  cruiseAlt:"FL070", minRwy:0, surfaces:["paved","grass","unpaved"], groundMin:10 },
 ];
 
 // ─── Airline Database ─────────────────────────────────────────────────────────
@@ -2107,6 +2113,13 @@ function airportWeight(airport, aircraft) {
   const rwy = airport.rwy || 1500;
   const type = aircraft ? aircraft.type : "Narrow-body";
 
+  // Helicopters — strongly prefer small fields, can use any airport
+  if (type === "Helicopter") {
+    if (rwy < 800)  return 6.0;
+    if (rwy < 1500) return 3.0;
+    if (rwy < 2500) return 1.0;
+    return 0.2;
+  }
   // Small GA / bush aircraft — strongly prefer small fields
   if (["GA Piston","Single Turboprop","Twin Turboprop"].includes(type)) {
     if (rwy < 800)  return 5.0;  // bush strips
@@ -2319,12 +2332,14 @@ function updateNmHint() {
 function onAircraftChange() {
   const code = document.getElementById("aircraft-select").value;
   state.aircraft = AIRCRAFT.find(a => a.code === code) || state.aircraft;
+  localStorage.setItem("rf_aircraft", state.aircraft.code);
   updateAircraftTags();
   updateNmHint();
 }
 
 function onDurationChange() {
   state.durationMin = Number(document.getElementById("duration-slider").value);
+  localStorage.setItem("rf_duration", state.durationMin);
   updateDurationDisplay();
   updateNmHint();
   updateSliderFill("duration-slider", (state.durationMin - 30) / (840 - 30) * 100);
@@ -2354,19 +2369,12 @@ function setTheme(theme) {
 
 function savePilotId() {
   state.pilotId = document.getElementById("pilot-id").value.trim();
+  localStorage.setItem("rf_pilot_id", state.pilotId);
 }
 
-
-function saveRegion() {
-  state.region = document.getElementById("region-select").value;
-  const main = document.getElementById("region-select-main");
-  if (main) main.value = state.region;
-}
 
 function saveRegionMain() {
   state.region = document.getElementById("region-select-main").value;
-  const settings = document.getElementById("region-select");
-  if (settings) settings.value = state.region;
 
   const dayNightSel = document.getElementById("daynightselect");
   if (state.region !== "ANY") {
@@ -2422,8 +2430,6 @@ function saveDayNight() {
   if (currentOpt && currentOpt.disabled) {
     regionSel.value = "ANY";
     state.region = "ANY";
-    const settings = document.getElementById("region-select");
-    if (settings) settings.value = "ANY";
   }
 }
 
@@ -2957,7 +2963,7 @@ function parseRawMetar(raw, icao) {
   // Wind: e.g. 27015KT or 27015G25KT or VRB05KT
   const windM = raw.match(/(VRB|\d{3})(\d{2,3})(G(\d{2,3}))?KT/);
   if (windM) {
-    m.wdir = windM[1] === "VRB" ? null : parseInt(windM[1]);
+    m.wdir = windM[1] === "VRB" ? 990 : parseInt(windM[1]);
     m.wspd = parseInt(windM[2]);
     m.wgst = windM[4] ? parseInt(windM[4]) : 0;
   }
@@ -3111,9 +3117,10 @@ function buildWxCard(icao, m, role) {
 }
 
 function parseWind(m) {
-  const dir  = m.wdir;
   const spd  = m.wspd  || 0;
   const gust = m.wgst  || 0;
+  // Normalise: null/undefined → VRB (990) if there is speed, otherwise calm (0)
+  const dir  = (m.wdir == null) ? (spd > 0 ? 990 : 0) : m.wdir;
   const calm = spd < 3;
   let text, varText = "";
 
@@ -3676,6 +3683,11 @@ const AC_IMG_QUERY = {
   "B748": "Boeing 747-8", "A388": "Airbus A380",
   // Supersonic
   "CONC": "Concorde",
+  // Helicopter
+  "R22":"Robinson R22", "R44":"Robinson R44", "R66":"Robinson R66",
+  "B06":"Bell 206 JetRanger", "B407":"Bell 407", "B429":"Bell 429",
+  "AS3B":"Airbus H125 helicopter", "EC45":"Airbus H145 helicopter",
+  "AW39":"AgustaWestland AW139", "S76":"Sikorsky S-76", "S92":"Sikorsky S-92",
 };
 
 async function renderBrief(r, depMetar, destMetar) {
@@ -3904,6 +3916,11 @@ const AC_WIKI_ARTICLE = {
   "A388":"Airbus_A380",
   // Supersonic
   "CONC":"Concorde",
+  // Helicopter
+  "R22":"Robinson_R22", "R44":"Robinson_R44", "R66":"Robinson_R66",
+  "B06":"Bell_206", "B407":"Bell_407", "B429":"Bell_429",
+  "AS3B":"Airbus_Helicopters_H125", "EC45":"Airbus_Helicopters_H145",
+  "AW39":"AgustaWestland_AW139", "S76":"Sikorsky_S-76", "S92":"Sikorsky_S-92",
 };
 
 // Only show image if article is confirmed aviation-related
@@ -4468,8 +4485,25 @@ function closeChangelog(e) {
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeChangelog(); });
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Restore persisted preferences before init() so dropdowns and displays are correct on first render
+  const savedAc = localStorage.getItem("rf_aircraft");
+  if (savedAc) {
+    const ac = AIRCRAFT.find(a => a.code === savedAc);
+    if (ac) state.aircraft = ac;
+  }
+  const savedDuration = Number(localStorage.getItem("rf_duration"));
+  if (savedDuration >= 30 && savedDuration <= 840) {
+    state.durationMin = savedDuration;
+    document.getElementById("duration-slider").value = savedDuration;
+  }
+  const savedPilotId = localStorage.getItem("rf_pilot_id");
+  if (savedPilotId) {
+    state.pilotId = savedPilotId;
+    document.getElementById("pilot-id").value = savedPilotId;
+  }
+
   init();
-  updateSliderFill("duration-slider", (120 - 30) / (840 - 30) * 100);
+  updateSliderFill("duration-slider", (state.durationMin - 30) / (840 - 30) * 100);
   updateSliderFill("tol-slider", (20 - 5) / (40 - 5) * 100);
   // Show download button only on web, hide in Electron
   const dlBtn = document.getElementById("download-btn");
