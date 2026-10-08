@@ -745,7 +745,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.3/RandomFlight-Setup-1.5.3.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.4/RandomFlight-Setup-1.5.4.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -761,7 +761,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.3</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.4</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -1010,7 +1010,11 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.3 &mdash; Current</div>
+    <div class="cl-version">v1.5.4 &mdash; Current</div>
+    <div class="cl-item">Aircraft images audited &mdash; fixed wrong Wikipedia articles for Citation Sovereign, E190, Kodiak and IAI G200</div>
+    <div class="cl-item">Removed unused image query map and cleaned up dead code</div>
+
+    <div class="cl-version">v1.5.3</div>
     <div class="cl-item">Favourite aircraft &mdash; star any aircraft to pin it to the top of the dropdown, persists across sessions</div>
 
     <div class="cl-version">v1.5.2</div>
@@ -3690,57 +3694,6 @@ function getRegistration(depIcao, destIcao) {
   return reg + "-" + rand3();
 }
 
-// Maps aircraft code to a Wikipedia search query for image lookup
-const AC_IMG_QUERY = {
-  // GA
-  "C172": "Cessna 172", "C182": "Cessna 182", "PA28": "Piper Cherokee",
-  "SR22": "Cirrus SR22", "DA40": "Diamond DA40", "DA42": "Diamond DA42",
-  // Turboprop
-  "TBM9": "TBM 900", "TBM7": "TBM 700", "PC12": "Pilatus PC-12",
-  "C208": "Cessna Caravan", "P46T": "Piper M500", "M20P": "Mooney M20",
-  "DH8A": "Bombardier Dash 8", "DH8D": "Bombardier Q400",
-  "AT72": "ATR 72", "AT75": "ATR 72", "AT76": "ATR 72",
-  // Business jets
-  "C25A": "Cessna Citation CJ2", "C25B": "Cessna Citation CJ3",
-  "C56X": "Cessna Citation Excel", "C68A": "Cessna Citation Latitude",
-  "GALX": "Gulfstream G200", "GLEX": "Bombardier Global Express",
-  "G280": "Gulfstream G280", "G550": "Gulfstream G550", "G650": "Gulfstream G650",
-  "F2TH": "Dassault Falcon 2000", "F7X":  "Dassault Falcon 7X",
-  "E50P": "Embraer Phenom 100", "E55P": "Embraer Phenom 300",
-  "LJ45": "Learjet 45", "LJ75": "Learjet 75",
-  // Regional jets
-  "E135": "Embraer ERJ 135", "E145": "Embraer ERJ 145",
-  "E170": "Embraer E170", "E175": "Embraer E175",
-  "E190": "Embraer E190", "E195": "Embraer E195",
-  "CRJ2": "Bombardier CRJ200", "CRJ7": "Bombardier CRJ700",
-  "CRJ9": "Bombardier CRJ900",
-  // Narrow body
-  "B737": "Boeing 737", "B738": "Boeing 737-800", "B739": "Boeing 737-900",
-  "B38M": "Boeing 737 MAX 8", "B39M": "Boeing 737 MAX 9",
-  "A319": "Airbus A319", "A320": "Airbus A320", "A321": "Airbus A321",
-  "A20N": "Airbus A320neo", "A21N": "Airbus A321neo",
-  "B752": "Boeing 757-200", "B753": "Boeing 757-300",
-  // Wide body
-  "B763": "Boeing 767-300", "B764": "Boeing 767-400",
-  "B772": "Boeing 777-200", "B773": "Boeing 777-300",
-  "B77L": "Boeing 777-200LR", "B77W": "Boeing 777-300ER",
-  "B778": "Boeing 777X", "B787": "Boeing 787 Dreamliner",
-  "A332": "Airbus A330-200", "A333": "Airbus A330-300",
-  "A339": "Airbus A330-900neo", "A342": "Airbus A340",
-  "A359": "Airbus A350-900", "A35K": "Airbus A350-1000",
-  // Super wide body
-  "B741": "Boeing 747-100", "B742": "Boeing 747-200",
-  "B743": "Boeing 747-300", "B744": "Boeing 747-400",
-  "B748": "Boeing 747-8", "A388": "Airbus A380",
-  // Supersonic
-  "CONC": "Concorde",
-  // Helicopter
-  "R22":"Robinson R22", "R44":"Robinson R44", "R66":"Robinson R66",
-  "B06":"Bell 206 JetRanger", "B407":"Bell 407", "B429":"Bell 429",
-  "AS3B":"Airbus H125 helicopter", "EC45":"Airbus H145 helicopter",
-  "AW39":"AgustaWestland AW139", "S76":"Sikorsky S-76", "S92":"Sikorsky S-92",
-};
-
 async function renderBrief(r, depMetar, destMetar) {
   const ac   = state.aircraft;
   const now  = new Date();
@@ -3752,12 +3705,10 @@ async function renderBrief(r, depMetar, destMetar) {
 
   const reg     = getRegistration(r.dep.icao, r.dest.icao);
   const hdgStr  = Math.round(r.hdg).toString().padStart(3,"0") + "°T";
-  const imgQuery = ac.code; // claudeImageSearch uses AC_WIKI_ARTICLE map keyed by code
-
   // Fetch aircraft image
   let imgHtml = `<div class="brief-img-placeholder">✈</div>`;
   try {
-    const searchResults = await claudeImageSearch(imgQuery);
+    const searchResults = await claudeImageSearch(ac.code);
     if (searchResults && searchResults.length > 0) {
       imgHtml = `<img src="${searchResults[0].url}" alt="${ac.name}" loading="lazy"
         onerror="this.parentElement.innerHTML='<div class=\'brief-img-placeholder\'>✈</div>'">`;
@@ -3903,8 +3854,8 @@ const AC_WIKI_ARTICLE = {
   "TBM9":"TBM_900", "TBM7":"TBM_700",
   "PC12":"Pilatus_PC-12", "PC6T":"Pilatus_PC-6",
   "C208":"Cessna_208_Caravan", "C28A":"Cessna_208_Caravan",
-  "M600":"Piper_M-class",
-  "KODI":"Daher_Kodiak",
+  "M600":"Piper_M600",
+  "KODI":"Quest_Kodiak",
   // Twin Turboprop
   "BE9L":"Beechcraft_King_Air", "BE20":"Beechcraft_Super_King_Air",
   "B350":"Beechcraft_Super_King_Air", "B190":"Beechcraft_1900",
@@ -3917,9 +3868,9 @@ const AC_WIKI_ARTICLE = {
   "SF34":"Saab_340", "JS41":"British_Aerospace_Jetstream",
   // Business Jets
   "C25A":"Cessna_Citation_CJ2", "C25C":"Cessna_Citation_CJ4",
-  "C56X":"Cessna_Citation_Excel", "C68A":"Cessna_Citation_Latitude",
+  "C56X":"Cessna_Citation_Excel", "C68A":"Cessna_Citation_Sovereign",
   "C750":"Cessna_Citation_X",
-  "GALX":"IAI_Galaxy", "GLEX":"Bombardier_Global_Express",
+  "GALX":"Gulfstream_G200", "GLEX":"Bombardier_Global_Express",
   "GL5T":"Bombardier_Global_5000",
   "CL60":"Bombardier_Challenger_600", "CL65":"Bombardier_Challenger_650",
   "GLF5":"Gulfstream_G550", "GLF6":"Gulfstream_G650",
@@ -3931,7 +3882,7 @@ const AC_WIKI_ARTICLE = {
   // Regional Jets
   "E135":"Embraer_ERJ_135", "E145":"Embraer_ERJ_145",
   "E170":"Embraer_E-Jet_family", "E175":"Embraer_E-Jet_family",
-  "E190":"Embraer_E-Jet_E2_family", "E195":"Embraer_E-Jet_E2_family",
+  "E190":"Embraer_E-Jet_family", "E195":"Embraer_E-Jet_E2_family",
   "CRJ2":"Bombardier_CRJ200", "CRJ7":"Bombardier_CRJ700",
   "CRJ9":"Bombardier_CRJ900",
   "SU95":"Sukhoi_Superjet_100",
