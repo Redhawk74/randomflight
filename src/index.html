@@ -1010,7 +1010,11 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.4 &mdash; Current</div>
+    <div class="cl-version">v1.5.5 &mdash; Current</div>
+    <div class="cl-item">Route randomness significantly improved &mdash; departure selection now gives every eligible airport a fair weighted chance instead of biasing toward well-connected hubs</div>
+    <div class="cl-item">Small aircraft (GA, turboprops) now strongly prefer regional airfields over international airports, with large hubs appearing only rarely</div>
+
+    <div class="cl-version">v1.5.4</div>
     <div class="cl-item">Aircraft images audited &mdash; fixed wrong Wikipedia articles for Citation Sovereign, E190, Kodiak and IAI G200</div>
     <div class="cl-item">Removed unused image query map and cleaned up dead code</div>
 
@@ -2130,31 +2134,32 @@ function airportWeight(airport, aircraft) {
 
   // Helicopters — strongly prefer small fields, can use any airport
   if (type === "Helicopter") {
-    if (rwy < 800)  return 6.0;
-    if (rwy < 1500) return 3.0;
+    if (rwy < 800)  return 4.0;
+    if (rwy < 1500) return 2.0;
     if (rwy < 2500) return 1.0;
-    return 0.2;
+    return 0.3;
   }
   // Small GA / bush aircraft — strongly prefer small fields
   if (["GA Piston","Single Turboprop","Twin Turboprop"].includes(type)) {
-    if (rwy < 800)  return 5.0;  // bush strips
+    if (rwy < 800)  return 4.0;  // bush strips
     if (rwy < 1500) return 3.0;  // small GA fields
-    if (rwy < 2500) return 1.0;  // regional
-    return 0.3;                   // large hubs (rare but possible)
+    if (rwy < 2500) return 2.0;  // regional airports — the sweet spot for GA
+    if (rwy < 3000) return 0.3;  // larger regional — uncommon
+    return 0.08;                  // international hubs — very rare for small aircraft
   }
   // Regional aircraft — prefer regional airports
   if (["Regional Turboprop","Regional Jet","Business Jet"].includes(type)) {
     if (rwy < 800)  return 0.5;
-    if (rwy < 1500) return 1.5;
-    if (rwy < 2500) return 3.0;
+    if (rwy < 1500) return 1.2;
+    if (rwy < 2500) return 2.5;
     return 1.0;
   }
   // Narrow/wide body jets — prefer large airports
   if (["Narrow-body","Wide-body","Super Wide-body","Supersonic"].includes(type)) {
-    if (rwy < 1500) return 0.1;
-    if (rwy < 2500) return 0.5;
+    if (rwy < 1500) return 0.2;
+    if (rwy < 2500) return 0.7;
     if (rwy < 3000) return 1.5;
-    return 3.0;                   // big international hubs
+    return 2.5;                   // big international hubs
   }
   return 1.0; // default equal weight
 }
@@ -2640,27 +2645,28 @@ function generate() {
     } else {
       // Full random &mdash; try region pool first, then fall back to global
       const tryPool = (searchPool) => {
-        let attempts = 0, result = null;
-        while (attempts < 2000 && !result) {
-          // Weighted departure pick
-          const dep = weightedRandomAirport(searchPool, state.aircraft);
-          if (!dep) break;
+        // Build the list of valid departures in one pass (O(n²)).
+        // Doing a retry loop instead would bias heavily toward well-connected
+        // hub airports that always have candidates on the first attempt.
+        const validDeps = [];
+        for (const dep of searchPool) {
           const candidates = searchPool.filter(a => {
             if (a.icao === dep.icao) return false;
             const d = haversineNm(dep.lat, dep.lon, a.lat, a.lon);
             return d >= minNm && d <= maxNm;
           });
-          if (candidates.length > 0) {
-            // Weighted destination pick
-            const dest = weightedRandomAirport(candidates, state.aircraft);
-            const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-            const flightMins = calcBlockMins(dist, state.aircraft);
-            const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
-            result = { dep, dest, dist, flightMins, hdg };
-          }
-          attempts++;
+          if (candidates.length > 0) validDeps.push({ dep, candidates });
         }
-        return result;
+        if (!validDeps.length) return null;
+
+        // Single weighted pick from every airport that has at least one valid destination
+        const dep = weightedRandomAirport(validDeps.map(v => v.dep), state.aircraft);
+        const { candidates } = validDeps.find(v => v.dep === dep);
+        const dest = weightedRandomAirport(candidates, state.aircraft);
+        const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+        const flightMins = calcBlockMins(dist, state.aircraft);
+        const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+        return { dep, dest, dist, flightMins, hdg };
       };
 
       found = tryPool(pool);
