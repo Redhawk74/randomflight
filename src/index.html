@@ -1071,7 +1071,7 @@
     </div>
     <div id="rw-status"></div>
     <div id="rw-list"></div>
-    <div class="rw-note" id="rw-note" style="display:none">Real flights with actual departure &amp; destination airports &mdash; OpenSky Network</div>
+    <div class="rw-note" id="rw-note" style="display:none">Real flights with confirmed departure airports &mdash; OpenSky Network</div>
   </div>
   </div>
 </div>
@@ -1082,8 +1082,8 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.13 &mdash; Current</div>
-    <div class="cl-item">Real World tab: routes now use actual OpenSky flight history (real departure &amp; destination airports) instead of position/heading guesswork &mdash; real flights, real routes</div>
+    <div class="cl-version">v1.5.14 &mdash; Current</div>
+    <div class="cl-item">Real World tab: departure airports now confirmed from OpenSky flight history (real takeoff airport) &mdash; destination estimated from heading when not yet confirmed by OpenSky</div>
     <div class="cl-item">Aircraft assigned from a real fleet mapping for ~45 airlines (Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
     <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged; aircraft filter removed</div>
 
@@ -4300,14 +4300,17 @@ async function fetchLiveTraffic() {
       if (airlineFilter && airline.icao !== airlineFilter) continue;
       if (region && (lat < region.minLat || lat > region.maxLat || lon < region.minLon || lon > region.maxLon)) continue;
 
-      // Require real dep/dest from OpenSky flight history
+        // Require real departure from OpenSky flight history
       const hist = icao24 ? histMap.get(icao24.toLowerCase()) : null;
-      if (!hist || !hist.depIcao || !hist.destIcao) continue;
+      if (!hist || !hist.depIcao) continue;
 
-      // Both airports must be in our database
-      const dep  = airportMap.get(hist.depIcao);
-      const dest = airportMap.get(hist.destIcao);
-      if (!dep || !dest || dep.icao === dest.icao) continue;
+      const dep = airportMap.get(hist.depIcao);
+      if (!dep) continue;
+
+      // Use real dest if OpenSky has it and it's in our DB, otherwise infer from heading
+      let dest = hist.destIcao ? airportMap.get(hist.destIcao) : null;
+      if (!dest) dest = inferRwDest(lat, lon, track, dep.icao);
+      if (!dest || dest.icao === dep.icao) continue;
 
       const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
       flights.push({
@@ -4407,6 +4410,26 @@ const AIRLINE_FLEET = {
   'CLX': ['B744','B748'],
   'GEC': ['MD11','B77W'],
 };
+
+function inferRwDest(lat, lon, heading, depIcao) {
+  const toRad = d => d * Math.PI / 180;
+  let best = null, bestXtk = Infinity;
+  for (const ap of AIRPORTS) {
+    if (ap.icao === depIcao) continue;
+    const d = haversineNm(lat, lon, ap.lat, ap.lon);
+    if (d < 50 || d > 8000) continue;
+    const θap  = toRad(bearingDeg(lat, lon, ap.lat, ap.lon));
+    const θhdg = toRad(heading);
+    const dRad = d / 3440;
+    const xtk  = Math.abs(Math.asin(Math.min(1, Math.max(-1,
+      Math.sin(dRad) * Math.sin(θap - θhdg)
+    ))) * 3440);
+    let bDiff = ((bearingDeg(lat, lon, ap.lat, ap.lon) - heading) + 360) % 360;
+    if (bDiff > 180) bDiff = 360 - bDiff;
+    if (bDiff < 90 && xtk < bestXtk) { bestXtk = xtk; best = ap; }
+  }
+  return best;
+}
 
 function pickRwAircraft(dist, airlineIcao) {
   const allJets = AIRCRAFT.filter(a =>
