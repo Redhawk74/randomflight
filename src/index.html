@@ -1082,7 +1082,7 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.15 &mdash; Current</div>
+    <div class="cl-version">v1.5.16 &mdash; Current</div>
     <div class="cl-item">Real World tab: routes now looked up from OpenSky route database by real flight number &mdash; real dep and dest for known callsigns, heading-based fallback for unknown ones</div>
     <div class="cl-item">Aircraft assigned from a real fleet mapping for ~45 airlines (Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
     <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged; aircraft filter removed</div>
@@ -4319,12 +4319,9 @@ async function fetchLiveTraffic() {
       let dep  = f.depIcao  ? airportMap.get(f.depIcao)  : null;
       let dest = f.destIcao ? airportMap.get(f.destIcao) : null;
 
-      // If route lookup gave us nothing, fall back to heading inference
-      if (!dep && !dest) {
-        dest = inferRwDest(f.lat, f.lon, f.track, null, f.airline.icao);
-      } else if (dep && !dest) {
-        dest = inferRwDest(f.lat, f.lon, f.track, dep.icao, f.airline.icao);
-      }
+      // Fill any missing airport via heading inference
+      if (!dest) dest = inferRwDest(f.lat, f.lon, f.track, dep ? dep.icao : null, f.airline.icao);
+      if (!dep)  dep  = inferRwDep(f.lat, f.lon, f.track, dest ? dest.icao : null, f.airline.icao);
 
       if (!dep || !dest || dep.icao === dest.icao) continue;
 
@@ -4420,6 +4417,10 @@ const AIRLINE_OPS = {
   'JBU': ['North America'],
   'FDB': ['Asia'],
 };
+
+function inferRwDep(lat, lon, heading, destIcao, airlineIcao) {
+  return inferRwDest(lat, lon, (heading + 180) % 360, destIcao, airlineIcao);
+}
 
 function inferRwDest(lat, lon, heading, depIcao, airlineIcao) {
   const toRad = d => d * Math.PI / 180;
