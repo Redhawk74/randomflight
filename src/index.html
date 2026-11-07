@@ -1071,7 +1071,7 @@
     </div>
     <div id="rw-status"></div>
     <div id="rw-list"></div>
-    <div class="rw-note" id="rw-note" style="display:none">Routes estimated from aircraft position and heading &mdash; OpenSky Network</div>
+    <div class="rw-note" id="rw-note" style="display:none">Real flights with actual departure &amp; destination airports &mdash; OpenSky Network</div>
   </div>
   </div>
 </div>
@@ -1082,8 +1082,9 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.12 &mdash; Current</div>
-    <div class="cl-item">Real World tab: aircraft now assigned from a real fleet mapping for ~45 airlines (e.g. Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
+    <div class="cl-version">v1.5.13 &mdash; Current</div>
+    <div class="cl-item">Real World tab: routes now use actual OpenSky flight history (real departure &amp; destination airports) instead of position/heading guesswork &mdash; real flights, real routes</div>
+    <div class="cl-item">Aircraft assigned from a real fleet mapping for ~45 airlines (Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
     <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged; aircraft filter removed</div>
 
     <div class="cl-version">v1.5.10</div>
@@ -4241,25 +4242,49 @@ async function fetchLiveTraffic() {
 
   btn.disabled = true;
   btn.textContent = "FETCHING…";
-  statusEl.innerHTML = `<div class="rw-status-msg">⌛ Loading live traffic…</div>`;
+  statusEl.innerHTML = `<div class="rw-status-msg">⌛ Fetching live positions and flight history…</div>`;
   listEl.innerHTML = "";
   if (noteEl) noteEl.style.display = "none";
 
   try {
-    const res = await fetch("https://opensky-network.org/api/states/all");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
+    const now   = Math.floor(Date.now() / 1000);
+    const begin = now - 7200;
+
+    const [statesRes, flightsRes] = await Promise.all([
+      fetch("https://opensky-network.org/api/states/all"),
+      fetch(`https://opensky-network.org/api/flights/all?begin=${begin}&end=${now}`),
+    ]);
+
+    if (!statesRes.ok) throw new Error("HTTP " + statesRes.status);
+    const statesData = await statesRes.json();
+
+    // Build icao24 → real dep/dest from flight history
+    const histMap = new Map();
+    if (flightsRes.ok) {
+      const flightsData = await flightsRes.json();
+      if (Array.isArray(flightsData)) {
+        for (const f of flightsData) {
+          if (f.icao24 && f.estDepartureAirport) {
+            histMap.set(f.icao24.toLowerCase(), {
+              depIcao:  f.estDepartureAirport  || null,
+              destIcao: f.estArrivalAirport    || null,
+            });
+          }
+        }
+      }
+    }
 
     const airlineFilter = document.getElementById("rw-airline-filter").value;
     const regionFilter  = document.getElementById("rw-region-filter").value;
-    const region = regionFilter ? RW_REGIONS[regionFilter] : null;
-
+    const region     = regionFilter ? RW_REGIONS[regionFilter] : null;
     const airlineMap = new Map(AIRLINES.map(a => [a.icao, a]));
+    const airportMap = new Map(AIRPORTS.map(a => [a.icao, a]));
 
     const flights = [];
-    for (const s of (data.states || [])) {
+    for (const s of (statesData.states || [])) {
       if (!s) continue;
-      const callsignRaw = s[1], lon = s[5], lat = s[6];
+      const icao24 = s[0], callsignRaw = s[1];
+      const lon = s[5], lat = s[6];
       const altM = s[7], onGround = s[8], velMs = s[9], track = s[10];
 
       if (onGround) continue;
@@ -4268,49 +4293,46 @@ async function fetchLiveTraffic() {
       if (!altM || altM < 7000) continue;
 
       const callsign = callsignRaw.trim().toUpperCase();
-      const prefix = callsign.slice(0, 3);
-      const airline = airlineMap.get(prefix);
+      const prefix   = callsign.slice(0, 3);
+      const airline  = airlineMap.get(prefix);
       if (!airline) continue;
 
       if (airlineFilter && airline.icao !== airlineFilter) continue;
       if (region && (lat < region.minLat || lat > region.maxLat || lon < region.minLon || lon > region.maxLon)) continue;
 
+      // Require real dep/dest from OpenSky flight history
+      const hist = icao24 ? histMap.get(icao24.toLowerCase()) : null;
+      if (!hist || !hist.depIcao || !hist.destIcao) continue;
+
+      // Both airports must be in our database
+      const dep  = airportMap.get(hist.depIcao);
+      const dest = airportMap.get(hist.destIcao);
+      if (!dep || !dest || dep.icao === dest.icao) continue;
+
+      const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
       flights.push({
-        callsign, airline, lat, lon,
-        altFt: Math.round(altM * 3.28084 / 100) * 100,
-        velKts: Math.round(velMs * 1.944),
-        track,
+        icao24, callsign, airline, lat, lon,
+        altFt:    Math.round(altM * 3.28084 / 100) * 100,
+        velKts:   Math.round(velMs * 1.944),
+        track, dep, dest, dist,
+        aircraft: pickRwAircraft(dist, airline.icao),
       });
     }
 
     if (flights.length === 0) {
-      statusEl.innerHTML = `<div class="rw-status-msg">No matching flights found. Try changing filters.</div>`;
+      const histNote = histMap.size === 0
+        ? " (OpenSky flight history unavailable — try again shortly)"
+        : "";
+      statusEl.innerHTML = `<div class="rw-status-msg">No matching flights with confirmed routes found.${histNote}</div>`;
       return;
     }
 
-    // Shuffle and take up to 40 candidates
+    // Shuffle and cap at 25
     for (let i = flights.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [flights[i], flights[j]] = [flights[j], flights[i]];
     }
-    const sample = flights.slice(0, 40);
-
-    sample.forEach(f => {
-      const r = inferRwRoute(f.lat, f.lon, f.track);
-      f.dep = r.dep;
-      f.dest = r.dest;
-      if (f.dep && f.dest) {
-        f.dist = Math.round(haversineNm(f.dep.lat, f.dep.lon, f.dest.lat, f.dest.lon));
-        f.aircraft = pickRwAircraft(f.dist, f.airline.icao);
-      }
-    });
-
-    const routable = sample.filter(f => f.dep && f.dest && f.dep.icao !== f.dest.icao);
-
-    if (routable.length === 0) {
-      statusEl.innerHTML = `<div class="rw-status-msg">Could not infer routes for matched flights. Try a different region.</div>`;
-      return;
-    }
+    const routable = flights.slice(0, 25);
 
     rwFlights = routable;
     statusEl.innerHTML = `<div class="rw-count">${routable.length} flights found</div>`;
@@ -4327,37 +4349,6 @@ async function fetchLiveTraffic() {
     btn.disabled = false;
     btn.textContent = "REFRESH";
   }
-}
-
-function inferRwRoute(lat, lon, heading) {
-  const toRad = d => d * Math.PI / 180;
-  let dest = null, destBestXtk = Infinity;
-  let dep  = null, depBestXtk  = Infinity;
-
-  for (const ap of AIRPORTS) {
-    const d = haversineNm(lat, lon, ap.lat, ap.lon);
-    if (d < 100 || d > 8000) continue;
-
-    const θap  = toRad(bearingDeg(lat, lon, ap.lat, ap.lon));
-    const θhdg = toRad(heading);
-    const dRad = d / 3440;
-    const xtk  = Math.abs(Math.asin(Math.min(1, Math.max(-1,
-      Math.sin(dRad) * Math.sin(θap - θhdg)
-    ))) * 3440);
-
-    let bDiff = ((bearingDeg(lat, lon, ap.lat, ap.lon) - heading) + 360) % 360;
-    if (bDiff > 180) bDiff = 360 - bDiff;
-
-    if (bDiff < 90 && xtk < destBestXtk) { destBestXtk = xtk; dest = ap; }
-
-    const revHdg = (heading + 180) % 360;
-    let bDiffRev = ((bearingDeg(lat, lon, ap.lat, ap.lon) - revHdg) + 360) % 360;
-    if (bDiffRev > 180) bDiffRev = 360 - bDiffRev;
-
-    if (bDiffRev < 90 && xtk < depBestXtk) { depBestXtk = xtk; dep = ap; }
-  }
-
-  return { dep, dest };
 }
 
 const AIRLINE_FLEET = {
