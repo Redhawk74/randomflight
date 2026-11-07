@@ -1082,8 +1082,9 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.11 &mdash; Current</div>
-    <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged for readability; aircraft filter removed</div>
+    <div class="cl-version">v1.5.12 &mdash; Current</div>
+    <div class="cl-item">Real World tab: aircraft now assigned from a real fleet mapping for ~45 airlines (e.g. Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
+    <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged; aircraft filter removed</div>
 
     <div class="cl-version">v1.5.10</div>
     <div class="cl-item">Real World flight cards show aircraft type, approximate block time, and route distance</div>
@@ -4300,7 +4301,7 @@ async function fetchLiveTraffic() {
       f.dest = r.dest;
       if (f.dep && f.dest) {
         f.dist = Math.round(haversineNm(f.dep.lat, f.dep.lon, f.dest.lat, f.dest.lon));
-        f.aircraft = pickRwAircraft(f.dist);
+        f.aircraft = pickRwAircraft(f.dist, f.airline.icao);
       }
     });
 
@@ -4359,13 +4360,81 @@ function inferRwRoute(lat, lon, heading) {
   return { dep, dest };
 }
 
-function pickRwAircraft(dist) {
-  const jets = AIRCRAFT.filter(a => ["Narrow-body", "Wide-body", "Regional Jet"].includes(a.type));
+const AIRLINE_FLEET = {
+  // European LCC
+  'RYR': ['B738','B737'],
+  'EZY': ['A319','A320','A20N'],
+  'EJU': ['A319','A320','A20N'],
+  'WZZ': ['A320','A321','A20N','A21N'],
+  'VLG': ['A319','A320','A321'],
+  'NAX': ['B738','B789'],
+  'TOM': ['B738','B789'],
+  'TUI': ['B738','B789'],
+  'FHY': ['B738'],
+  // European full-service
+  'BAW': ['A319','A320','A321','B744','B772','B773','B77W','B789'],
+  'AFR': ['A318','A319','A320','A321','A332','A333','A359','A388'],
+  'DLH': ['A319','A320','A321','A332','A333','A346','B744','B748'],
+  'KLM': ['B738','B772','B789'],
+  'IBE': ['A319','A320','A321','A332','A333','A346'],
+  'SWR': ['A319','A320','A321','A332'],
+  'AUA': ['A319','A320','A321','B772'],
+  'BEL': ['A319','A320','A321','A332'],
+  'SAS': ['A319','A320','A321','A333'],
+  'TAP': ['A319','A320','A321','A332','A333'],
+  'AZA': ['A319','A320','A321','A332'],
+  // North American
+  'UAL': ['B737','B738','B739','B752','B763','B772','B789','A319','A320'],
+  'AAL': ['B737','B738','B752','B763','B772','A319','A320','A321'],
+  'DAL': ['B737','B738','B752','B763','B764','A319','A320','A321','A333','A359'],
+  'SWA': ['B733','B735','B738','B737','B73J'],
+  'WJA': ['B737','B738'],
+  'ACA': ['B789','B763','A319','A320','A321','A332','A333'],
+  'JBU': ['A319','A320','A321','E190'],
+  'ASA': ['B737','B738','B739'],
+  // Middle East / Gulf
+  'UAE': ['B77W','B773','A388'],
+  'ETD': ['B789','B78X','A320','A321','A332','A333','A359','A388'],
+  'QTR': ['B77W','B789','B78X','A320','A321','A332','A333','A359','A35K','A388'],
+  'SVA': ['B738','B789','A320','A321','A333'],
+  'FDB': ['B738','B739'],
+  'GFA': ['A319','A320','A321','A332','A333'],
+  'OMA': ['B737','B738','B789','A333'],
+  // Asian / Pacific
+  'SIA': ['A359','A35K','A388','B77W','B789','B78X'],
+  'CPA': ['A333','A359','A35K','B77W'],
+  'JAL': ['B763','B772','B773','B789','B78X','A359'],
+  'ANA': ['B763','B772','B789','B78X'],
+  'KAL': ['A332','A333','A359','B77W','B789'],
+  'MAS': ['A332','A333','B738','A388'],
+  // African
+  'ETH': ['B77W','B789','A359','B738'],
+  'KQA': ['B738','B789'],
+  // Cargo
+  'FDX': ['B763','MD11'],
+  'UPS': ['B744','B763'],
+  'CLX': ['B744','B748'],
+  'GEC': ['MD11','B77W'],
+};
+
+function pickRwAircraft(dist, airlineIcao) {
+  const allJets = AIRCRAFT.filter(a =>
+    ["Narrow-body","Wide-body","Regional Jet","Super Wide-body"].includes(a.type)
+  );
+
+  // Use airline fleet mapping if available
+  if (airlineIcao && AIRLINE_FLEET[airlineIcao]) {
+    const codes = AIRLINE_FLEET[airlineIcao];
+    const candidates = allJets.filter(a => codes.includes(a.code));
+    if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  // Fallback: pick by route distance
   let candidates;
-  if (dist > 3500)      candidates = jets.filter(a => a.type === "Wide-body");
-  else if (dist > 1000) candidates = jets.filter(a => ["Wide-body", "Narrow-body"].includes(a.type));
-  else                  candidates = jets;
-  if (!candidates.length) candidates = jets;
+  if (dist > 3500)      candidates = allJets.filter(a => ["Wide-body","Super Wide-body"].includes(a.type));
+  else if (dist > 1000) candidates = allJets.filter(a => ["Wide-body","Narrow-body","Super Wide-body"].includes(a.type));
+  else                  candidates = allJets;
+  if (!candidates.length) candidates = allJets;
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
@@ -4404,7 +4473,7 @@ function flyRealFlight(depIcao, destIcao, airlineIcao, flightNum, aircraftCode) 
   if (!dep || !dest) return;
 
   const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-  const aircraft = AIRCRAFT.find(a => a.code === aircraftCode) || pickRwAircraft(dist);
+  const aircraft = AIRCRAFT.find(a => a.code === aircraftCode) || pickRwAircraft(dist, airlineIcao);
 
   state.aircraft    = aircraft;
   state.airlineIcao = airlineIcao;
