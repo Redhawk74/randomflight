@@ -1036,7 +1036,17 @@
 
 <!-- Real World Tab -->
 <div id="tab-realworld" class="tab-content hidden">
-  <div class="rw-container">
+  <div id="rw-web-notice" style="display:none;max-width:480px;margin:60px auto;text-align:center;padding:0 20px">
+    <div style="font-size:36px;margin-bottom:16px">&#x2708;</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:12px">DESKTOP APP ONLY</div>
+    <div style="font-size:13px;color:var(--dim3);line-height:1.6;margin-bottom:24px">Live traffic requires the desktop app. The browser version cannot connect to live flight data due to security restrictions.</div>
+    <a id="rw-download-link" href="#" target="_blank"
+      style="display:inline-block;padding:10px 24px;border:1px solid var(--accent);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;text-decoration:none;transition:background 0.2s"
+      onmouseover="this.style.background='rgba(245,166,35,0.12)'" onmouseout="this.style.background='transparent'">
+      &#x2B07; DOWNLOAD DESKTOP APP
+    </a>
+  </div>
+  <div class="rw-container" id="rw-app-container">
     <div class="rw-filters">
       <div class="field">
         <label class="field-label">Airline</label>
@@ -1063,6 +1073,7 @@
     <div id="rw-list"></div>
     <div class="rw-note" id="rw-note" style="display:none">Routes estimated from aircraft position and heading &mdash; OpenSky Network</div>
   </div>
+  </div>
 </div>
 
 <!-- Changelog Modal -->
@@ -1071,7 +1082,10 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.8 &mdash; Current</div>
+    <div class="cl-version">v1.5.9 &mdash; Current</div>
+    <div class="cl-item">Real World tab on the website now shows a desktop-only notice with a download link instead of a broken fetch</div>
+
+    <div class="cl-version">v1.5.8</div>
     <div class="cl-item">New Real World tab: fetches live traffic from OpenSky Network, matches flights to known airlines, infers departure and destination from aircraft position and heading, and dispatches the route to SimBrief via Fly This</div>
     <div class="cl-item">Filter live traffic by airline or region (Europe, North America, Middle East, Asia-Pacific)</div>
 
@@ -4425,6 +4439,17 @@ window.addEventListener("DOMContentLoaded", () => {
   // Changelog — attach click listener to version span
   const verSpan = document.getElementById("app-version");
   if (verSpan) verSpan.addEventListener("click", openChangelog);
+
+  // Real World tab: show desktop-only notice on web, full UI in Electron
+  const isElectron = navigator.userAgent.includes("Electron");
+  const rwNotice = document.getElementById("rw-web-notice");
+  const rwAppContainer = document.getElementById("rw-app-container");
+  if (!isElectron) {
+    if (rwNotice) rwNotice.style.display = "block";
+    if (rwAppContainer) rwAppContainer.style.display = "none";
+    const dlLink = document.getElementById("rw-download-link");
+    if (dlLink) dlLink.href = "https://github.com/Redhawk74/randomflight/releases/latest";
+  }
 
   // Populate Real World airline filter
   const rwAirlineFilter = document.getElementById("rw-airline-filter");
