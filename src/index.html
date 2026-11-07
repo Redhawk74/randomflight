@@ -1064,6 +1064,15 @@
           <option value="asia">Asia-Pacific</option>
         </select>
       </div>
+      <div class="field">
+        <label class="field-label">Aircraft Type</label>
+        <select id="rw-type-filter" class="select-input" onchange="applyRwTypeFilter()">
+          <option value="">All Types</option>
+          <option value="Wide-body">Wide-body</option>
+          <option value="Narrow-body">Narrow-body</option>
+          <option value="Regional Jet">Regional Jet</option>
+        </select>
+      </div>
       <div class="field rw-filters-btn">
         <label class="field-label" style="visibility:hidden">Go</label>
         <button class="btn" onclick="fetchLiveTraffic()" id="rw-fetch-btn" style="width:100%">FETCH LIVE TRAFFIC</button>
@@ -1082,7 +1091,12 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.9 &mdash; Current</div>
+    <div class="cl-version">v1.5.10 &mdash; Current</div>
+    <div class="cl-item">Real World tab: aircraft type filter (Wide-body / Narrow-body / Regional Jet) filters current results without re-fetching</div>
+    <div class="cl-item">Real World flight cards show aircraft type, approximate block time, and route distance</div>
+    <div class="cl-item">Aircraft is selected at card-render time so what you see is what gets dispatched via Fly This</div>
+
+    <div class="cl-version">v1.5.9</div>
     <div class="cl-item">Real World tab on the website now shows a desktop-only notice with a download link instead of a broken fetch</div>
 
     <div class="cl-version">v1.5.8</div>
@@ -4216,6 +4230,8 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeChangel
 
 // ─── Real World Live Traffic ──────────────────────────────────────────────────
 
+let rwFlights = [];
+
 const RW_REGIONS = {
   'europe':        { minLat: 34, maxLat: 72, minLon: -15, maxLon: 42 },
   'north-america': { minLat: 15, maxLat: 72, minLon: -170, maxLon: -50 },
@@ -4289,6 +4305,10 @@ async function fetchLiveTraffic() {
       const r = inferRwRoute(f.lat, f.lon, f.track);
       f.dep = r.dep;
       f.dest = r.dest;
+      if (f.dep && f.dest) {
+        f.dist = Math.round(haversineNm(f.dep.lat, f.dep.lon, f.dest.lat, f.dest.lon));
+        f.aircraft = pickRwAircraft(f.dist);
+      }
     });
 
     const routable = sample.filter(f => f.dep && f.dest && f.dep.icao !== f.dest.icao);
@@ -4298,6 +4318,8 @@ async function fetchLiveTraffic() {
       return;
     }
 
+    rwFlights = routable;
+    document.getElementById("rw-type-filter").value = "";
     statusEl.innerHTML = `<div class="rw-count">${routable.length} flights found</div>`;
     renderLiveFlights(routable);
     if (noteEl) noteEl.style.display = "block";
@@ -4345,27 +4367,51 @@ function inferRwRoute(lat, lon, heading) {
   return { dep, dest };
 }
 
+function pickRwAircraft(dist) {
+  const jets = AIRCRAFT.filter(a => ["Narrow-body", "Wide-body", "Regional Jet"].includes(a.type));
+  let candidates;
+  if (dist > 3500)      candidates = jets.filter(a => a.type === "Wide-body");
+  else if (dist > 1000) candidates = jets.filter(a => ["Wide-body", "Narrow-body"].includes(a.type));
+  else                  candidates = jets;
+  if (!candidates.length) candidates = jets;
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+function applyRwTypeFilter() {
+  const type = document.getElementById("rw-type-filter").value;
+  const filtered = type ? rwFlights.filter(f => f.aircraft.type === type) : rwFlights;
+  const statusEl = document.getElementById("rw-status");
+  if (filtered.length === 0) {
+    statusEl.innerHTML = `<div class="rw-count">No ${type} flights in current results</div>`;
+    document.getElementById("rw-list").innerHTML = "";
+  } else {
+    statusEl.innerHTML = `<div class="rw-count">${filtered.length} flights found</div>`;
+    renderLiveFlights(filtered);
+  }
+}
+
 function renderLiveFlights(flights) {
   document.getElementById("rw-list").innerHTML = flights.map(f => {
-    const dist = Math.round(haversineNm(f.dep.lat, f.dep.lon, f.dest.lat, f.dest.lon));
     const flightNum = f.callsign.slice(3);
+    const blockMins = f.velKts > 0 ? Math.round(f.dist / f.velKts * 60) + 30 : null;
+    const durStr = blockMins ? toHHMM(blockMins) : "";
     return `
       <div class="rw-card">
         <div class="rw-card-top">
           <div class="rw-callsign">${f.callsign}</div>
           <div class="rw-airline-name">${f.airline.name}</div>
-          <div class="rw-stats">FL${Math.round(f.altFt / 100)} &nbsp;&middot;&nbsp; ${f.velKts} kts</div>
+          <div class="rw-stats">FL${Math.round(f.altFt / 100)} &nbsp;&middot;&nbsp; ${f.velKts} kts &nbsp;&middot;&nbsp; ${f.aircraft.name}</div>
         </div>
         <div class="rw-card-bottom">
           <div class="rw-route">
             <span class="rw-icao">${f.dep.icao}</span>
             <span class="rw-arrow"> &#x2500;&#x2500;&#x25BA; </span>
             <span class="rw-icao">${f.dest.icao}</span>
-            <span class="rw-dist">&nbsp;${dist} NM</span>
+            <span class="rw-dist">&nbsp;${f.dist} NM${durStr ? " &nbsp;&middot;&nbsp; ~" + durStr : ""}</span>
             <span class="rw-cities">${f.dep.city} → ${f.dest.city}</span>
           </div>
           <button class="btn rw-fly-btn"
-            onclick="flyRealFlight('${f.dep.icao}','${f.dest.icao}','${f.airline.icao}','${flightNum}',${dist})">
+            onclick="flyRealFlight('${f.dep.icao}','${f.dest.icao}','${f.airline.icao}','${flightNum}','${f.aircraft.code}')">
             FLY THIS
           </button>
         </div>
@@ -4373,20 +4419,15 @@ function renderLiveFlights(flights) {
   }).join("");
 }
 
-function flyRealFlight(depIcao, destIcao, airlineIcao, flightNum, dist) {
+function flyRealFlight(depIcao, destIcao, airlineIcao, flightNum, aircraftCode) {
   const dep  = AIRPORTS.find(a => a.icao === depIcao);
   const dest = AIRPORTS.find(a => a.icao === destIcao);
   if (!dep || !dest) return;
 
-  // Pick an aircraft appropriate to the route distance
-  const jets = AIRCRAFT.filter(a => ["Narrow-body", "Wide-body", "Regional Jet"].includes(a.type));
-  let candidates;
-  if (dist > 3500)      candidates = jets.filter(a => a.type === "Wide-body");
-  else if (dist > 1000) candidates = jets.filter(a => ["Wide-body", "Narrow-body"].includes(a.type));
-  else                  candidates = jets;
-  if (!candidates.length) candidates = jets;
+  const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+  const aircraft = AIRCRAFT.find(a => a.code === aircraftCode) || pickRwAircraft(dist);
 
-  state.aircraft    = candidates[Math.floor(Math.random() * candidates.length)];
+  state.aircraft    = aircraft;
   state.airlineIcao = airlineIcao;
   state.flightNumber = flightNum;
   state.atcCallsign  = airlineIcao + flightNum;
