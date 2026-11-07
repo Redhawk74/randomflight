@@ -738,6 +738,35 @@
   }
   .mode-btn:hover { border-color: #2a7a5a; color: var(--accent3); }
   .mode-btn.active { border-color: var(--accent); color: var(--accent); background: var(--tag-bg); }
+
+  /* ── Real World Tab ──────────────────────────────────────────────────────── */
+  .rw-container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
+  .rw-filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
+  .rw-filters .field { flex: 1; min-width: 140px; }
+  .rw-filters .field-btn { display: flex; align-items: flex-end; }
+  .rw-status-msg { text-align: center; padding: 20px; color: var(--dim3); letter-spacing: 1px; font-size: 13px; }
+  .rw-count { font-size: 11px; color: var(--dim3); letter-spacing: 1px; margin-bottom: 14px; }
+  .rw-error { text-align: center; padding: 20px; color: #ff5555; font-size: 13px; }
+  .rw-card {
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    background: var(--bg2);
+    transition: border-color 0.2s;
+  }
+  .rw-card:hover { border-color: var(--border2); }
+  .rw-card-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .rw-callsign { font-family: "Orbitron", sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+  .rw-airline-name { font-size: 13px; color: var(--accent3); flex: 1; }
+  .rw-stats { font-size: 11px; color: var(--dim3); letter-spacing: 1px; white-space: nowrap; }
+  .rw-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .rw-route { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .rw-icao { font-family: "Orbitron", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); }
+  .rw-arrow { color: var(--dim2); font-size: 12px; }
+  .rw-dist { font-size: 11px; color: var(--dim3); letter-spacing: 1px; }
+  .rw-cities { font-size: 11px; color: var(--dim2); width: 100%; margin-top: 2px; }
+  .rw-fly-btn { font-size: 11px; padding: 7px 14px; white-space: nowrap; flex-shrink: 0; }
+  .rw-note { font-size: 10px; color: var(--dim); text-align: center; margin-top: 20px; letter-spacing: 0.5px; }
 </style>
 </head>
 <body>
@@ -745,7 +774,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.7/RandomFlight-Setup-1.5.7.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.8/RandomFlight-Setup-1.5.8.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -761,7 +790,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.7</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.8</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -771,6 +800,7 @@
     <button class="tab-btn active" data-tab="planner" onclick="switchTab('planner')">Planner</button>
     <button class="tab-btn" data-tab="brief" onclick="switchTab('brief')" id="brief-tab-btn">Brief</button>
     <button class="tab-btn" data-tab="map" onclick="switchTab('map')" id="map-tab-btn">Map</button>
+    <button class="tab-btn" data-tab="realworld" onclick="switchTab('realworld')" id="realworld-tab-btn">Real World</button>
     <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
     </div><!-- end settings-grid -->
   </div>
@@ -1004,13 +1034,48 @@
   </div>
 </div>
 
+<!-- Real World Tab -->
+<div id="tab-realworld" class="tab-content hidden">
+  <div class="rw-container">
+    <div class="rw-filters">
+      <div class="field">
+        <label class="field-label">Airline</label>
+        <select id="rw-airline-filter" class="select-input">
+          <option value="">All Airlines</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label">Region</label>
+        <select id="rw-region-filter" class="select-input">
+          <option value="">Worldwide</option>
+          <option value="europe">Europe</option>
+          <option value="north-america">North America</option>
+          <option value="middle-east">Middle East</option>
+          <option value="asia">Asia-Pacific</option>
+        </select>
+      </div>
+      <div class="field rw-filters-btn">
+        <label class="field-label" style="visibility:hidden">Go</label>
+        <button class="btn" onclick="fetchLiveTraffic()" id="rw-fetch-btn" style="width:100%">FETCH LIVE TRAFFIC</button>
+      </div>
+    </div>
+    <div id="rw-status"></div>
+    <div id="rw-list"></div>
+    <div class="rw-note" id="rw-note" style="display:none">Routes estimated from aircraft position and heading &mdash; OpenSky Network</div>
+  </div>
+</div>
+
 <!-- Changelog Modal -->
 <div class="cl-overlay" id="cl-overlay" onclick="closeChangelog(event)">
   <div class="cl-modal">
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.7 &mdash; Current</div>
+    <div class="cl-version">v1.5.8 &mdash; Current</div>
+    <div class="cl-item">New Real World tab: fetches live traffic from OpenSky Network, matches flights to known airlines, infers departure and destination from aircraft position and heading, and dispatches the route to SimBrief via Fly This</div>
+    <div class="cl-item">Filter live traffic by airline or region (Europe, North America, Middle East, Asia-Pacific)</div>
+
+    <div class="cl-version">v1.5.7</div>
     <div class="cl-item">Housekeeping: removed 367 lines of dead runway-heading legacy data (RUNWAY_DB was never used &mdash; RUNWAY_HEADINGS handles all runway suggestions)</div>
     <div class="cl-item">Fixed duplicate METAR fetch &mdash; weather was being fetched twice per route; now fetched once and shared between the weather panel and Flight Brief</div>
     <div class="cl-item">Helicopter surface/runway filter now correctly applies for all aircraft with minRwy:0</div>
@@ -2137,6 +2202,7 @@ function switchTab(tab) {
   document.getElementById("tab-brief").classList.toggle("hidden", tab !== "brief");
   document.getElementById("tab-map").classList.toggle("hidden", tab !== "map");
   document.getElementById("tab-settings").classList.toggle("hidden", tab !== "settings");
+  document.getElementById("tab-realworld").classList.toggle("hidden", tab !== "realworld");
 
   // Toggle full-width mode for map tab
   document.body.classList.toggle("map-active", tab === "map");
@@ -4134,6 +4200,200 @@ function closeChangelog(e) {
 // Close on Escape key
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeChangelog(); });
 
+// ─── Real World Live Traffic ──────────────────────────────────────────────────
+
+const RW_REGIONS = {
+  'europe':        { minLat: 34, maxLat: 72, minLon: -15, maxLon: 42 },
+  'north-america': { minLat: 15, maxLat: 72, minLon: -170, maxLon: -50 },
+  'middle-east':   { minLat: 10, maxLat: 42, minLon: 32,  maxLon: 65 },
+  'asia':          { minLat: -10, maxLat: 70, minLon: 60, maxLon: 160 },
+};
+
+async function fetchLiveTraffic() {
+  const btn = document.getElementById("rw-fetch-btn");
+  const statusEl = document.getElementById("rw-status");
+  const listEl = document.getElementById("rw-list");
+  const noteEl = document.getElementById("rw-note");
+
+  btn.disabled = true;
+  btn.textContent = "FETCHING…";
+  statusEl.innerHTML = `<div class="rw-status-msg">⌛ Loading live traffic…</div>`;
+  listEl.innerHTML = "";
+  if (noteEl) noteEl.style.display = "none";
+
+  try {
+    const res = await fetch("https://opensky-network.org/api/states/all");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+
+    const airlineFilter = document.getElementById("rw-airline-filter").value;
+    const regionFilter  = document.getElementById("rw-region-filter").value;
+    const region = regionFilter ? RW_REGIONS[regionFilter] : null;
+
+    const airlineMap = new Map(AIRLINES.map(a => [a.icao, a]));
+
+    const flights = [];
+    for (const s of (data.states || [])) {
+      if (!s) continue;
+      const callsignRaw = s[1], lon = s[5], lat = s[6];
+      const altM = s[7], onGround = s[8], velMs = s[9], track = s[10];
+
+      if (onGround) continue;
+      if (!callsignRaw || !callsignRaw.trim()) continue;
+      if (lat == null || lon == null || track == null) continue;
+      if (!altM || altM < 7000) continue;
+
+      const callsign = callsignRaw.trim().toUpperCase();
+      const prefix = callsign.slice(0, 3);
+      const airline = airlineMap.get(prefix);
+      if (!airline) continue;
+
+      if (airlineFilter && airline.icao !== airlineFilter) continue;
+      if (region && (lat < region.minLat || lat > region.maxLat || lon < region.minLon || lon > region.maxLon)) continue;
+
+      flights.push({
+        callsign, airline, lat, lon,
+        altFt: Math.round(altM * 3.28084 / 100) * 100,
+        velKts: Math.round(velMs * 1.944),
+        track,
+      });
+    }
+
+    if (flights.length === 0) {
+      statusEl.innerHTML = `<div class="rw-status-msg">No matching flights found. Try changing filters.</div>`;
+      return;
+    }
+
+    // Shuffle and take up to 40 candidates
+    for (let i = flights.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [flights[i], flights[j]] = [flights[j], flights[i]];
+    }
+    const sample = flights.slice(0, 40);
+
+    sample.forEach(f => {
+      const r = inferRwRoute(f.lat, f.lon, f.track);
+      f.dep = r.dep;
+      f.dest = r.dest;
+    });
+
+    const routable = sample.filter(f => f.dep && f.dest && f.dep.icao !== f.dest.icao);
+
+    if (routable.length === 0) {
+      statusEl.innerHTML = `<div class="rw-status-msg">Could not infer routes for matched flights. Try a different region.</div>`;
+      return;
+    }
+
+    statusEl.innerHTML = `<div class="rw-count">${routable.length} flights found</div>`;
+    renderLiveFlights(routable);
+    if (noteEl) noteEl.style.display = "block";
+
+  } catch (err) {
+    const isFileProtocol = window.location.protocol === 'file:' && !navigator.userAgent.includes('Electron');
+    const msg = isFileProtocol
+      ? 'Open the app in Electron or visit randomflight.net &mdash; live traffic requires HTTPS.'
+      : `Failed to load traffic: ${err.message}`;
+    statusEl.innerHTML = `<div class="rw-error">${msg}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "REFRESH";
+  }
+}
+
+function inferRwRoute(lat, lon, heading) {
+  const toRad = d => d * Math.PI / 180;
+  let dest = null, destBestXtk = Infinity;
+  let dep  = null, depBestXtk  = Infinity;
+
+  for (const ap of AIRPORTS) {
+    const d = haversineNm(lat, lon, ap.lat, ap.lon);
+    if (d < 100 || d > 8000) continue;
+
+    const θap  = toRad(bearingDeg(lat, lon, ap.lat, ap.lon));
+    const θhdg = toRad(heading);
+    const dRad = d / 3440;
+    const xtk  = Math.abs(Math.asin(Math.min(1, Math.max(-1,
+      Math.sin(dRad) * Math.sin(θap - θhdg)
+    ))) * 3440);
+
+    let bDiff = ((bearingDeg(lat, lon, ap.lat, ap.lon) - heading) + 360) % 360;
+    if (bDiff > 180) bDiff = 360 - bDiff;
+
+    if (bDiff < 90 && xtk < destBestXtk) { destBestXtk = xtk; dest = ap; }
+
+    const revHdg = (heading + 180) % 360;
+    let bDiffRev = ((bearingDeg(lat, lon, ap.lat, ap.lon) - revHdg) + 360) % 360;
+    if (bDiffRev > 180) bDiffRev = 360 - bDiffRev;
+
+    if (bDiffRev < 90 && xtk < depBestXtk) { depBestXtk = xtk; dep = ap; }
+  }
+
+  return { dep, dest };
+}
+
+function renderLiveFlights(flights) {
+  document.getElementById("rw-list").innerHTML = flights.map(f => {
+    const dist = Math.round(haversineNm(f.dep.lat, f.dep.lon, f.dest.lat, f.dest.lon));
+    const flightNum = f.callsign.slice(3);
+    return `
+      <div class="rw-card">
+        <div class="rw-card-top">
+          <div class="rw-callsign">${f.callsign}</div>
+          <div class="rw-airline-name">${f.airline.name}</div>
+          <div class="rw-stats">FL${Math.round(f.altFt / 100)} &nbsp;&middot;&nbsp; ${f.velKts} kts</div>
+        </div>
+        <div class="rw-card-bottom">
+          <div class="rw-route">
+            <span class="rw-icao">${f.dep.icao}</span>
+            <span class="rw-arrow"> &#x2500;&#x2500;&#x25BA; </span>
+            <span class="rw-icao">${f.dest.icao}</span>
+            <span class="rw-dist">&nbsp;${dist} NM</span>
+            <span class="rw-cities">${f.dep.city} → ${f.dest.city}</span>
+          </div>
+          <button class="btn rw-fly-btn"
+            onclick="flyRealFlight('${f.dep.icao}','${f.dest.icao}','${f.airline.icao}','${flightNum}',${dist})">
+            FLY THIS
+          </button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function flyRealFlight(depIcao, destIcao, airlineIcao, flightNum, dist) {
+  const dep  = AIRPORTS.find(a => a.icao === depIcao);
+  const dest = AIRPORTS.find(a => a.icao === destIcao);
+  if (!dep || !dest) return;
+
+  // Pick an aircraft appropriate to the route distance
+  const jets = AIRCRAFT.filter(a => ["Narrow-body", "Wide-body", "Regional Jet"].includes(a.type));
+  let candidates;
+  if (dist > 3500)      candidates = jets.filter(a => a.type === "Wide-body");
+  else if (dist > 1000) candidates = jets.filter(a => ["Wide-body", "Narrow-body"].includes(a.type));
+  else                  candidates = jets;
+  if (!candidates.length) candidates = jets;
+
+  state.aircraft    = candidates[Math.floor(Math.random() * candidates.length)];
+  state.airlineIcao = airlineIcao;
+  state.flightNumber = flightNum;
+  state.atcCallsign  = airlineIcao + flightNum;
+
+  const flightMins = calcBlockMins(dist, state.aircraft);
+  const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
+  const found = { dep, dest, dist, flightMins, hdg };
+
+  state.result = found;
+  state.recentRoutes = [found, ...state.recentRoutes.filter(
+    r => !(r.dep.icao === dep.icao && r.dest.icao === dest.icao)
+  )].slice(0, 5);
+  saveRouteHistory();
+
+  renderResult(found);
+  renderHistory();
+  fetchWeatherAndBrief(found);
+  if (mapInitialised) drawRoute(found);
+  switchTab("brief");
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   // Restore persisted preferences before init() so dropdowns and displays are correct on first render
   const savedAc = localStorage.getItem("rf_aircraft");
@@ -4165,6 +4425,18 @@ window.addEventListener("DOMContentLoaded", () => {
   // Changelog — attach click listener to version span
   const verSpan = document.getElementById("app-version");
   if (verSpan) verSpan.addEventListener("click", openChangelog);
+
+  // Populate Real World airline filter
+  const rwAirlineFilter = document.getElementById("rw-airline-filter");
+  if (rwAirlineFilter) {
+    const sorted = [...AIRLINES].sort((a, b) => a.name.localeCompare(b.name));
+    sorted.forEach(al => {
+      const opt = document.createElement("option");
+      opt.value = al.icao;
+      opt.textContent = al.name;
+      rwAirlineFilter.appendChild(opt);
+    });
+  }
 
   renderHistory();
   // Restore saved theme
