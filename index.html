@@ -758,12 +758,12 @@
   .rw-card-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
   .rw-callsign { font-family: "Orbitron", sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
   .rw-airline-name { font-size: 13px; color: var(--accent3); flex: 1; }
-  .rw-stats { font-size: 11px; color: var(--dim3); letter-spacing: 1px; white-space: nowrap; }
+  .rw-stats { font-size: 13px; color: var(--accent3); letter-spacing: 0.5px; white-space: nowrap; }
   .rw-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .rw-route { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .rw-icao { font-family: "Orbitron", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); }
   .rw-arrow { color: var(--dim2); font-size: 12px; }
-  .rw-dist { font-size: 11px; color: var(--dim3); letter-spacing: 1px; }
+  .rw-dist { font-size: 13px; color: var(--accent3); letter-spacing: 0.5px; font-weight: 600; }
   .rw-cities { font-size: 11px; color: var(--dim2); width: 100%; margin-top: 2px; }
   .rw-fly-btn { font-size: 11px; padding: 7px 14px; white-space: nowrap; flex-shrink: 0; }
   .rw-note { font-size: 10px; color: var(--dim); text-align: center; margin-top: 20px; letter-spacing: 0.5px; }
@@ -774,7 +774,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.10/RandomFlight-Setup-1.5.10.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.11/RandomFlight-Setup-1.5.11.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -790,7 +790,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.10</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.11</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -1064,15 +1064,6 @@
           <option value="asia">Asia-Pacific</option>
         </select>
       </div>
-      <div class="field">
-        <label class="field-label">Aircraft Type</label>
-        <select id="rw-type-filter" class="select-input" onchange="applyRwTypeFilter()">
-          <option value="">All Types</option>
-          <option value="Wide-body">Wide-body</option>
-          <option value="Narrow-body">Narrow-body</option>
-          <option value="Regional Jet">Regional Jet</option>
-        </select>
-      </div>
       <div class="field rw-filters-btn">
         <label class="field-label" style="visibility:hidden">Go</label>
         <button class="btn" onclick="fetchLiveTraffic()" id="rw-fetch-btn" style="width:100%">FETCH LIVE TRAFFIC</button>
@@ -1091,8 +1082,10 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.10 &mdash; Current</div>
-    <div class="cl-item">Real World tab: aircraft type filter (Wide-body / Narrow-body / Regional Jet) filters current results without re-fetching</div>
+    <div class="cl-version">v1.5.11 &mdash; Current</div>
+    <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged for readability; aircraft filter removed</div>
+
+    <div class="cl-version">v1.5.10</div>
     <div class="cl-item">Real World flight cards show aircraft type, approximate block time, and route distance</div>
     <div class="cl-item">Aircraft is selected at card-render time so what you see is what gets dispatched via Fly This</div>
 
@@ -4319,7 +4312,6 @@ async function fetchLiveTraffic() {
     }
 
     rwFlights = routable;
-    document.getElementById("rw-type-filter").value = "";
     statusEl.innerHTML = `<div class="rw-count">${routable.length} flights found</div>`;
     renderLiveFlights(routable);
     if (noteEl) noteEl.style.display = "block";
@@ -4375,19 +4367,6 @@ function pickRwAircraft(dist) {
   else                  candidates = jets;
   if (!candidates.length) candidates = jets;
   return candidates[Math.floor(Math.random() * candidates.length)];
-}
-
-function applyRwTypeFilter() {
-  const type = document.getElementById("rw-type-filter").value;
-  const filtered = type ? rwFlights.filter(f => f.aircraft.type === type) : rwFlights;
-  const statusEl = document.getElementById("rw-status");
-  if (filtered.length === 0) {
-    statusEl.innerHTML = `<div class="rw-count">No ${type} flights in current results</div>`;
-    document.getElementById("rw-list").innerHTML = "";
-  } else {
-    statusEl.innerHTML = `<div class="rw-count">${filtered.length} flights found</div>`;
-    renderLiveFlights(filtered);
-  }
 }
 
 function renderLiveFlights(flights) {
@@ -4503,6 +4482,7 @@ window.addEventListener("DOMContentLoaded", () => {
       rwAirlineFilter.appendChild(opt);
     });
   }
+
 
   renderHistory();
   // Restore saved theme
