@@ -1025,7 +1025,7 @@
     <div class="field">
       <label class="field-label">AviationStack API Key</label>
       <input type="text" id="aviationstack-key" placeholder="Paste your free API key here" oninput="saveAvstKey()">
-      <div class="hint">Free key from aviationstack.com &mdash; required for Real World tab</div>
+      <div class="hint">Free (no credit card) &mdash; <a href="https://aviationstack.com/signup/free" target="_blank" style="color:var(--accent)">sign up at aviationstack.com</a>, copy your API key from the dashboard</div>
     </div>
     <div class="field">
       <div class="slider-row">
@@ -1074,7 +1074,7 @@
         <button class="btn" onclick="fetchLiveTraffic()" id="rw-fetch-btn" style="width:100%">FETCH LIVE TRAFFIC</button>
       </div>
     </div>
-    <div class="rw-note" style="margin-bottom:16px">Requires a free AviationStack API key &mdash; register at aviationstack.com then paste your key in Settings.</div>
+    <div class="rw-note" style="margin-bottom:16px">Requires a free API key &mdash; <a href="https://aviationstack.com/signup/free" target="_blank" style="color:var(--accent)">sign up free at aviationstack.com</a> (no credit card), then paste your key in Settings.</div>
     <div id="rw-status"></div>
     <div id="rw-list"></div>
     <div class="rw-note" id="rw-note" style="display:none">Real-time flight data from AviationStack</div>
@@ -1088,7 +1088,7 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.17 &mdash; Current</div>
+    <div class="cl-version">v1.5.18 &mdash; Current</div>
     <div class="cl-item">Real World tab: switched to AviationStack for real departure and destination airports &mdash; requires a free API key from aviationstack.com, entered once in Settings</div>
     <div class="cl-item">Aircraft assigned from a real fleet mapping for ~45 airlines (Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
     <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged; aircraft filter removed</div>
