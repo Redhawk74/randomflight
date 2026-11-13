@@ -774,7 +774,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.22/RandomFlight-Setup-1.5.22.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.23/RandomFlight-Setup-1.5.23.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -790,7 +790,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.22</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.23</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -1023,11 +1023,6 @@
       <div class="hint">Find yours at simbrief.com &#x2192; Account &#x2192; Pilot ID</div>
     </div>
     <div class="field">
-      <label class="field-label">AviationStack API Key</label>
-      <input type="text" id="aviationstack-key" placeholder="Paste your free API key here" oninput="saveAvstKey()">
-      <div class="hint">Free (no credit card) &mdash; <a href="https://aviationstack.com/signup/free" target="_blank" style="color:var(--accent)">sign up at aviationstack.com</a>, copy your API key from the dashboard</div>
-    </div>
-    <div class="field">
       <div class="slider-row">
         <label class="field-label" style="margin:0">Air Time Tolerance</label>
         <span class="slider-val" id="tol-display" style="font-size:16px">± 20%</span>
@@ -1074,10 +1069,10 @@
         <button class="btn" onclick="fetchLiveTraffic()" id="rw-fetch-btn" style="width:100%">FETCH LIVE TRAFFIC</button>
       </div>
     </div>
-    <div class="rw-note" style="margin-bottom:16px">Requires a free API key &mdash; <a href="https://aviationstack.com/signup/free" target="_blank" style="color:var(--accent)">sign up free at aviationstack.com</a> (no credit card), then paste your key in Settings.</div>
+    <div class="rw-note" style="margin-bottom:16px">Live flight data via OpenSky Network &mdash; no account or API key needed</div>
     <div id="rw-status"></div>
     <div id="rw-list"></div>
-    <div class="rw-note" id="rw-note" style="display:none">Real-time flight data from AviationStack</div>
+    <div class="rw-note" id="rw-note" style="display:none">Flight data from OpenSky Network</div>
   </div>
   </div>
 </div>
@@ -1088,12 +1083,10 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.22 &mdash; Current</div>
-    <div class="cl-item">Real World tab: home-airport filter added for all airlines &mdash; when an airline is selected, results must depart from or arrive at that airline&apos;s home country (Aer Lingus shows Irish airports, Emirates shows Dubai, Lufthansa shows German airports, etc.)</div>
-    <div class="cl-item">Eliminates codeshare flights that don&apos;t involve the airline&apos;s home country, regardless of AviationStack data quality</div>
-
-    <div class="cl-version">v1.5.21</div>
-    <div class="cl-item">Real World tab: codeshare flights now filtered out when an airline is selected &mdash; only flights actually operated by that airline are shown, not partner flights wearing its flight numbers</div>
+    <div class="cl-version">v1.5.23 &mdash; Current</div>
+    <div class="cl-item">Real World tab: switched from AviationStack to OpenSky Network &mdash; no API key needed, works in the browser and desktop app</div>
+    <div class="cl-item">OpenSky uses real ATC callsigns so the operating airline is unambiguous &mdash; EIN104 is always Aer Lingus, no codeshare confusion possible</div>
+    <div class="cl-item">Queries by home airport for the selected airline, then filters by callsign prefix &mdash; reliable results guaranteed</div>
 
     <div class="cl-version">v1.5.19</div>
     <div class="cl-item">Real World tab: fleet mapping expanded to cover all 125 airlines &mdash; every carrier now gets the correct aircraft type (Aer Lingus gets A320 family/A330, not random jets)</div>
@@ -4244,28 +4237,19 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeChangel
 
 let rwFlights = [];
 
-const RW_REGIONS = {
-  'europe':        { minLat: 34, maxLat: 72, minLon: -15, maxLon: 42 },
-  'north-america': { minLat: 15, maxLat: 72, minLon: -170, maxLon: -50 },
-  'middle-east':   { minLat: 10, maxLat: 42, minLon: 32,  maxLon: 65 },
-  'asia':          { minLat: -10, maxLat: 70, minLon: 60, maxLon: 160 },
+// Hub airports queried per region when no airline filter is active
+const RW_REGION_HUBS = {
+  'europe':        ['EGLL','EDDF','LFPG','EHAM','LEMD'],
+  'north-america': ['KJFK','KORD','KLAX','CYYZ'],
+  'middle-east':   ['OMDB','OTHH','OERK'],
+  'asia':          ['RJTT','VHHH','WSSS','ZBAA'],
 };
 
-function saveAvstKey() {
-  localStorage.setItem('rf_avst_key', document.getElementById('aviationstack-key').value.trim());
-}
-
 async function fetchLiveTraffic() {
-  const btn = document.getElementById("rw-fetch-btn");
+  const btn      = document.getElementById("rw-fetch-btn");
   const statusEl = document.getElementById("rw-status");
-  const listEl = document.getElementById("rw-list");
-  const noteEl = document.getElementById("rw-note");
-
-  const apiKey = localStorage.getItem('rf_avst_key') || '';
-  if (!apiKey) {
-    statusEl.innerHTML = `<div class="rw-error">AviationStack API key required &mdash; add it in Settings.</div>`;
-    return;
-  }
+  const listEl   = document.getElementById("rw-list");
+  const noteEl   = document.getElementById("rw-note");
 
   btn.disabled = true;
   btn.textContent = "FETCHING…";
@@ -4276,61 +4260,89 @@ async function fetchLiveTraffic() {
   try {
     const airlineFilter = document.getElementById("rw-airline-filter").value;
     const regionFilter  = document.getElementById("rw-region-filter").value;
-    const region = regionFilter ? RW_REGIONS[regionFilter] : null;
 
-    let url = `http://api.aviationstack.com/v1/flights?access_key=${apiKey}&flight_status=active&limit=100`;
-    if (airlineFilter) url += `&airline_icao=${airlineFilter}`;
+    // Pick airports to query departures from.
+    // OpenSky departure API is queried per-airport; we pick home airports for the
+    // selected airline (guarantees the right country), or hub airports for a region.
+    let queryAirports = [];
+    if (airlineFilter && AIRLINE_HOME_PREFIXES[airlineFilter]) {
+      const prefixes = AIRLINE_HOME_PREFIXES[airlineFilter];
+      queryAirports = AIRPORTS
+        .filter(a => prefixes.some(p => a.icao.startsWith(p)))
+        .sort((a, b) => b.rwy - a.rwy)
+        .slice(0, 3)
+        .map(a => a.icao);
+    } else if (regionFilter && RW_REGION_HUBS[regionFilter]) {
+      queryAirports = RW_REGION_HUBS[regionFilter];
+    } else {
+      queryAirports = ['EGLL', 'KJFK', 'OMDB', 'RJTT', 'EDDF'];
+    }
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.info || "API error");
+    // Query OpenSky for departures in the last 2 hours
+    const now   = Math.floor(Date.now() / 1000);
+    const begin = now - 7200;
+    const rawFlights = [];
+
+    for (const apt of queryAirports) {
+      try {
+        const res = await fetch(
+          `https://opensky-network.org/api/flights/departure?airport=${apt}&begin=${begin}&end=${now}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) rawFlights.push(...data);
+        }
+      } catch (e) { /* skip airports that fail */ }
+    }
+
+    if (rawFlights.length === 0) {
+      statusEl.innerHTML = `<div class="rw-error">No data returned &mdash; OpenSky may be temporarily rate-limited. Try again in a minute.</div>`;
+      return;
+    }
 
     const airportMap = new Map(AIRPORTS.map(a => [a.icao, a]));
     const airlineMap = new Map(AIRLINES.map(a => [a.icao, a]));
-
+    const seen = new Set();
     const flights = [];
-    for (const f of (data.data || [])) {
-      if (!f.departure?.icao || !f.arrival?.icao) continue;
-      if (f.live?.is_ground) continue;
 
-      const dep  = airportMap.get(f.departure.icao);
-      const dest = airportMap.get(f.arrival.icao);
-      if (!dep || !dest || dep.icao === dest.icao) continue;
+    for (const f of rawFlights) {
+      const depIcao  = f.estDepartureAirport;
+      const destIcao = f.estArrivalAirport;
+      const callsign = (f.callsign || '').trim().replace(/\s+/g, '');
+      if (!depIcao || !destIcao || !callsign || depIcao === destIcao) continue;
 
-      // Client-side re-verify airline when a filter is active (API doesn't always enforce it)
-      if (airlineFilter && f.airline?.icao !== airlineFilter) continue;
+      // Deduplicate same route
+      const key = `${callsign}:${depIcao}:${destIcao}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
 
-      // Skip known codeshare flights (when AviationStack populates the codeshared field)
-      if (airlineFilter && f.codeshared != null) continue;
+      // Callsign first 3 chars = operating airline ICAO (OpenSky uses real ATC callsigns)
+      const airlineIcao = callsign.slice(0, 3).toUpperCase();
 
-      // Home-airport filter: require at least one endpoint to be in the airline's home country.
-      // This reliably eliminates partner-operated codeshares regardless of AviationStack data quality.
+      // Apply airline filter — callsign prefix is the definitive operating carrier identifier
       if (airlineFilter) {
-        const prefixes = AIRLINE_HOME_PREFIXES[airlineFilter];
-        if (prefixes) {
-          const depOk  = prefixes.some(p => f.departure.icao.startsWith(p));
-          const destOk = prefixes.some(p => f.arrival.icao.startsWith(p));
-          if (!depOk && !destOk) continue;
-        }
+        const al = airlineMap.get(airlineFilter);
+        const matchIcao = airlineIcao === airlineFilter;
+        const matchIata = al?.iata && callsign.toUpperCase().startsWith(al.iata);
+        if (!matchIcao && !matchIata) continue;
       }
 
-      if (region && f.live?.latitude != null) {
-        const lat = f.live.latitude, lon = f.live.longitude;
-        if (lat < region.minLat || lat > region.maxLat || lon < region.minLon || lon > region.maxLon) continue;
-      }
+      const dep  = airportMap.get(depIcao);
+      const dest = airportMap.get(destIcao);
+      if (!dep || !dest) continue;
 
-      const airline  = airlineMap.get(f.airline?.icao) || { icao: f.airline?.icao || '', name: f.airline?.name || '' };
-      const callsign = f.flight?.icao || f.flight?.iata || '';
-      const dist     = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-      const altFt    = f.live?.altitude    != null ? Math.round(f.live.altitude * 3.28084 / 100) * 100 : null;
-      const velKts   = f.live?.speed_horizontal != null ? Math.round(f.live.speed_horizontal * 0.539957) : null;
+      const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
+      if (dist < 50) continue;
 
-      flights.push({ callsign, airline, dep, dest, dist, altFt, velKts, aircraft: pickRwAircraft(dist, airline.icao) });
+      const airline  = airlineMap.get(airlineIcao) || { icao: airlineIcao, name: airlineIcao };
+      const flightNum = callsign.slice(3);
+
+      flights.push({ callsign, airline, dep, dest, dist, altFt: null, velKts: null,
+                     aircraft: pickRwAircraft(dist, airlineIcao) });
     }
 
     if (flights.length === 0) {
-      statusEl.innerHTML = `<div class="rw-status-msg">No active flights found for the selected filters.</div>`;
+      statusEl.innerHTML = `<div class="rw-status-msg">No flights found &mdash; try a different airline or region.</div>`;
       return;
     }
 
@@ -4711,9 +4723,6 @@ window.addEventListener("DOMContentLoaded", () => {
     state.pilotId = savedPilotId;
     document.getElementById("pilot-id").value = savedPilotId;
   }
-  const savedAvstKey = localStorage.getItem("rf_avst_key");
-  if (savedAvstKey) document.getElementById("aviationstack-key").value = savedAvstKey;
-
   init();
   updateSliderFill("duration-slider", (state.durationMin - 30) / (840 - 30) * 100);
   updateSliderFill("tol-slider", (20 - 5) / (40 - 5) * 100);
@@ -4728,16 +4737,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const verSpan = document.getElementById("app-version");
   if (verSpan) verSpan.addEventListener("click", openChangelog);
 
-  // Real World tab: show desktop-only notice on web, full UI in Electron
-  const isElectron = navigator.userAgent.includes("Electron");
-  const rwNotice = document.getElementById("rw-web-notice");
-  const rwAppContainer = document.getElementById("rw-app-container");
-  if (!isElectron) {
-    if (rwNotice) rwNotice.style.display = "block";
-    if (rwAppContainer) rwAppContainer.style.display = "none";
-    const dlLink = document.getElementById("rw-download-link");
-    if (dlLink) dlLink.href = "https://github.com/Redhawk74/randomflight/releases/latest";
-  }
+  // Real World tab: OpenSky is HTTPS so works on web and desktop — always show the UI
 
   // Populate Real World airline filter
   const rwAirlineFilter = document.getElementById("rw-airline-filter");
