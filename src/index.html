@@ -1088,7 +1088,11 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.18 &mdash; Current</div>
+    <div class="cl-version">v1.5.19 &mdash; Current</div>
+    <div class="cl-item">Real World tab: fleet mapping expanded to cover all 125 airlines &mdash; every carrier now gets the correct aircraft type (Aer Lingus gets A320 family/A330, not random jets)</div>
+    <div class="cl-item">Client-side airline filter verification added &mdash; blocks non-matching flights that AviationStack occasionally returns for a filtered airline</div>
+
+    <div class="cl-version">v1.5.18</div>
     <div class="cl-item">Real World tab: switched to AviationStack for real departure and destination airports &mdash; requires a free API key from aviationstack.com, entered once in Settings</div>
     <div class="cl-item">Aircraft assigned from a real fleet mapping for ~45 airlines (Ryanair only gets 737s, Emirates only gets 777/A380) with distance-based fallback for unmapped airlines</div>
     <div class="cl-item">Real World flight cards: aircraft type and duration text enlarged; aircraft filter removed</div>
@@ -4287,6 +4291,9 @@ async function fetchLiveTraffic() {
       const dest = airportMap.get(f.arrival.icao);
       if (!dep || !dest || dep.icao === dest.icao) continue;
 
+      // Client-side re-verify airline when a filter is active (API doesn't always enforce it)
+      if (airlineFilter && f.airline?.icao !== airlineFilter) continue;
+
       if (region && f.live?.latitude != null) {
         const lat = f.live.latitude, lon = f.live.longitude;
         if (lat < region.minLat || lat > region.maxLat || lon < region.minLon || lon > region.maxLon) continue;
@@ -4331,11 +4338,23 @@ const AIRLINE_FLEET = {
   'EZY': ['A319','A320','A20N'],
   'EJU': ['A319','A320','A20N'],
   'WZZ': ['A320','A321','A20N','A21N'],
+  'WEN': ['A320','A321','A20N','A21N'],
   'VLG': ['A319','A320','A321'],
   'NAX': ['B738','B789'],
+  'NOZ': ['B738','B737'],
+  'TRA': ['B738'],
+  'TVF': ['B738'],
   'TOM': ['B738','B789'],
   'TUI': ['B738','B789'],
+  'TCX': ['B738','B789'],
   'FHY': ['B738'],
+  'JEA': ['B738','B739'],
+  'EXS': ['B738','B739'],
+  'SXD': ['B738','B739','A320','A321'],
+  'CAI': ['B738'],
+  'PGT': ['A319','A320','A321','A20N','A21N'],
+  'EWG': ['A319','A320'],
+  'IBK': ['A319','A320','A321','A20N'],
   // European full-service
   'BAW': ['A319','A320','A321','B744','B772','B773','B77W','B789'],
   'AFR': ['A318','A319','A320','A321','A332','A333','A359','A388'],
@@ -4348,6 +4367,26 @@ const AIRLINE_FLEET = {
   'SAS': ['A319','A320','A321','A333'],
   'TAP': ['A319','A320','A321','A332','A333'],
   'AZA': ['A319','A320','A321','A332'],
+  'EIN': ['A319','A320','A321','A333'],
+  'FIN': ['A319','A320','A321','A333','A359'],
+  'LOT': ['B738','B789','E175','E195'],
+  'THY': ['A319','A320','A321','A333','B738','B77W','B789'],
+  'AEE': ['A319','A320','A321','A20N'],
+  'ROT': ['A318','B738'],
+  'TUN': ['A319','A320'],
+  'AHY': ['B752','B789','A319','A320'],
+  'RAM': ['B738','B739','B789','A320','A321'],
+  'ICE': ['B752','B753','B763','B738','B739'],
+  'LOG': ['E145','AT75','AT76','DH8D','SF34'],
+  'LGL': ['B737','E175'],
+  'SHT': ['E170','E190'],
+  'HOP': ['A318','A320','CRJ7','AT42'],
+  'VLI': ['A333','A339','A35K','B744','B789'],
+  'SAT': ['A319','A320','A321','A333'],
+  'TSC': ['A320','A321','A332','A333'],
+  'TAR': ['A319','A320','A321'],
+  'CSA': ['A319','A320'],
+  'OAL': ['AT42','AT75','DH8D'],
   // North American
   'UAL': ['B737','B738','B739','B752','B763','B772','B789','A319','A320'],
   'AAL': ['B737','B738','B752','B763','B772','A319','A320','A321'],
@@ -4357,14 +4396,34 @@ const AIRLINE_FLEET = {
   'ACA': ['B789','B763','A319','A320','A321','A332','A333'],
   'JBU': ['A319','A320','A321','E190'],
   'ASA': ['B737','B738','B739'],
+  'SKW': ['E170','E175','CRJ2','CRJ7','CRJ9'],
+  'FFT': ['A319','A320','A321','A20N','A21N'],
+  'NKS': ['A319','A320','A321','A20N','A21N'],
+  'HAL': ['A321','A333','B717'],
+  'RPA': ['E170','E175'],
+  'SCX': ['B738'],
+  'QXE': ['E175','DH8D'],
+  'ENY': ['E170','E175'],
+  'PCO': ['E195','DH8D'],
+  'AMX': ['B738','B789','A320','B77W'],
+  'VOI': ['A319','A320','A321','A20N'],
+  'VIV': ['A320','A321','A20N'],
   // Middle East / Gulf
   'UAE': ['B77W','B773','A388'],
   'ETD': ['B789','B78X','A320','A321','A332','A333','A359','A388'],
   'QTR': ['B77W','B789','B78X','A320','A321','A332','A333','A359','A35K','A388'],
   'SVA': ['B738','B789','A320','A321','A333'],
-  'FDB': ['B738','B739'],
+  'FDB': ['B738','B739','B789'],
+  'FLY': ['B738','B739','B789'],
   'GFA': ['A319','A320','A321','A332','A333'],
   'OMA': ['B737','B738','B789','A333'],
+  'ABY': ['A319','A320','A321','A20N'],
+  'KAC': ['A320','A321','B773'],
+  'MEA': ['A320','A321','A333'],
+  // South Asia
+  'AIC': ['A319','A320','A321','B789','B77W'],
+  'IGO': ['A319','A320','A321','A20N','A21N'],
+  'PIA': ['A319','A320','A321','A333','B773'],
   // Asian / Pacific
   'SIA': ['A359','A35K','A388','B77W','B789','B78X'],
   'CPA': ['A333','A359','A35K','B77W'],
@@ -4372,14 +4431,48 @@ const AIRLINE_FLEET = {
   'ANA': ['B763','B772','B789','B78X'],
   'KAL': ['A332','A333','A359','B77W','B789'],
   'MAS': ['A332','A333','B738','A388'],
+  'GIA': ['A332','A333','B738','B789'],
+  'CES': ['A319','A320','A321','A333','B738'],
+  'CSN': ['A319','A320','A321','A333','B738','B789'],
+  'CCA': ['A319','A320','A321','A332','A333','B772','B789'],
+  'CHH': ['A333','B789'],
+  'XMN': ['B738','B739'],
+  'CAL': ['A333','B738','B77W','B789'],
+  'EVA': ['A333','B773','B77W','B789'],
+  'AAR': ['A320','A321','A333','A359','B77W'],
+  'HVN': ['A320','A321','A333','A359','B789'],
+  'THA': ['A320','A321','A333','A346','B77W','B789'],
+  'AIQ': ['A319','A320','A321','A20N'],
+  'AWQ': ['A319','A320'],
+  'PAL': ['A320','A321','A333','B773'],
+  'CEB': ['A319','A320','A321'],
+  'SLK': ['A319','A320','A333'],
+  // Pacific / Oceania
+  'QFA': ['A388','B744','B789','A333'],
+  'VOZ': ['B738','A333'],
+  'JST': ['A320','A321','B789'],
+  'ANZ': ['A320','A321','B773','B789'],
+  // South America
+  'LAN': ['A319','A320','A321','B763','B789','B77W'],
+  'TAM': ['A319','A320','A321','A332','A333'],
+  'GLO': ['B737','B738','B739'],
+  'AZU': ['A320','A321','E195','B789'],
+  'AVA': ['A319','A320','A321','A333'],
+  'COA': ['B738','E190'],
   // African
   'ETH': ['B77W','B789','A359','B738'],
   'KQA': ['B738','B789'],
+  'MSR': ['A320','A321','B738','B77W','B789'],
+  'RWD': ['A333','B738','B789'],
+  'SAA': ['A319','A320','A333','A342'],
+  'CAW': ['B738','A333'],
   // Cargo
   'FDX': ['B763','MD11'],
   'UPS': ['B744','B763'],
   'CLX': ['B744','B748'],
   'GEC': ['MD11','B77W'],
+  'DHL': ['B763','B752'],
+  'GTI': ['B744','B748','B77W'],
 };
 
 
