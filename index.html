@@ -774,7 +774,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.20/RandomFlight-Setup-1.5.20.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.21/RandomFlight-Setup-1.5.21.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -790,7 +790,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.20</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.21</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -1088,7 +1088,10 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.20 &mdash; Current</div>
+    <div class="cl-version">v1.5.21 &mdash; Current</div>
+    <div class="cl-item">Real World tab: strengthened codeshare filter &mdash; cross-checks the ICAO radio callsign prefix so partner-operated flights are blocked even when the codeshared field is absent from the API response</div>
+
+    <div class="cl-version">v1.5.20</div>
     <div class="cl-item">Real World tab: codeshare flights now filtered out when an airline is selected &mdash; only flights actually operated by that airline are shown, not partner flights wearing its flight numbers</div>
 
     <div class="cl-version">v1.5.19</div>
@@ -4300,6 +4303,15 @@ async function fetchLiveTraffic() {
       // Skip codeshare flights — these are operated by a partner airline under the filtered airline's
       // flight number and would show the wrong aircraft/livery (e.g. a UAL 777 on an EIN flight number)
       if (airlineFilter && f.codeshared != null) continue;
+
+      // Secondary codeshare check: the ICAO callsign prefix reflects the actual operating carrier.
+      // Accept both ICAO prefix (EIN104) and IATA prefix (EI104) — AviationStack uses both formats.
+      // If the prefix matches neither, the flight is operated by a different carrier.
+      if (airlineFilter && f.flight?.icao) {
+        const cs      = f.flight.icao.toUpperCase();
+        const iata    = airlineMap.get(airlineFilter)?.iata || '';
+        if (!cs.startsWith(airlineFilter) && !(iata && cs.startsWith(iata))) continue;
+      }
 
       if (region && f.live?.latitude != null) {
         const lat = f.live.latitude, lon = f.live.longitude;
