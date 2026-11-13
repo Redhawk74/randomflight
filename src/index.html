@@ -1088,7 +1088,10 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.19 &mdash; Current</div>
+    <div class="cl-version">v1.5.20 &mdash; Current</div>
+    <div class="cl-item">Real World tab: codeshare flights now filtered out when an airline is selected &mdash; only flights actually operated by that airline are shown, not partner flights wearing its flight numbers</div>
+
+    <div class="cl-version">v1.5.19</div>
     <div class="cl-item">Real World tab: fleet mapping expanded to cover all 125 airlines &mdash; every carrier now gets the correct aircraft type (Aer Lingus gets A320 family/A330, not random jets)</div>
     <div class="cl-item">Client-side airline filter verification added &mdash; blocks non-matching flights that AviationStack occasionally returns for a filtered airline</div>
 
@@ -4293,6 +4296,10 @@ async function fetchLiveTraffic() {
 
       // Client-side re-verify airline when a filter is active (API doesn't always enforce it)
       if (airlineFilter && f.airline?.icao !== airlineFilter) continue;
+
+      // Skip codeshare flights — these are operated by a partner airline under the filtered airline's
+      // flight number and would show the wrong aircraft/livery (e.g. a UAL 777 on an EIN flight number)
+      if (airlineFilter && f.codeshared != null) continue;
 
       if (region && f.live?.latitude != null) {
         const lat = f.live.latitude, lon = f.live.longitude;
