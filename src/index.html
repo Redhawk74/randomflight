@@ -1083,7 +1083,11 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.23 &mdash; Current</div>
+    <div class="cl-version">v1.5.24 &mdash; Current</div>
+    <div class="cl-item">Real World tab: switched to OpenSky live states feed &mdash; works for all airlines with no API key, correctly filters by operating carrier using real ATC callsigns</div>
+    <div class="cl-item">Route inference from aircraft heading and position &mdash; departure is nearest home-country airport, destination is best heading-aligned airport in the app database</div>
+
+    <div class="cl-version">v1.5.23</div>
     <div class="cl-item">Real World tab: switched from AviationStack to OpenSky Network &mdash; no API key needed, works in the browser and desktop app</div>
     <div class="cl-item">OpenSky uses real ATC callsigns so the operating airline is unambiguous &mdash; EIN104 is always Aer Lingus, no codeshare confusion possible</div>
     <div class="cl-item">Queries by home airport for the selected airline, then filters by callsign prefix &mdash; reliable results guaranteed</div>
@@ -4237,132 +4241,144 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeChangel
 
 let rwFlights = [];
 
-// Hub airports queried per region when no airline filter is active
-const RW_REGION_HUBS = {
-  'europe':        ['EGLL','EDDF','LFPG','EHAM','LEMD'],
-  'north-america': ['KJFK','KORD','KLAX','CYYZ'],
-  'middle-east':   ['OMDB','OTHH','OERK'],
-  'asia':          ['RJTT','VHHH','WSSS','ZBAA'],
+// Bounding boxes for region filter (passed to OpenSky states bounding-box parameter)
+const RW_REGION_BOUNDS = {
+  'europe':        { minLat: 34, maxLat: 72, minLon: -15, maxLon: 42 },
+  'north-america': { minLat: 15, maxLat: 72, minLon: -170, maxLon: -50 },
+  'middle-east':   { minLat: 10, maxLat: 42, minLon: 32,  maxLon: 65 },
+  'asia':          { minLat: -10, maxLat: 70, minLon: 60, maxLon: 160 },
 };
 
 async function fetchLiveTraffic() {
-  const btn      = document.getElementById("rw-fetch-btn");
-  const statusEl = document.getElementById("rw-status");
-  const listEl   = document.getElementById("rw-list");
-  const noteEl   = document.getElementById("rw-note");
+  const btn      = document.getElementById('rw-fetch-btn');
+  const statusEl = document.getElementById('rw-status');
+  const listEl   = document.getElementById('rw-list');
+  const noteEl   = document.getElementById('rw-note');
 
   btn.disabled = true;
-  btn.textContent = "FETCHING…";
-  statusEl.innerHTML = `<div class="rw-status-msg">&#x231B; Loading live traffic&hellip;</div>`;
-  listEl.innerHTML = "";
-  if (noteEl) noteEl.style.display = "none";
+  btn.textContent = 'FETCHING…';
+  statusEl.innerHTML = '<div class="rw-status-msg">⌛ Loading live traffic…</div>';
+  listEl.innerHTML = '';
+  if (noteEl) noteEl.style.display = 'none';
 
   try {
-    const airlineFilter = document.getElementById("rw-airline-filter").value;
-    const regionFilter  = document.getElementById("rw-region-filter").value;
+    const airlineFilter = document.getElementById('rw-airline-filter').value;
+    const regionFilter  = document.getElementById('rw-region-filter').value;
 
-    // Pick airports to query departures from.
-    // OpenSky departure API is queried per-airport; we pick home airports for the
-    // selected airline (guarantees the right country), or hub airports for a region.
-    let queryAirports = [];
-    if (airlineFilter && AIRLINE_HOME_PREFIXES[airlineFilter]) {
-      const prefixes = AIRLINE_HOME_PREFIXES[airlineFilter];
-      queryAirports = AIRPORTS
-        .filter(a => prefixes.some(p => a.icao.startsWith(p)))
-        .sort((a, b) => b.rwy - a.rwy)
-        .slice(0, 3)
-        .map(a => a.icao);
-    } else if (regionFilter && RW_REGION_HUBS[regionFilter]) {
-      queryAirports = RW_REGION_HUBS[regionFilter];
-    } else {
-      queryAirports = ['EGLL', 'KJFK', 'OMDB', 'RJTT', 'EDDF'];
+    // OpenSky states/all — works anonymously, HTTPS, real ATC callsigns, no key needed
+    let url = 'https://opensky-network.org/api/states/all';
+    if (regionFilter && RW_REGION_BOUNDS[regionFilter]) {
+      const b = RW_REGION_BOUNDS[regionFilter];
+      url += '?lamin=' + b.minLat + '&lomin=' + b.minLon + '&lamax=' + b.maxLat + '&lomax=' + b.maxLon;
     }
 
-    // Query OpenSky for departures in the last 2 hours
-    const now   = Math.floor(Date.now() / 1000);
-    const begin = now - 7200;
-    const rawFlights = [];
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('OpenSky returned HTTP ' + res.status);
+    const data = await res.json();
+    const states = data.states || [];
 
-    for (const apt of queryAirports) {
-      try {
-        const res = await fetch(
-          `https://opensky-network.org/api/flights/departure?airport=${apt}&begin=${begin}&end=${now}`
-        );
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) rawFlights.push(...data);
-        }
-      } catch (e) { /* skip airports that fail */ }
-    }
-
-    if (rawFlights.length === 0) {
-      statusEl.innerHTML = `<div class="rw-error">No data returned &mdash; OpenSky may be temporarily rate-limited. Try again in a minute.</div>`;
+    if (states.length === 0) {
+      statusEl.innerHTML = '<div class="rw-error">No data returned — OpenSky may be temporarily unavailable. Try again in a minute.</div>';
       return;
     }
 
-    const airportMap = new Map(AIRPORTS.map(a => [a.icao, a]));
     const airlineMap = new Map(AIRLINES.map(a => [a.icao, a]));
-    const seen = new Set();
-    const flights = [];
+    const knownIcao  = new Set(AIRLINES.map(a => a.icao));
 
-    for (const f of rawFlights) {
-      const depIcao  = f.estDepartureAirport;
-      const destIcao = f.estArrivalAirport;
-      const callsign = (f.callsign || '').trim().replace(/\s+/g, '');
-      if (!depIcao || !destIcao || !callsign || depIcao === destIcao) continue;
+    // State vector indices: [0]=icao24 [1]=callsign [5]=lon [6]=lat [7]=baro_alt(m)
+    // [8]=on_ground [9]=velocity(m/s) [10]=heading
+    const candidates = [];
+    for (const s of states) {
+      if (!s || s[8]) continue;
+      const callsign = (s[1] || '').trim();
+      if (!callsign || callsign.length < 4) continue;
+      const lat = s[6], lon = s[5], alt = s[7], vel = s[9], hdg = s[10];
+      if (lat == null || lon == null || hdg == null) continue;
+      if (alt != null && alt < 1500) continue;
 
-      // Deduplicate same route
-      const key = `${callsign}:${depIcao}:${destIcao}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-
-      // Callsign first 3 chars = operating airline ICAO (OpenSky uses real ATC callsigns)
       const airlineIcao = callsign.slice(0, 3).toUpperCase();
 
-      // Apply airline filter — callsign prefix is the definitive operating carrier identifier
       if (airlineFilter) {
         const al = airlineMap.get(airlineFilter);
         const matchIcao = airlineIcao === airlineFilter;
-        const matchIata = al?.iata && callsign.toUpperCase().startsWith(al.iata);
+        const matchIata = al && al.iata && callsign.toUpperCase().startsWith(al.iata);
         if (!matchIcao && !matchIata) continue;
+      } else {
+        if (!knownIcao.has(airlineIcao)) continue;
       }
 
-      const dep  = airportMap.get(depIcao);
-      const dest = airportMap.get(destIcao);
-      if (!dep || !dest) continue;
+      candidates.push({ callsign, airlineIcao, lat, lon, alt, vel, hdg });
+    }
+
+    // Shuffle for variety
+    for (let i = candidates.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+    }
+
+    const flights = [];
+    for (const c of candidates) {
+      if (flights.length >= 25) break;
+
+      const dep  = rwInferDeparture(c.lat, c.lon, c.airlineIcao);
+      const dest = rwInferDestination(c.lat, c.lon, c.hdg, c.vel);
+      if (!dep || !dest || dep.icao === dest.icao) continue;
 
       const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
       if (dist < 50) continue;
 
-      const airline  = airlineMap.get(airlineIcao) || { icao: airlineIcao, name: airlineIcao };
-      const flightNum = callsign.slice(3);
+      const airline = airlineMap.get(c.airlineIcao) || { icao: c.airlineIcao, name: c.airlineIcao };
+      const altFt   = c.alt != null ? Math.round(c.alt * 3.28084 / 100) * 100 : null;
+      const velKts  = c.vel != null ? Math.round(c.vel * 1.94384) : null;
 
-      flights.push({ callsign, airline, dep, dest, dist, altFt: null, velKts: null,
-                     aircraft: pickRwAircraft(dist, airlineIcao) });
+      flights.push({ callsign: c.callsign, airline, dep, dest, dist, altFt, velKts,
+                     aircraft: pickRwAircraft(dist, c.airlineIcao) });
     }
 
     if (flights.length === 0) {
-      statusEl.innerHTML = `<div class="rw-status-msg">No flights found &mdash; try a different airline or region.</div>`;
+      statusEl.innerHTML = '<div class="rw-status-msg">No routable flights found — try again or change filters.</div>';
       return;
     }
 
-    for (let i = flights.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [flights[i], flights[j]] = [flights[j], flights[i]];
-    }
-    const routable = flights.slice(0, 25);
-
-    rwFlights = routable;
-    statusEl.innerHTML = `<div class="rw-count">${routable.length} flights found</div>`;
-    renderLiveFlights(routable);
-    if (noteEl) noteEl.style.display = "block";
+    rwFlights = flights;
+    statusEl.innerHTML = '<div class="rw-count">' + flights.length + ' flights found</div>';
+    renderLiveFlights(flights);
+    if (noteEl) noteEl.style.display = 'block';
 
   } catch (err) {
-    statusEl.innerHTML = `<div class="rw-error">Failed to load traffic: ${err.message}</div>`;
+    statusEl.innerHTML = '<div class="rw-error">Failed to load traffic: ' + err.message + '</div>';
   } finally {
     btn.disabled = false;
-    btn.textContent = "REFRESH";
+    btn.textContent = 'REFRESH';
   }
+}
+
+function rwInferDeparture(lat, lon, airlineIcao) {
+  const prefixes = AIRLINE_HOME_PREFIXES[airlineIcao];
+  const pool = prefixes
+    ? AIRPORTS.filter(a => prefixes.some(p => a.icao.startsWith(p)))
+    : AIRPORTS;
+  if (!pool.length) return null;
+  return pool.reduce((best, a) =>
+    haversineNm(lat, lon, a.lat, a.lon) < haversineNm(lat, lon, best.lat, best.lon) ? a : best
+  );
+}
+
+function rwInferDestination(lat, lon, heading, velMs) {
+  const maxDist = velMs != null
+    ? (velMs > 220 ? 4500 : velMs > 150 ? 2500 : 800)
+    : 2500;
+  let best = null, bestScore = Infinity;
+  for (const a of AIRPORTS) {
+    const d = haversineNm(lat, lon, a.lat, a.lon);
+    if (d < 80 || d > maxDist) continue;
+    const brg  = bearingDeg(lat, lon, a.lat, a.lon);
+    const diff = Math.abs(((brg - heading + 540) % 360) - 180);
+    if (diff > 45) continue;
+    const score = diff * 2 + d * 0.004;
+    if (score < bestScore) { bestScore = score; best = a; }
+  }
+  return best;
 }
 
 // Maps airline ICAO → ICAO airport prefixes for their home country.
