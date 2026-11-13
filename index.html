@@ -738,35 +738,6 @@
   }
   .mode-btn:hover { border-color: #2a7a5a; color: var(--accent3); }
   .mode-btn.active { border-color: var(--accent); color: var(--accent); background: var(--tag-bg); }
-
-  /* ── Real World Tab ──────────────────────────────────────────────────────── */
-  .rw-container { max-width: 720px; margin: 0 auto; padding: 20px 16px; }
-  .rw-filters { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 20px; }
-  .rw-filters .field { flex: 1; min-width: 140px; }
-  .rw-filters .field-btn { display: flex; align-items: flex-end; }
-  .rw-status-msg { text-align: center; padding: 20px; color: var(--dim3); letter-spacing: 1px; font-size: 13px; }
-  .rw-count { font-size: 11px; color: var(--dim3); letter-spacing: 1px; margin-bottom: 14px; }
-  .rw-error { text-align: center; padding: 20px; color: #ff5555; font-size: 13px; }
-  .rw-card {
-    border: 1px solid var(--border);
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    background: var(--bg2);
-    transition: border-color 0.2s;
-  }
-  .rw-card:hover { border-color: var(--border2); }
-  .rw-card-top { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-  .rw-callsign { font-family: "Orbitron", sans-serif; font-size: 15px; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
-  .rw-airline-name { font-size: 13px; color: var(--accent3); flex: 1; }
-  .rw-stats { font-size: 13px; color: var(--accent3); letter-spacing: 0.5px; white-space: nowrap; }
-  .rw-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .rw-route { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .rw-icao { font-family: "Orbitron", sans-serif; font-size: 14px; font-weight: 700; color: var(--accent2); }
-  .rw-arrow { color: var(--dim2); font-size: 12px; }
-  .rw-dist { font-size: 13px; color: var(--accent3); letter-spacing: 0.5px; font-weight: 600; }
-  .rw-cities { font-size: 11px; color: var(--dim2); width: 100%; margin-top: 2px; }
-  .rw-fly-btn { font-size: 11px; padding: 7px 14px; white-space: nowrap; flex-shrink: 0; }
-  .rw-note { font-size: 10px; color: var(--dim); text-align: center; margin-top: 20px; letter-spacing: 0.5px; }
 </style>
 </head>
 <body>
@@ -774,7 +745,7 @@
 <div class="scan-line"></div>
 
 <!-- Download button &mdash; top right, web only, hidden in Electron -->
-<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.24/RandomFlight-Setup-1.5.24.exe" target="_blank"
+<a id="download-btn" href="https://github.com/Redhawk74/randomflight/releases/download/v1.5.25/RandomFlight-Setup-1.5.25.exe" target="_blank"
   style="position:fixed;top:14px;right:16px;z-index:100;
          display:none;align-items:center;gap:7px;
          background:rgba(0,232,122,0.08);border:1px solid var(--accent);
@@ -790,7 +761,7 @@
 <div class="app">
   <!-- Header -->
   <div class="header">
-    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.24</span> &#x25C8;</div>
+    <div class="header-eyebrow">&#x25C8; DISPATCH SYSTEM v<span id="app-version" title="View changelog" style="cursor:pointer;border-bottom:1px dashed var(--dim2)">1.5.25</span> &#x25C8;</div>
     <div class="header-title">RANDOMFLIGHT</div>
     <div class="header-sub">SIMBRIEF DISPATCH GENERATOR</div>
   </div>
@@ -800,7 +771,6 @@
     <button class="tab-btn active" data-tab="planner" onclick="switchTab('planner')">Planner</button>
     <button class="tab-btn" data-tab="brief" onclick="switchTab('brief')" id="brief-tab-btn">Brief</button>
     <button class="tab-btn" data-tab="map" onclick="switchTab('map')" id="map-tab-btn">Map</button>
-    <button class="tab-btn" data-tab="realworld" onclick="switchTab('realworld')" id="realworld-tab-btn">Real World</button>
     <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
     </div><!-- end settings-grid -->
   </div>
@@ -1034,48 +1004,6 @@
   </div>
 </div>
 
-<!-- Real World Tab -->
-<div id="tab-realworld" class="tab-content hidden">
-  <div id="rw-web-notice" style="display:none;max-width:480px;margin:60px auto;text-align:center;padding:0 20px">
-    <div style="font-size:36px;margin-bottom:16px">&#x2708;</div>
-    <div style="font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:12px">DESKTOP APP ONLY</div>
-    <div style="font-size:13px;color:var(--dim3);line-height:1.6;margin-bottom:24px">Live traffic requires the desktop app. The browser version cannot connect to live flight data due to security restrictions.</div>
-    <a id="rw-download-link" href="#" target="_blank"
-      style="display:inline-block;padding:10px 24px;border:1px solid var(--accent);color:var(--accent);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;text-decoration:none;transition:background 0.2s"
-      onmouseover="this.style.background='rgba(245,166,35,0.12)'" onmouseout="this.style.background='transparent'">
-      &#x2B07; DOWNLOAD DESKTOP APP
-    </a>
-  </div>
-  <div class="rw-container" id="rw-app-container">
-    <div class="rw-filters">
-      <div class="field">
-        <label class="field-label">Airline</label>
-        <select id="rw-airline-filter" class="select-input">
-          <option value="">All Airlines</option>
-        </select>
-      </div>
-      <div class="field">
-        <label class="field-label">Region</label>
-        <select id="rw-region-filter" class="select-input">
-          <option value="">Worldwide</option>
-          <option value="europe">Europe</option>
-          <option value="north-america">North America</option>
-          <option value="middle-east">Middle East</option>
-          <option value="asia">Asia-Pacific</option>
-        </select>
-      </div>
-      <div class="field rw-filters-btn">
-        <label class="field-label" style="visibility:hidden">Go</label>
-        <button class="btn" onclick="fetchLiveTraffic()" id="rw-fetch-btn" style="width:100%">FETCH LIVE TRAFFIC</button>
-      </div>
-    </div>
-    <div class="rw-note" style="margin-bottom:16px">Live flight data via OpenSky Network &mdash; no account or API key needed</div>
-    <div id="rw-status"></div>
-    <div id="rw-list"></div>
-    <div class="rw-note" id="rw-note" style="display:none">Flight data from OpenSky Network</div>
-  </div>
-  </div>
-</div>
 
 <!-- Changelog Modal -->
 <div class="cl-overlay" id="cl-overlay" onclick="closeChangelog(event)">
@@ -1083,9 +1011,11 @@
     <button class="cl-close" onclick="closeChangelog()">&#x2715;</button>
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
-    <div class="cl-version">v1.5.24 &mdash; Current</div>
+    <div class="cl-version">v1.5.25 &mdash; Current</div>
+    <div class="cl-item">Real World tab removed &mdash; no free data source could reliably provide accurate airline-operated routes; will return in a future version with a better data foundation</div>
+
+    <div class="cl-version">v1.5.24</div>
     <div class="cl-item">Real World tab: switched to OpenSky live states feed &mdash; works for all airlines with no API key, correctly filters by operating carrier using real ATC callsigns</div>
-    <div class="cl-item">Route inference from aircraft heading and position &mdash; departure is nearest home-country airport, destination is best heading-aligned airport in the app database</div>
 
     <div class="cl-version">v1.5.23</div>
     <div class="cl-item">Real World tab: switched from AviationStack to OpenSky Network &mdash; no API key needed, works in the browser and desktop app</div>
@@ -2239,7 +2169,6 @@ function switchTab(tab) {
   document.getElementById("tab-brief").classList.toggle("hidden", tab !== "brief");
   document.getElementById("tab-map").classList.toggle("hidden", tab !== "map");
   document.getElementById("tab-settings").classList.toggle("hidden", tab !== "settings");
-  document.getElementById("tab-realworld").classList.toggle("hidden", tab !== "realworld");
 
   // Toggle full-width mode for map tab
   document.body.classList.toggle("map-active", tab === "map");
@@ -4237,490 +4166,6 @@ function closeChangelog(e) {
 // Close on Escape key
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeChangelog(); });
 
-// ─── Real World Live Traffic ──────────────────────────────────────────────────
-
-let rwFlights = [];
-
-// Bounding boxes for region filter (passed to OpenSky states bounding-box parameter)
-const RW_REGION_BOUNDS = {
-  'europe':        { minLat: 34, maxLat: 72, minLon: -15, maxLon: 42 },
-  'north-america': { minLat: 15, maxLat: 72, minLon: -170, maxLon: -50 },
-  'middle-east':   { minLat: 10, maxLat: 42, minLon: 32,  maxLon: 65 },
-  'asia':          { minLat: -10, maxLat: 70, minLon: 60, maxLon: 160 },
-};
-
-async function fetchLiveTraffic() {
-  const btn      = document.getElementById('rw-fetch-btn');
-  const statusEl = document.getElementById('rw-status');
-  const listEl   = document.getElementById('rw-list');
-  const noteEl   = document.getElementById('rw-note');
-
-  btn.disabled = true;
-  btn.textContent = 'FETCHING…';
-  statusEl.innerHTML = '<div class="rw-status-msg">⌛ Loading live traffic…</div>';
-  listEl.innerHTML = '';
-  if (noteEl) noteEl.style.display = 'none';
-
-  try {
-    const airlineFilter = document.getElementById('rw-airline-filter').value;
-    const regionFilter  = document.getElementById('rw-region-filter').value;
-
-    // OpenSky states/all — works anonymously, HTTPS, real ATC callsigns, no key needed
-    let url = 'https://opensky-network.org/api/states/all';
-    if (regionFilter && RW_REGION_BOUNDS[regionFilter]) {
-      const b = RW_REGION_BOUNDS[regionFilter];
-      url += '?lamin=' + b.minLat + '&lomin=' + b.minLon + '&lamax=' + b.maxLat + '&lomax=' + b.maxLon;
-    }
-
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('OpenSky returned HTTP ' + res.status);
-    const data = await res.json();
-    const states = data.states || [];
-
-    if (states.length === 0) {
-      statusEl.innerHTML = '<div class="rw-error">No data returned — OpenSky may be temporarily unavailable. Try again in a minute.</div>';
-      return;
-    }
-
-    const airlineMap = new Map(AIRLINES.map(a => [a.icao, a]));
-    const knownIcao  = new Set(AIRLINES.map(a => a.icao));
-
-    // State vector indices: [0]=icao24 [1]=callsign [5]=lon [6]=lat [7]=baro_alt(m)
-    // [8]=on_ground [9]=velocity(m/s) [10]=heading
-    const candidates = [];
-    for (const s of states) {
-      if (!s || s[8]) continue;
-      const callsign = (s[1] || '').trim();
-      if (!callsign || callsign.length < 4) continue;
-      const lat = s[6], lon = s[5], alt = s[7], vel = s[9], hdg = s[10];
-      if (lat == null || lon == null || hdg == null) continue;
-      if (alt != null && alt < 1500) continue;
-
-      const airlineIcao = callsign.slice(0, 3).toUpperCase();
-
-      if (airlineFilter) {
-        const al = airlineMap.get(airlineFilter);
-        const matchIcao = airlineIcao === airlineFilter;
-        const matchIata = al && al.iata && callsign.toUpperCase().startsWith(al.iata);
-        if (!matchIcao && !matchIata) continue;
-      } else {
-        if (!knownIcao.has(airlineIcao)) continue;
-      }
-
-      candidates.push({ callsign, airlineIcao, lat, lon, alt, vel, hdg });
-    }
-
-    // Shuffle for variety
-    for (let i = candidates.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
-    }
-
-    const flights = [];
-    for (const c of candidates) {
-      if (flights.length >= 25) break;
-
-      const dep  = rwInferDeparture(c.lat, c.lon, c.airlineIcao);
-      const dest = rwInferDestination(c.lat, c.lon, c.hdg, c.vel);
-      if (!dep || !dest || dep.icao === dest.icao) continue;
-
-      const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-      if (dist < 50) continue;
-
-      const airline = airlineMap.get(c.airlineIcao) || { icao: c.airlineIcao, name: c.airlineIcao };
-      const altFt   = c.alt != null ? Math.round(c.alt * 3.28084 / 100) * 100 : null;
-      const velKts  = c.vel != null ? Math.round(c.vel * 1.94384) : null;
-
-      flights.push({ callsign: c.callsign, airline, dep, dest, dist, altFt, velKts,
-                     aircraft: pickRwAircraft(dist, c.airlineIcao) });
-    }
-
-    if (flights.length === 0) {
-      statusEl.innerHTML = '<div class="rw-status-msg">No routable flights found — try again or change filters.</div>';
-      return;
-    }
-
-    rwFlights = flights;
-    statusEl.innerHTML = '<div class="rw-count">' + flights.length + ' flights found</div>';
-    renderLiveFlights(flights);
-    if (noteEl) noteEl.style.display = 'block';
-
-  } catch (err) {
-    statusEl.innerHTML = '<div class="rw-error">Failed to load traffic: ' + err.message + '</div>';
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'REFRESH';
-  }
-}
-
-function rwInferDeparture(lat, lon, airlineIcao) {
-  const prefixes = AIRLINE_HOME_PREFIXES[airlineIcao];
-  const pool = prefixes
-    ? AIRPORTS.filter(a => prefixes.some(p => a.icao.startsWith(p)))
-    : AIRPORTS;
-  if (!pool.length) return null;
-  return pool.reduce((best, a) =>
-    haversineNm(lat, lon, a.lat, a.lon) < haversineNm(lat, lon, best.lat, best.lon) ? a : best
-  );
-}
-
-function rwInferDestination(lat, lon, heading, velMs) {
-  const maxDist = velMs != null
-    ? (velMs > 220 ? 4500 : velMs > 150 ? 2500 : 800)
-    : 2500;
-  let best = null, bestScore = Infinity;
-  for (const a of AIRPORTS) {
-    const d = haversineNm(lat, lon, a.lat, a.lon);
-    if (d < 80 || d > maxDist) continue;
-    const brg  = bearingDeg(lat, lon, a.lat, a.lon);
-    const diff = Math.abs(((brg - heading + 540) % 360) - 180);
-    if (diff > 45) continue;
-    const score = diff * 2 + d * 0.004;
-    if (score < bestScore) { bestScore = score; best = a; }
-  }
-  return best;
-}
-
-// Maps airline ICAO → ICAO airport prefixes for their home country.
-// Used to filter out codeshares: a genuine operated flight always involves the airline's home country.
-const AIRLINE_HOME_PREFIXES = {
-  // Ireland
-  'RYR':['EI'],'EIN':['EI'],
-  // UK
-  'BAW':['EG'],'EZY':['EG'],'VLI':['EG'],'TOM':['EG'],'TCX':['EG'],
-  'JEA':['EG'],'EXS':['EG'],'LOG':['EG'],'SHT':['EG'],'WEN':['EG'],'DHL':['EG'],
-  // France
-  'AFR':['LF'],'HOP':['LF'],'TVF':['LF'],
-  // Germany
-  'DLH':['ED'],'EWG':['ED'],'GEC':['ED'],'CLX':['ED'],
-  // Netherlands
-  'KLM':['EH'],'TRA':['EH'],
-  // Spain
-  'IBE':['LE'],'VLG':['LE'],'IBK':['LE'],
-  // Italy
-  'AZA':['LI'],
-  // Switzerland
-  'SWR':['LS'],
-  // Austria
-  'AUA':['LO'],'EJU':['LO'],
-  // Belgium
-  'BEL':['EB'],
-  // Finland
-  'FIN':['EF'],
-  // Norway
-  'NAX':['EN'],'NOZ':['EN'],
-  // Scandinavia — SAS operates across Denmark (EK), Norway (EN), Sweden (ES)
-  'SAS':['EK','EN','ES'],
-  // Poland
-  'LOT':['EP'],
-  // Czech Republic
-  'CSA':['LK'],
-  // Hungary
-  'WZZ':['LH'],
-  // Romania
-  'ROT':['LR'],
-  // Greece
-  'OAL':['LG'],'AEE':['LG'],
-  // Turkey
-  'THY':['LT'],'PGT':['LT'],'SXD':['LT'],'CAI':['LT'],
-  // Azerbaijan
-  'AHY':['UB'],
-  // Iceland
-  'ICE':['BI'],
-  // Luxembourg
-  'LGL':['EL'],
-  // Portugal / Azores
-  'TAP':['LP'],'SAT':['LP'],
-  // Morocco
-  'RAM':['GM'],
-  // Tunisia
-  'TUN':['DT'],'TAR':['DT'],
-  // UAE
-  'UAE':['OM'],'ETD':['OM'],'FLY':['OM'],'FDB':['OM'],'ABY':['OM'],
-  // Qatar
-  'QTR':['OT'],
-  // Saudi Arabia
-  'SVA':['OE'],
-  // Kuwait
-  'KAC':['OK'],
-  // Lebanon
-  'MEA':['OL'],
-  // Oman
-  'OMA':['OO'],
-  // Bahrain
-  'GFA':['OB'],
-  // India
-  'AIC':['VI','VA','VE','VO'],'IGO':['VI','VA','VE','VO'],
-  // Pakistan
-  'PIA':['OP'],
-  // Singapore
-  'SIA':['WS'],
-  // Malaysia / Brunei
-  'MAS':['WM','WB'],
-  // Indonesia
-  'GIA':['WA','WI'],'AWQ':['WA','WI'],
-  // Hong Kong
-  'CPA':['VH'],
-  // China (mainland)
-  'CES':['ZS'],'CSN':['ZG','ZH'],'CCA':['ZB'],'CHH':['ZG','ZH'],'XMN':['ZS'],
-  // Taiwan
-  'CAL':['RC'],'EVA':['RC'],
-  // South Korea
-  'KAL':['RK'],'AAR':['RK'],
-  // Japan
-  'JAL':['RJ'],'ANA':['RJ'],
-  // Vietnam
-  'HVN':['VV'],
-  // Thailand
-  'THA':['VT'],'AIQ':['VT'],
-  // Philippines
-  'PAL':['RP'],'CEB':['RP'],
-  // Sri Lanka
-  'SLK':['VC'],
-  // Australia
-  'QFA':['Y'],'VOZ':['Y'],'JST':['Y'],
-  // New Zealand
-  'ANZ':['NZ'],
-  // USA
-  'UAL':['K'],'AAL':['K'],'DAL':['K'],'SWA':['K'],'ASA':['K'],
-  'SKW':['K'],'JBU':['K'],'FFT':['K'],'NKS':['K'],'HAL':['K','PH'],
-  'RPA':['K'],'SCX':['K'],'QXE':['K','PA'],'ENY':['K'],
-  'FDX':['K'],'UPS':['K'],'GTI':['K'],
-  // Canada
-  'ACA':['CY'],'WJA':['CY'],'PCO':['CY'],'TSC':['CY'],
-  // Mexico
-  'AMX':['MM'],'VOI':['MM'],'VIV':['MM'],
-  // South America
-  'LAN':['SC','SA','SB','SK'],'TAM':['SB'],'GLO':['SB'],'AZU':['SB'],
-  'AVA':['SK'],'COA':['MP'],
-  // Africa
-  'ETH':['HA'],'KQA':['HK'],'MSR':['HE'],
-  'RWD':['HR'],'SAA':['FA'],'CAW':['TT'],
-};
-
-const AIRLINE_FLEET = {
-  // European LCC
-  'RYR': ['B738','B737'],
-  'EZY': ['A319','A320','A20N'],
-  'EJU': ['A319','A320','A20N'],
-  'WZZ': ['A320','A321','A20N','A21N'],
-  'WEN': ['A320','A321','A20N','A21N'],
-  'VLG': ['A319','A320','A321'],
-  'NAX': ['B738','B789'],
-  'NOZ': ['B738','B737'],
-  'TRA': ['B738'],
-  'TVF': ['B738'],
-  'TOM': ['B738','B789'],
-  'TUI': ['B738','B789'],
-  'TCX': ['B738','B789'],
-  'FHY': ['B738'],
-  'JEA': ['B738','B739'],
-  'EXS': ['B738','B739'],
-  'SXD': ['B738','B739','A320','A321'],
-  'CAI': ['B738'],
-  'PGT': ['A319','A320','A321','A20N','A21N'],
-  'EWG': ['A319','A320'],
-  'IBK': ['A319','A320','A321','A20N'],
-  // European full-service
-  'BAW': ['A319','A320','A321','B744','B772','B773','B77W','B789'],
-  'AFR': ['A318','A319','A320','A321','A332','A333','A359','A388'],
-  'DLH': ['A319','A320','A321','A332','A333','A346','B744','B748'],
-  'KLM': ['B738','B772','B789'],
-  'IBE': ['A319','A320','A321','A332','A333','A346'],
-  'SWR': ['A319','A320','A321','A332'],
-  'AUA': ['A319','A320','A321','B772'],
-  'BEL': ['A319','A320','A321','A332'],
-  'SAS': ['A319','A320','A321','A333'],
-  'TAP': ['A319','A320','A321','A332','A333'],
-  'AZA': ['A319','A320','A321','A332'],
-  'EIN': ['A319','A320','A321','A333'],
-  'FIN': ['A319','A320','A321','A333','A359'],
-  'LOT': ['B738','B789','E175','E195'],
-  'THY': ['A319','A320','A321','A333','B738','B77W','B789'],
-  'AEE': ['A319','A320','A321','A20N'],
-  'ROT': ['A318','B738'],
-  'TUN': ['A319','A320'],
-  'AHY': ['B752','B789','A319','A320'],
-  'RAM': ['B738','B739','B789','A320','A321'],
-  'ICE': ['B752','B753','B763','B738','B739'],
-  'LOG': ['E145','AT75','AT76','DH8D','SF34'],
-  'LGL': ['B737','E175'],
-  'SHT': ['E170','E190'],
-  'HOP': ['A318','A320','CRJ7','AT42'],
-  'VLI': ['A333','A339','A35K','B744','B789'],
-  'SAT': ['A319','A320','A321','A333'],
-  'TSC': ['A320','A321','A332','A333'],
-  'TAR': ['A319','A320','A321'],
-  'CSA': ['A319','A320'],
-  'OAL': ['AT42','AT75','DH8D'],
-  // North American
-  'UAL': ['B737','B738','B739','B752','B763','B772','B789','A319','A320'],
-  'AAL': ['B737','B738','B752','B763','B772','A319','A320','A321'],
-  'DAL': ['B737','B738','B752','B763','B764','A319','A320','A321','A333','A359'],
-  'SWA': ['B733','B735','B738','B737','B73J'],
-  'WJA': ['B737','B738'],
-  'ACA': ['B789','B763','A319','A320','A321','A332','A333'],
-  'JBU': ['A319','A320','A321','E190'],
-  'ASA': ['B737','B738','B739'],
-  'SKW': ['E170','E175','CRJ2','CRJ7','CRJ9'],
-  'FFT': ['A319','A320','A321','A20N','A21N'],
-  'NKS': ['A319','A320','A321','A20N','A21N'],
-  'HAL': ['A321','A333','B717'],
-  'RPA': ['E170','E175'],
-  'SCX': ['B738'],
-  'QXE': ['E175','DH8D'],
-  'ENY': ['E170','E175'],
-  'PCO': ['E195','DH8D'],
-  'AMX': ['B738','B789','A320','B77W'],
-  'VOI': ['A319','A320','A321','A20N'],
-  'VIV': ['A320','A321','A20N'],
-  // Middle East / Gulf
-  'UAE': ['B77W','B773','A388'],
-  'ETD': ['B789','B78X','A320','A321','A332','A333','A359','A388'],
-  'QTR': ['B77W','B789','B78X','A320','A321','A332','A333','A359','A35K','A388'],
-  'SVA': ['B738','B789','A320','A321','A333'],
-  'FDB': ['B738','B739','B789'],
-  'FLY': ['B738','B739','B789'],
-  'GFA': ['A319','A320','A321','A332','A333'],
-  'OMA': ['B737','B738','B789','A333'],
-  'ABY': ['A319','A320','A321','A20N'],
-  'KAC': ['A320','A321','B773'],
-  'MEA': ['A320','A321','A333'],
-  // South Asia
-  'AIC': ['A319','A320','A321','B789','B77W'],
-  'IGO': ['A319','A320','A321','A20N','A21N'],
-  'PIA': ['A319','A320','A321','A333','B773'],
-  // Asian / Pacific
-  'SIA': ['A359','A35K','A388','B77W','B789','B78X'],
-  'CPA': ['A333','A359','A35K','B77W'],
-  'JAL': ['B763','B772','B773','B789','B78X','A359'],
-  'ANA': ['B763','B772','B789','B78X'],
-  'KAL': ['A332','A333','A359','B77W','B789'],
-  'MAS': ['A332','A333','B738','A388'],
-  'GIA': ['A332','A333','B738','B789'],
-  'CES': ['A319','A320','A321','A333','B738'],
-  'CSN': ['A319','A320','A321','A333','B738','B789'],
-  'CCA': ['A319','A320','A321','A332','A333','B772','B789'],
-  'CHH': ['A333','B789'],
-  'XMN': ['B738','B739'],
-  'CAL': ['A333','B738','B77W','B789'],
-  'EVA': ['A333','B773','B77W','B789'],
-  'AAR': ['A320','A321','A333','A359','B77W'],
-  'HVN': ['A320','A321','A333','A359','B789'],
-  'THA': ['A320','A321','A333','A346','B77W','B789'],
-  'AIQ': ['A319','A320','A321','A20N'],
-  'AWQ': ['A319','A320'],
-  'PAL': ['A320','A321','A333','B773'],
-  'CEB': ['A319','A320','A321'],
-  'SLK': ['A319','A320','A333'],
-  // Pacific / Oceania
-  'QFA': ['A388','B744','B789','A333'],
-  'VOZ': ['B738','A333'],
-  'JST': ['A320','A321','B789'],
-  'ANZ': ['A320','A321','B773','B789'],
-  // South America
-  'LAN': ['A319','A320','A321','B763','B789','B77W'],
-  'TAM': ['A319','A320','A321','A332','A333'],
-  'GLO': ['B737','B738','B739'],
-  'AZU': ['A320','A321','E195','B789'],
-  'AVA': ['A319','A320','A321','A333'],
-  'COA': ['B738','E190'],
-  // African
-  'ETH': ['B77W','B789','A359','B738'],
-  'KQA': ['B738','B789'],
-  'MSR': ['A320','A321','B738','B77W','B789'],
-  'RWD': ['A333','B738','B789'],
-  'SAA': ['A319','A320','A333','A342'],
-  'CAW': ['B738','A333'],
-  // Cargo
-  'FDX': ['B763','MD11'],
-  'UPS': ['B744','B763'],
-  'CLX': ['B744','B748'],
-  'GEC': ['MD11','B77W'],
-  'DHL': ['B763','B752'],
-  'GTI': ['B744','B748','B77W'],
-};
-
-
-function pickRwAircraft(dist, airlineIcao) {
-  const allJets = AIRCRAFT.filter(a =>
-    ["Narrow-body","Wide-body","Regional Jet","Super Wide-body"].includes(a.type)
-  );
-
-  // Use airline fleet mapping if available
-  if (airlineIcao && AIRLINE_FLEET[airlineIcao]) {
-    const codes = AIRLINE_FLEET[airlineIcao];
-    const candidates = allJets.filter(a => codes.includes(a.code));
-    if (candidates.length) return candidates[Math.floor(Math.random() * candidates.length)];
-  }
-
-  // Fallback: pick by route distance
-  let candidates;
-  if (dist > 3500)      candidates = allJets.filter(a => ["Wide-body","Super Wide-body"].includes(a.type));
-  else if (dist > 1000) candidates = allJets.filter(a => ["Wide-body","Narrow-body","Super Wide-body"].includes(a.type));
-  else                  candidates = allJets;
-  if (!candidates.length) candidates = allJets;
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
-
-function renderLiveFlights(flights) {
-  document.getElementById("rw-list").innerHTML = flights.map(f => {
-    const flightNum = f.callsign.slice(3);
-    const blockMins = f.velKts > 0 ? Math.round(f.dist / f.velKts * 60) + 30 : null;
-    const durStr = blockMins ? toHHMM(blockMins) : "";
-    return `
-      <div class="rw-card">
-        <div class="rw-card-top">
-          <div class="rw-callsign">${f.callsign}</div>
-          <div class="rw-airline-name">${f.airline.name}</div>
-          <div class="rw-stats">${f.altFt != null ? `FL${Math.round(f.altFt / 100)}` : ''} ${f.altFt != null && f.velKts != null ? '&nbsp;&middot;&nbsp;' : ''} ${f.velKts != null ? `${f.velKts} kts &nbsp;&middot;&nbsp;` : ''} ${f.aircraft.name}</div>
-        </div>
-        <div class="rw-card-bottom">
-          <div class="rw-route">
-            <span class="rw-icao">${f.dep.icao}</span>
-            <span class="rw-arrow"> &#x2500;&#x2500;&#x25BA; </span>
-            <span class="rw-icao">${f.dest.icao}</span>
-            <span class="rw-dist">&nbsp;${f.dist} NM${durStr ? " &nbsp;&middot;&nbsp; ~" + durStr : ""}</span>
-            <span class="rw-cities">${f.dep.city} → ${f.dest.city}</span>
-          </div>
-          <button class="btn rw-fly-btn"
-            onclick="flyRealFlight('${f.dep.icao}','${f.dest.icao}','${f.airline.icao}','${flightNum}','${f.aircraft.code}')">
-            FLY THIS
-          </button>
-        </div>
-      </div>`;
-  }).join("");
-}
-
-function flyRealFlight(depIcao, destIcao, airlineIcao, flightNum, aircraftCode) {
-  const dep  = AIRPORTS.find(a => a.icao === depIcao);
-  const dest = AIRPORTS.find(a => a.icao === destIcao);
-  if (!dep || !dest) return;
-
-  const dist = Math.round(haversineNm(dep.lat, dep.lon, dest.lat, dest.lon));
-  const aircraft = AIRCRAFT.find(a => a.code === aircraftCode) || pickRwAircraft(dist, airlineIcao);
-
-  state.aircraft    = aircraft;
-  state.airlineIcao = airlineIcao;
-  state.flightNumber = flightNum;
-  state.atcCallsign  = airlineIcao + flightNum;
-
-  const flightMins = calcBlockMins(dist, state.aircraft);
-  const hdg = bearingDeg(dep.lat, dep.lon, dest.lat, dest.lon);
-  const found = { dep, dest, dist, flightMins, hdg };
-
-  state.result = found;
-  state.recentRoutes = [found, ...state.recentRoutes.filter(
-    r => !(r.dep.icao === dep.icao && r.dest.icao === dest.icao)
-  )].slice(0, 5);
-  saveRouteHistory();
-
-  renderResult(found);
-  renderHistory();
-  fetchWeatherAndBrief(found);
-  if (mapInitialised) drawRoute(found);
-  switchTab("brief");
-}
 
 window.addEventListener("DOMContentLoaded", () => {
   // Restore persisted preferences before init() so dropdowns and displays are correct on first render
@@ -4752,20 +4197,6 @@ window.addEventListener("DOMContentLoaded", () => {
   // Changelog — attach click listener to version span
   const verSpan = document.getElementById("app-version");
   if (verSpan) verSpan.addEventListener("click", openChangelog);
-
-  // Real World tab: OpenSky is HTTPS so works on web and desktop — always show the UI
-
-  // Populate Real World airline filter
-  const rwAirlineFilter = document.getElementById("rw-airline-filter");
-  if (rwAirlineFilter) {
-    const sorted = [...AIRLINES].sort((a, b) => a.name.localeCompare(b.name));
-    sorted.forEach(al => {
-      const opt = document.createElement("option");
-      opt.value = al.icao;
-      opt.textContent = al.name;
-      rwAirlineFilter.appendChild(opt);
-    });
-  }
 
 
   renderHistory();
