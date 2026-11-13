@@ -1089,7 +1089,8 @@
     <div class="cl-title">&#x25C8; CHANGELOG</div>
 
     <div class="cl-version">v1.5.21 &mdash; Current</div>
-    <div class="cl-item">Real World tab: strengthened codeshare filter &mdash; cross-checks the ICAO radio callsign prefix so partner-operated flights are blocked even when the codeshared field is absent from the API response</div>
+    <div class="cl-item">Real World tab: home-airport filter added for all airlines &mdash; when an airline is selected, results must depart from or arrive at that airline&apos;s home country (Aer Lingus shows Irish airports, Emirates shows Dubai, Lufthansa shows German airports, etc.)</div>
+    <div class="cl-item">Eliminates codeshare flights that don&apos;t involve the airline&apos;s home country, regardless of AviationStack data quality</div>
 
     <div class="cl-version">v1.5.20</div>
     <div class="cl-item">Real World tab: codeshare flights now filtered out when an airline is selected &mdash; only flights actually operated by that airline are shown, not partner flights wearing its flight numbers</div>
@@ -4300,17 +4301,18 @@ async function fetchLiveTraffic() {
       // Client-side re-verify airline when a filter is active (API doesn't always enforce it)
       if (airlineFilter && f.airline?.icao !== airlineFilter) continue;
 
-      // Skip codeshare flights — these are operated by a partner airline under the filtered airline's
-      // flight number and would show the wrong aircraft/livery (e.g. a UAL 777 on an EIN flight number)
+      // Skip known codeshare flights (when AviationStack populates the codeshared field)
       if (airlineFilter && f.codeshared != null) continue;
 
-      // Secondary codeshare check: the ICAO callsign prefix reflects the actual operating carrier.
-      // Accept both ICAO prefix (EIN104) and IATA prefix (EI104) — AviationStack uses both formats.
-      // If the prefix matches neither, the flight is operated by a different carrier.
-      if (airlineFilter && f.flight?.icao) {
-        const cs      = f.flight.icao.toUpperCase();
-        const iata    = airlineMap.get(airlineFilter)?.iata || '';
-        if (!cs.startsWith(airlineFilter) && !(iata && cs.startsWith(iata))) continue;
+      // Home-airport filter: require at least one endpoint to be in the airline's home country.
+      // This reliably eliminates partner-operated codeshares regardless of AviationStack data quality.
+      if (airlineFilter) {
+        const prefixes = AIRLINE_HOME_PREFIXES[airlineFilter];
+        if (prefixes) {
+          const depOk  = prefixes.some(p => f.departure.icao.startsWith(p));
+          const destOk = prefixes.some(p => f.arrival.icao.startsWith(p));
+          if (!depOk && !destOk) continue;
+        }
       }
 
       if (region && f.live?.latitude != null) {
@@ -4350,6 +4352,123 @@ async function fetchLiveTraffic() {
     btn.textContent = "REFRESH";
   }
 }
+
+// Maps airline ICAO → ICAO airport prefixes for their home country.
+// Used to filter out codeshares: a genuine operated flight always involves the airline's home country.
+const AIRLINE_HOME_PREFIXES = {
+  // Ireland
+  'RYR':['EI'],'EIN':['EI'],
+  // UK
+  'BAW':['EG'],'EZY':['EG'],'VLI':['EG'],'TOM':['EG'],'TCX':['EG'],
+  'JEA':['EG'],'EXS':['EG'],'LOG':['EG'],'SHT':['EG'],'WEN':['EG'],'DHL':['EG'],
+  // France
+  'AFR':['LF'],'HOP':['LF'],'TVF':['LF'],
+  // Germany
+  'DLH':['ED'],'EWG':['ED'],'GEC':['ED'],'CLX':['ED'],
+  // Netherlands
+  'KLM':['EH'],'TRA':['EH'],
+  // Spain
+  'IBE':['LE'],'VLG':['LE'],'IBK':['LE'],
+  // Italy
+  'AZA':['LI'],
+  // Switzerland
+  'SWR':['LS'],
+  // Austria
+  'AUA':['LO'],'EJU':['LO'],
+  // Belgium
+  'BEL':['EB'],
+  // Finland
+  'FIN':['EF'],
+  // Norway
+  'NAX':['EN'],'NOZ':['EN'],
+  // Scandinavia — SAS operates across Denmark (EK), Norway (EN), Sweden (ES)
+  'SAS':['EK','EN','ES'],
+  // Poland
+  'LOT':['EP'],
+  // Czech Republic
+  'CSA':['LK'],
+  // Hungary
+  'WZZ':['LH'],
+  // Romania
+  'ROT':['LR'],
+  // Greece
+  'OAL':['LG'],'AEE':['LG'],
+  // Turkey
+  'THY':['LT'],'PGT':['LT'],'SXD':['LT'],'CAI':['LT'],
+  // Azerbaijan
+  'AHY':['UB'],
+  // Iceland
+  'ICE':['BI'],
+  // Luxembourg
+  'LGL':['EL'],
+  // Portugal / Azores
+  'TAP':['LP'],'SAT':['LP'],
+  // Morocco
+  'RAM':['GM'],
+  // Tunisia
+  'TUN':['DT'],'TAR':['DT'],
+  // UAE
+  'UAE':['OM'],'ETD':['OM'],'FLY':['OM'],'FDB':['OM'],'ABY':['OM'],
+  // Qatar
+  'QTR':['OT'],
+  // Saudi Arabia
+  'SVA':['OE'],
+  // Kuwait
+  'KAC':['OK'],
+  // Lebanon
+  'MEA':['OL'],
+  // Oman
+  'OMA':['OO'],
+  // Bahrain
+  'GFA':['OB'],
+  // India
+  'AIC':['VI','VA','VE','VO'],'IGO':['VI','VA','VE','VO'],
+  // Pakistan
+  'PIA':['OP'],
+  // Singapore
+  'SIA':['WS'],
+  // Malaysia / Brunei
+  'MAS':['WM','WB'],
+  // Indonesia
+  'GIA':['WA','WI'],'AWQ':['WA','WI'],
+  // Hong Kong
+  'CPA':['VH'],
+  // China (mainland)
+  'CES':['ZS'],'CSN':['ZG','ZH'],'CCA':['ZB'],'CHH':['ZG','ZH'],'XMN':['ZS'],
+  // Taiwan
+  'CAL':['RC'],'EVA':['RC'],
+  // South Korea
+  'KAL':['RK'],'AAR':['RK'],
+  // Japan
+  'JAL':['RJ'],'ANA':['RJ'],
+  // Vietnam
+  'HVN':['VV'],
+  // Thailand
+  'THA':['VT'],'AIQ':['VT'],
+  // Philippines
+  'PAL':['RP'],'CEB':['RP'],
+  // Sri Lanka
+  'SLK':['VC'],
+  // Australia
+  'QFA':['Y'],'VOZ':['Y'],'JST':['Y'],
+  // New Zealand
+  'ANZ':['NZ'],
+  // USA
+  'UAL':['K'],'AAL':['K'],'DAL':['K'],'SWA':['K'],'ASA':['K'],
+  'SKW':['K'],'JBU':['K'],'FFT':['K'],'NKS':['K'],'HAL':['K','PH'],
+  'RPA':['K'],'SCX':['K'],'QXE':['K','PA'],'ENY':['K'],
+  'FDX':['K'],'UPS':['K'],'GTI':['K'],
+  // Canada
+  'ACA':['CY'],'WJA':['CY'],'PCO':['CY'],'TSC':['CY'],
+  // Mexico
+  'AMX':['MM'],'VOI':['MM'],'VIV':['MM'],
+  // South America
+  'LAN':['SC','SA','SB','SK'],'TAM':['SB'],'GLO':['SB'],'AZU':['SB'],
+  'AVA':['SK'],'COA':['MP'],
+  // Africa
+  'ETH':['HA'],'KQA':['HK'],'MSR':['HE'],
+  'RWD':['HR'],'SAA':['FA'],'CAW':['TT'],
+};
 
 const AIRLINE_FLEET = {
   // European LCC
